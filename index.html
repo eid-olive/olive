@@ -1371,15 +1371,15 @@ function stepLogin(note) {
     h("button", { type: "button", class: "mini", text: "تغيير إعداد Firebase", onclick: () => { clearCfg(); location.reload(); } })
   ]);
 }
-function stepVerify(user) {
-  const m = msgEl(justSignedUp ? "أرسلنا رسالة التحقق. افتح بريدك واضغط الرابط." : "", false);
+function stepVerify(user, note) {
+  const m = msgEl(note || (justSignedUp ? "أرسلنا رسالة التحقق. افتح بريدك واضغط الرابط." : ""), !!note);
   showGate("تأكيد البريد الإلكتروني", [
     h("p", { text: "لحماية بياناتك، لا يعمل التطبيق إلا بعد تأكيد بريدك: " + user.email }),
     h("p", { class: "hint", text: "افتح رسالة Firebase في بريدك (وراجع الرسائل غير المهمة Spam) واضغط الرابط، ثم ارجع هنا واضغط «تم التأكيد»." }),
     h("div", { class: "btns" },
       h("button", { type: "button", class: "btn primary", text: "تم التأكيد", onclick: async () => {
         try { await reload(auth.currentUser); await auth.currentUser.getIdToken(true); } catch (x) { m.textContent = authError(x); m.className = "msg err"; return; }
-        if (auth.currentUser.emailVerified) enter(auth.currentUser); else { m.textContent = "لم يتأكد البريد بعد. اضغط الرابط في الرسالة أولًا."; m.className = "msg err"; }
+        enter(auth.currentUser, true);
       } }),
       h("button", { type: "button", class: "btn", text: "أرسل الرسالة مرة أخرى", onclick: async () => { try { await sendEmailVerification(auth.currentUser); m.textContent = "تم إرسال رسالة جديدة."; m.className = "msg"; } catch (x) { m.textContent = authError(x); m.className = "msg err"; } } }),
       h("button", { type: "button", class: "mini", text: "تسجيل الخروج", onclick: () => signOut(auth) })),
@@ -1419,8 +1419,12 @@ function makeCol(path) {
 }
 function mime(name) { return /\.csv$/i.test(name) ? "text/csv;charset=utf-8" : /\.json$/i.test(name) ? "application/json" : "text/plain"; }
 
-async function enter(user) {
-  try { await getDoc(doc(db, "olive", "_probe")); } catch (e) { stepDenied(e, user); return; }
+async function enter(user, fromVerify) {
+  try { await getDoc(doc(db, "olive", "_probe")); }
+  catch (e) {
+    if (!user.emailVerified && e && e.code === "permission-denied") { stepVerify(user, fromVerify ? "لم يتأكد البريد بعد، أو هذا البريد غير مسموح له. اضغط الرابط في الرسالة أولًا." : ""); return; }
+    stepDenied(e, user); return;
+  }
   startApp(user);
 }
 function startApp(user) {
@@ -1480,7 +1484,6 @@ else {
   catch (e) { clearCfg(); stepConfig("إعداد Firebase غير صالح. الصقه من جديد."); }
   if (auth) onAuthStateChanged(auth, (user) => {
     if (!user) stepLogin();
-    else if (!user.emailVerified) stepVerify(user);
     else enter(user);
   });
 }
