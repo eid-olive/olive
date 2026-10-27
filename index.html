@@ -1,0 +1,1490 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>زيت الزيتون</title>
+<meta name="theme-color" content="#4a6a1f">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: ledger-style RTL workbook. Six linked sections (treasury, purchases, stock, production, waste, sales); summary tiles on top, form beside a table in each. */
+:root {
+  --bg: #eef0ea;
+  --surface: #fafbf7;
+  --fg: #1b2218;
+  --muted: #5d6657;
+  --line: #d6dacd;
+  --accent: #4a6a1f;
+  --accent-ink: #ffffff;
+  --accent-soft: #e4ebd2;
+  --pos: #17683f;
+  --pos-soft: #dcefe4;
+  --neg: #a8392a;
+  --neg-soft: #f6e0db;
+  --warn: #8a5a00;
+  --warn-soft: #f5e8c8;
+  --font-display: "Reem Kufi", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11150e; --surface: #181d14; --fg: #e8ecdf; --muted: #a0aa94; --line: #2a3224;
+    --accent: #b5d26b; --accent-ink: #11150e; --accent-soft: #26301a;
+    --pos: #6fd6a0; --pos-soft: #14291f; --neg: #ff9a85; --neg-soft: #33201c; --warn: #e6b955; --warn-soft: #33290f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11150e; --surface: #181d14; --fg: #e8ecdf; --muted: #a0aa94; --line: #2a3224;
+  --accent: #b5d26b; --accent-ink: #11150e; --accent-soft: #26301a;
+  --pos: #6fd6a0; --pos-soft: #14291f; --neg: #ff9a85; --neg-soft: #33201c; --warn: #e6b955; --warn-soft: #33290f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 1120px; margin-inline: auto; padding-block: 20px 56px; display: flex; flex-direction: column; gap: 24px; }
+.view { display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; font-weight: 700; line-height: 1.3; text-wrap: balance; }
+p { margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
+header.top h1 { font-size: clamp(30px, 7vw, 42px); }
+.save-state { font-size: 13px; padding: 2px 12px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.save-state.ok { color: var(--pos); border-color: var(--pos); }
+.save-state.bad { color: var(--neg); border-color: var(--neg); }
+.views { display: flex; gap: 0 18px; flex-wrap: wrap; border-block-end: 1.5px solid var(--fg); }
+.views button { min-height: 46px; padding-inline: 4px; border: 0; background: transparent; font-weight: 600; cursor: pointer; border-block-end: 4px solid transparent; margin-block-end: -1.5px; color: var(--muted); }
+.views button[aria-current="page"] { color: var(--fg); border-block-end-color: var(--accent); }
+.btn { min-height: 44px; padding-inline: 18px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn:disabled { opacity: .55; cursor: default; }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); border-block: 1.5px solid var(--fg); }
+.tile { padding: 16px 0; padding-inline-end: 16px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tile + .tile { padding-inline-start: 16px; border-inline-start: 1px solid var(--line); }
+.tile .lbl { font-size: 14px; color: var(--muted); }
+.tile .val { font-family: var(--font-display); font-size: clamp(26px, 5vw, 34px); line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tile .sub { font-size: 13px; color: var(--muted); }
+.pos { color: var(--pos); } .neg { color: var(--neg); }
+@media (max-width: 560px) { .tile + .tile { padding-inline-start: 0; border-inline-start: 0; border-block-start: 1px solid var(--line); } }
+
+.main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (min-width: 900px) { .main { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card h2 { font-size: 22px; }
+
+form { display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field > label, .field > .lab, label.field > span { font-size: 14px; color: var(--muted); }
+input[type="number"], input[type="date"], input[type="text"], select {
+  min-height: 44px; padding: 8px 12px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--bg); width: 100%; min-width: 0;
+}
+input[readonly] { background: var(--accent-soft); font-weight: 600; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 15px; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 380px) { .two { grid-template-columns: 1fr; } }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg label { position: relative; text-align: center; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg span { display: block; padding: 10px 8px; font-weight: 500; color: var(--fg); }
+.seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
+.seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: -3px; }
+.msg { min-height: 1.6em; font-size: 14px; color: var(--muted); }
+.msg.err { color: var(--neg); }
+.hint { font-size: 13px; color: var(--muted); }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab { min-height: 40px; padding-inline: 14px; border-radius: 99px; border: 1.5px solid var(--line); background: transparent; cursor: pointer; font-size: 15px; }
+.tab[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 15px; }
+th { text-align: start; font-size: 13px; font-weight: 500; color: var(--muted); padding: 8px 10px; border-block-end: 1.5px solid var(--fg); white-space: nowrap; }
+td { padding: 12px 10px; border-block-end: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+th.n, td.n { direction: ltr; text-align: left; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.n.strong { font-weight: 700; }
+.party { font-weight: 600; }
+.meta { color: var(--muted); font-size: 13px; }
+.cell-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-block-start: 6px; }
+.pill { font-size: 12px; padding: 1px 10px; border-radius: 99px; white-space: nowrap; display: inline-block; }
+.pill.paid { background: var(--pos-soft); color: var(--pos); }
+.pill.pending, .pill.low { background: var(--warn-soft); color: var(--warn); }
+.tag { font-size: 12px; padding: 0 8px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); margin-inline-start: 8px; font-weight: 500; white-space: nowrap; }
+.mini { min-height: 36px; padding-inline: 12px; border-radius: 4px; border: 1.5px solid var(--line); background: transparent; cursor: pointer; font-size: 14px; }
+.mini:hover { border-color: var(--accent); }
+.mini.danger.confirm { background: var(--neg); border-color: var(--neg); color: var(--bg); }
+.empty { padding: 20px 0; color: var(--muted); }
+.banner { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; background: var(--accent-soft); border-radius: 6px; padding: 12px 16px; font-size: 15px; }
+.sumline { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.items { list-style: none; margin: 0; padding: 0; }
+.item { padding: 18px 0; border-block-start: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.item:first-child { border-block-start: 0; padding-top: 0; }
+.item-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.item-head h3 { font-size: 20px; overflow-wrap: anywhere; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.kv { display: flex; gap: 4px 20px; flex-wrap: wrap; font-size: 15px; color: var(--muted); }
+.kv b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.panel { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.panel form { gap: 10px; }
+.panel h4 { margin: 0; font-size: 15px; font-weight: 600; }
+.cost { display: grid; gap: 4px; font-size: 15px; }
+.cost .l { display: flex; justify-content: space-between; gap: 12px; }
+.cost .l span:first-child { overflow-wrap: anywhere; min-width: 0; }
+.cost .l span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cost .l.sub { color: var(--muted); }
+.cost .l.total { border-block-start: 1.5px solid var(--fg); padding-top: 6px; margin-top: 4px; font-weight: 700; font-size: 17px; }
+.recipe { display: flex; flex-direction: column; gap: 10px; }
+.recipe-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: 8px; align-items: end; }
+@media (max-width: 420px) { .recipe-row { grid-template-columns: minmax(0, 1fr) 84px; } .recipe-row .mini { grid-column: 1 / -1; } }
+.draft-cost { background: var(--accent-soft); border-radius: 4px; padding: 10px 12px; font-size: 15px; }
+.prod { display: grid; gap: 10px; padding: 12px; border: 1px dashed var(--line); border-radius: 6px; }
+.prod-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.prod-row .field { width: 110px; }
+.need { list-style: none; margin: 0; padding: 0; font-size: 14px; display: grid; gap: 2px; }
+.hist { list-style: none; margin: 0; padding: 0; }
+.hist li { padding: 10px 0; border-block-start: 1px solid var(--line); display: grid; gap: 2px; }
+.hist li:first-child { border-block-start: 0; }
+.sub-h { font-size: 18px; margin-block-start: 8px; }
+
+input[type="password"], input[type="email"], textarea {
+  min-height: 44px; padding: 8px 12px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--bg); width: 100%; min-width: 0;
+}
+textarea { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; resize: vertical; }
+#gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 0; }
+#gatebox { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; }
+.gtitle { font-size: clamp(30px, 8vw, 42px); text-align: center; }
+#acct { margin-block-end: 8px; }
+header.top .mini { margin-inline-start: auto; }
+</style>
+</head>
+<body>
+<div id="gate" hidden><div id="gatebox"></div></div>
+<div id="appRoot" hidden>
+<div dir="rtl" lang="ar" class="app">
+  <header class="top">
+    <h1>زيت الزيتون</h1>
+    <span id="saveState" class="save-state" role="status">جارٍ التحميل</span>
+  </header>
+
+  <nav class="views" id="views" aria-label="أقسام المشروع"></nav>
+  <div id="migBanner"></div>
+
+  <!-- ======== الخزينة ======== -->
+  <div class="view" id="v_treasury">
+    <section class="tiles" id="tTiles" aria-label="ملخص الخزينة"></section>
+    <div id="banner"></div>
+    <div class="main">
+      <section class="card" aria-labelledby="th1">
+        <h2 id="th1">حركة جديدة</h2>
+        <form id="form" autocomplete="off">
+          <div class="field">
+            <span class="lab" id="typeLab">النوع</span>
+            <div class="seg" role="radiogroup" aria-labelledby="typeLab">
+              <label><input type="radio" name="ttype" value="income" checked><span>وارد</span></label>
+              <label><input type="radio" name="ttype" value="expense"><span>صادر</span></label>
+            </div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="amount">المبلغ (ج.م)</label><input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0"></div>
+            <div class="field"><label for="date">التاريخ</label><input id="date" type="date"></div>
+          </div>
+          <div class="field"><label for="party">البيان</label><input id="party" type="text" maxlength="80" placeholder="مثال: رصيد افتتاحي"></div>
+          <div class="field"><label for="note">ملاحظة (اختياري)</label><input id="note" type="text" maxlength="120"></div>
+          <button type="submit" class="btn primary" id="save">حفظ الحركة</button>
+          <p id="msg" class="msg" role="status"></p>
+        </form>
+        <p class="hint">لتسجيل رصيدك الحالي اختر «وارد» واكتب البيان «رصيد افتتاحي». المشتريات تُخصم من الخزينة والمبيعات تُضاف إليها تلقائيًا، فلا تسجّلها هنا.</p>
+      </section>
+      <section class="card" aria-labelledby="th2">
+        <h2 id="th2">حركة الخزينة</h2>
+        <div class="tabs" id="tabs" role="group" aria-label="تصفية الحركات"></div>
+        <div class="tbl-wrap"><table id="ledgerTbl"></table></div>
+        <p class="empty" id="ledgerEmpty" hidden></p>
+        <div class="btns">
+          <button type="button" class="btn" id="export" hidden>تصدير حركة الخزينة (CSV)</button>
+          <button type="button" class="btn" id="exportJson" hidden>نسخة احتياطية (JSON)</button>
+          <button type="button" class="btn" id="importBtn">استيراد نسخة احتياطية</button>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ======== المشتريات ======== -->
+  <div class="view" id="v_purchases" hidden>
+    <div class="main">
+      <section class="card" aria-labelledby="ph1">
+        <h2 id="ph1">شراء جديد</h2>
+        <form id="purForm" autocomplete="off">
+          <div class="field"><label for="purDate">التاريخ</label><input id="purDate" type="date"></div>
+          <div class="field"><label for="purName">اسم الصنف / المادة</label><input id="purName" type="text" maxlength="60" list="matNames" placeholder="مثال: زيتون"></div>
+          <datalist id="matNames"></datalist>
+          <div class="two">
+            <div class="field"><label for="purQty">الكمية</label><input id="purQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+            <div class="field"><label for="purUnit">الوحدة</label><select id="purUnit"></select></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="purPrice">سعر الوحدة (ج.م)</label><input id="purPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+            <div class="field"><label for="purTotal">الإجمالي (ج.م)</label><input id="purTotal" type="text" readonly tabindex="-1"></div>
+          </div>
+          <p class="hint" id="purHint" aria-live="polite"></p>
+          <button type="submit" class="btn primary">سجّل الشراء</button>
+          <p id="purMsg" class="msg" role="status"></p>
+        </form>
+        <p class="hint">يُخصم الإجمالي من الخزينة مباشرة، وتُضاف الكمية إلى المخزن. تكلفة الوحدة في المخزن تُحسب بمتوسط الأسعار.</p>
+      </section>
+      <section class="card" aria-labelledby="ph2">
+        <h2 id="ph2">سجل المشتريات</h2>
+        <p class="sumline" id="purSum"></p>
+        <div class="tbl-wrap"><table id="purTbl"></table></div>
+        <p class="empty" id="purEmpty" hidden>لا توجد مشتريات بعد. سجّل أول شراء من النموذج.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ======== المخزن ======== -->
+  <div class="view" id="v_stock" hidden>
+    <section class="tiles" id="sTiles" aria-label="ملخص المخزن"></section>
+    <section class="card" aria-labelledby="sh1">
+      <h2 id="sh1">الخامات</h2>
+      <p class="hint">تزيد الكميات تلقائيًا من المشتريات، وتنقص من الإنتاج والهالك.</p>
+      <ul class="items" id="matList"></ul>
+      <p id="mlmsg" class="msg" role="status"></p>
+    </section>
+    <section class="card" aria-labelledby="sh2">
+      <h2 id="sh2">المنتجات الجاهزة</h2>
+      <div class="tbl-wrap"><table id="finTbl"></table></div>
+      <p class="empty" id="finEmpty" hidden>لا توجد منتجات جاهزة بعد. أنشئ منتجًا وصنّعه من قسم الإنتاج.</p>
+    </section>
+  </div>
+
+  <!-- ======== الإنتاج ======== -->
+  <div class="view" id="v_production" hidden>
+    <div class="main">
+      <section class="card" aria-labelledby="pr1">
+        <h2 id="pr1">منتج جديد</h2>
+        <form id="pform" autocomplete="off">
+          <div class="field"><label for="pname">اسم المنتج</label><input id="pname" type="text" maxlength="60" placeholder="مثال: زجاجة زيت زيتون 1 لتر"></div>
+          <div class="field"><label for="pprice">سعر البيع للقطعة (اختياري)</label><input id="pprice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+          <div class="two">
+            <div class="field"><label for="pwaste">هالك التصنيع المقدّر %</label><input id="pwaste" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="0"></div>
+            <div class="field"><label for="pdepr">معامل الإهلاك %</label><input id="pdepr" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="0"></div>
+          </div>
+          <p class="hint">الهالك المقدّر يزيد الكمية المسحوبة من كل خامة. معامل الإهلاك نسبة من تكلفة الخامات تُضاف لتكلفة القطعة مقابل استهلاك الآلات.</p>
+          <div class="field">
+            <span class="lab">مكوّنات القطعة الواحدة من الخامات</span>
+            <div class="recipe" id="recipe"></div>
+          </div>
+          <button type="button" class="btn" id="addRow">إضافة خامة للمكوّنات</button>
+          <div class="draft-cost" id="draftCost" aria-live="polite"></div>
+          <div class="btns">
+            <button type="submit" class="btn primary" id="psave">حفظ المنتج</button>
+            <button type="button" class="btn" id="pcancel" hidden>إلغاء التعديل</button>
+          </div>
+          <p id="pmsg" class="msg" role="status"></p>
+        </form>
+      </section>
+      <section class="card" aria-labelledby="pr2">
+        <h2 id="pr2">المنتجات وتكلفة القطعة</h2>
+        <ul class="items" id="prodList"></ul>
+        <p id="plmsg" class="msg" role="status"></p>
+      </section>
+    </div>
+    <section class="card" id="histCard" aria-labelledby="pr3" hidden>
+      <h2 id="pr3">آخر عمليات الإنتاج</h2>
+      <p class="hint">حذف عملية إنتاج يُرجع الخامات المسحوبة إلى المخزن ويخصم القطع من المنتجات الجاهزة.</p>
+      <ul class="hist" id="hist"></ul>
+      <p id="histMsg" class="msg" role="status"></p>
+    </section>
+  </div>
+
+  <!-- ======== الهالك ======== -->
+  <div class="view" id="v_waste" hidden>
+    <div class="main">
+      <section class="card" aria-labelledby="wh1">
+        <h2 id="wh1">تسجيل هالك</h2>
+        <form id="wForm" autocomplete="off">
+          <div class="field"><label for="wDate">التاريخ</label><input id="wDate" type="date"></div>
+          <div class="field"><label for="wItem">الصنف</label><select id="wItem"></select></div>
+          <p class="hint" id="wHint" aria-live="polite"></p>
+          <div class="field"><label for="wQty">الكمية التالفة</label><input id="wQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+          <div class="field"><label for="wReason">سبب الهالك</label><input id="wReason" type="text" maxlength="100" list="reasons" placeholder="مثال: تلف أثناء التخزين"></div>
+          <datalist id="reasons"></datalist>
+          <button type="submit" class="btn primary">سجّل الهالك</button>
+          <p id="wMsg" class="msg" role="status"></p>
+        </form>
+        <p class="hint">تُخصم الكمية من المخزن تلقائيًا.</p>
+      </section>
+      <section class="card" aria-labelledby="wh2">
+        <h2 id="wh2">سجل الهالك</h2>
+        <p class="sumline" id="wSum"></p>
+        <div class="tbl-wrap"><table id="wTbl"></table></div>
+        <p class="empty" id="wEmpty" hidden>لا يوجد هالك مسجّل.</p>
+      </section>
+    </div>
+    <section class="card" aria-labelledby="wh3">
+      <h2 id="wh3">معامل الهالك وتكلفة الوحدة بعده</h2>
+      <p class="hint">للخامة: معامل الهالك = الهالك ÷ المشتريات. للمنتج: الهالك ÷ المُنتَج. تكلفة الوحدة بعد الهالك = تكلفة الوحدة ÷ (1 − معامل الهالك).</p>
+      <div class="tbl-wrap"><table id="wStatTbl"></table></div>
+      <p class="empty" id="wStatEmpty" hidden>تظهر هنا الأصناف التي سُجّل لها هالك.</p>
+    </section>
+  </div>
+
+  <!-- ======== المبيعات ======== -->
+  <div class="view" id="v_sales" hidden>
+    <div class="main">
+      <section class="card" aria-labelledby="sa1">
+        <h2 id="sa1">بيع جديد</h2>
+        <form id="saleForm" autocomplete="off">
+          <div class="field"><label for="saleDate">التاريخ</label><input id="saleDate" type="date"></div>
+          <div class="field"><label for="saleProduct">اسم المنتج</label><input id="saleProduct" type="text" maxlength="60" list="prodNames"></div>
+          <datalist id="prodNames"></datalist>
+          <p class="hint" id="saleHint" aria-live="polite"></p>
+          <div class="two">
+            <div class="field"><label for="salePrice">سعر القطعة (ج.م)</label><input id="salePrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+            <div class="field"><label for="saleQty">عدد القطع</label><input id="saleQty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></div>
+          </div>
+          <div class="field"><label for="saleTotal">الإجمالي (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
+          <button type="submit" class="btn primary">سجّل البيع</button>
+          <p id="saleMsg" class="msg" role="status"></p>
+        </form>
+        <p class="hint">يُضاف الإجمالي إلى الخزينة تلقائيًا، وإن كان المنتج مصنَّعًا من قسم الإنتاج تُخصم القطع من مخزونه الجاهز.</p>
+      </section>
+      <section class="card" aria-labelledby="sa2">
+        <h2 id="sa2">سجل المبيعات</h2>
+        <p class="sumline" id="saleSum"></p>
+        <div class="tbl-wrap"><table id="saleTbl"></table></div>
+        <p class="empty" id="saleEmpty" hidden>لا توجد مبيعات بعد. سجّل أول بيع من النموذج.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- ======== صافي الربح ======== -->
+  <div class="view" id="v_profit" hidden>
+    <section class="tiles" id="pfTiles" aria-label="ملخص الربح"></section>
+    <section class="card" aria-labelledby="pf1">
+      <h2 id="pf1">قائمة الأرباح</h2>
+      <div class="field" style="max-width: 280px"><label for="pfPeriod">الفترة</label><select id="pfPeriod"></select></div>
+      <div class="tbl-wrap"><table id="pfTbl"></table></div>
+      <p class="hint" id="pfNote"></p>
+    </section>
+    <section class="card" aria-labelledby="pf2">
+      <h2 id="pf2">المصروفات التشغيلية في الفترة</h2>
+      <p class="hint">هي الحركات الصادرة التي سجّلتها يدويًا في الخزينة (مثل التوصيل). مشتريات الخامات لا تدخل هنا لأنها تتحول إلى تكلفة عند البيع.</p>
+      <div class="tbl-wrap"><table id="pfOpex"></table></div>
+      <p class="empty" id="pfOpexEmpty" hidden>لا توجد مصروفات تشغيلية في هذه الفترة.</p>
+    </section>
+  </div>
+</div>
+
+
+</div>
+<script type="text/plain" id="appcode">
+
+document.documentElement.dir = "rtl";
+document.documentElement.lang = "ar";
+(function () {
+  "use strict";
+  var VIEWS = [["treasury", "الخزينة"], ["purchases", "المشتريات"], ["stock", "المخزن"], ["production", "الإنتاج"], ["waste", "الهالك"], ["sales", "المبيعات"], ["profit", "صافي الربح"]];
+  var UNITS = ["كجم", "جرام", "لتر", "متر", "قطعة", "علبة", "لوح", "كرتونة"];
+  var REASONS = ["تلف أثناء التخزين", "انتهاء صلاحية", "كسر", "عيب تصنيع", "فاقد أثناء التصنيع", "سوء نقل"];
+  var now = new Date();
+  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0 };
+  var draft = [{ mat: "", qty: "" }];
+  var col = null, dbRef = null, uidRef = null, downloads = null, confirmTimer = null;
+
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function todayISO() { var d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function fm(n) { return Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 2 }); }
+  function money(n) { return fm(n) + " ج.م"; }
+  function qf(n) { return Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 3 }); }
+  function r2(n) { return Math.round(n * 100) / 100; }
+  function r3(n) { return Math.round(n * 1000) / 1000; }
+  function r4(n) { return Math.round(n * 10000) / 10000; }
+  function dateLabel(iso) {
+    var p = String(iso || "").split("-");
+    if (p.length !== 3) return "";
+    return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("ar-EG-u-nu-latn", { day: "numeric", month: "short", year: "2-digit" });
+  }
+  function h(tag, attrs) {
+    var el = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") el.className = attrs[k];
+      else if (k === "text") el.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c == null) continue;
+      el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+  function numInput(value, step) { var i = h("input", { type: "number", inputmode: "decimal", min: "0", step: step || "any" }); if (value != null) i.value = value; return i; }
+  function field(label, input) { return h("label", { class: "field" }, h("span", { text: label }), input); }
+  function sumBy(list, f) { return list.reduce(function (a, x) { return a + (Number(f(x)) || 0); }, 0); }
+  function byName(a, b) { return (a.name || "").localeCompare(b.name || "", "ar"); }
+  function newest(a, b) { return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); }
+  function norm(s) { return String(s || "").trim().toLowerCase(); }
+  function say(id, text, bad) { var m = $(id); m.textContent = text; m.className = "msg" + (bad ? " err" : ""); }
+  function errText(e) {
+    if (e && e.msg) return e.msg;
+    var c = e && e.code;
+    if (c === "quota_exceeded") return "امتلأت مساحة التخزين. احذف بيانات قديمة ثم حاول مجددًا.";
+    if (c === "invalid_argument") return "لا تملك صلاحية الكتابة في هذه الصفحة.";
+    return "تعذّر الحفظ. حاول مرة أخرى.";
+  }
+  function biz(msg) { return { msg: msg }; }
+  function debounce(ev) {
+    var f = ev.target;
+    if (f.dataset.busy) return true;
+    f.dataset.busy = "1";
+    setTimeout(function () { delete f.dataset.busy; }, 700);
+    return false;
+  }
+  var producing = false;
+
+  /* ---------- data access ---------- */
+  function K(kind) { return state.docs.filter(function (d) { return d.kind === kind; }); }
+  function E() { return state.docs.filter(function (d) { return !d.kind; }); }
+  function MATS() { return K("material").sort(byName); }
+  function PRODS() { return K("product").sort(byName); }
+  function matById(id) { return K("material").filter(function (d) { return d.id === id; })[0] || null; }
+  function prodById(id) { return K("product").filter(function (d) { return d.id === id; })[0] || null; }
+  function matByName(n) { var k = norm(n); return k ? (MATS().filter(function (m) { return norm(m.name) === k; })[0] || null) : null; }
+  function prodByName(n) { var k = norm(n); return k ? (PRODS().filter(function (p) { return norm(p.name) === k; })[0] || null) : null; }
+
+  async function create(data) {
+    data.createdAt = Date.now();
+    if (col) {
+      var ref = col.doc();
+      for (var a = 0; a < 3; a++) {
+        await ref.set(data);
+        var s = await ref.get();
+        if (s.exists) return ref.id;
+      }
+      throw biz("لم يتأكد حفظ السجل الجديد. راجع القائمة قبل إعادة المحاولة.");
+    }
+    data.id = "l" + Date.now() + Math.random().toString(36).slice(2, 6);
+    state.docs.push(data);
+    render();
+    return data.id;
+  }
+  async function patch(d, fields) {
+    if (col) {
+      var ref = col.doc(d.id);
+      for (var a = 0; a < 3; a++) {
+        await ref.update(fields);
+        var s = await ref.get(), cur = s.exists ? s.data() : null;
+        if (cur && Object.keys(fields).every(function (k) { return JSON.stringify(cur[k]) === JSON.stringify(fields[k]); })) return;
+      }
+      throw biz("لم يتأكد حفظ التعديل على «" + (d.name || d.party || "سجل") + "». راجع الأرصدة قبل إعادة المحاولة.");
+    }
+    Object.assign(d, fields);
+    render();
+  }
+  async function remove(d) {
+    if (col) { await col.doc(d.id).delete(); return; }
+    state.docs = state.docs.filter(function (x) { return x.id !== d.id; });
+    render();
+  }
+
+  /* ---------- treasury ---------- */
+  function treasury() {
+    var list = E().slice().sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); });
+    var bal = 0, inn = 0, out = 0;
+    var rows = list.map(function (e) {
+      var a = Number(e.amount) || 0, pend = e.status === "pending";
+      if (!pend) {
+        if (e.type === "income") { bal = r2(bal + a); inn = r2(inn + a); } else { bal = r2(bal - a); out = r2(out + a); }
+      }
+      return { e: e, bal: pend ? null : bal };
+    });
+    return { rows: rows, bal: bal, inn: inn, out: out };
+  }
+  function treasuryEntry(type, amount, date, party, note, source, refId) {
+    return create({ type: type, amount: r2(amount), date: date, party: party, note: note || "", source: source || "manual", refId: refId || "" });
+  }
+
+  /* ---------- cost model ---------- */
+  function prodCost(p) {
+    var lines = (p.recipe || []).map(function (r) {
+      var m = matById(r.mat), q = Number(r.qty) || 0;
+      return { m: m, qty: q, cost: m ? (Number(m.unitCost) || 0) * q : 0 };
+    });
+    var base = lines.reduce(function (a, l) { return a + l.cost; }, 0);
+    var waste = base * (Number(p.wastePct) || 0) / 100;
+    var dep = (base + waste) * (Number(p.deprPct) || 0) / 100;
+    return { lines: lines, base: base, waste: waste, dep: dep, unit: base + waste + dep };
+  }
+  function planFor(p, units) {
+    var f = 1 + (Number(p.wastePct) || 0) / 100, agg = {}, order = [];
+    (p.recipe || []).forEach(function (r) {
+      if (!(r.mat in agg)) { agg[r.mat] = 0; order.push(r.mat); }
+      agg[r.mat] += (Number(r.qty) || 0) * f * units;
+    });
+    var lines = order.map(function (id) {
+      var m = matById(id), need = agg[id], have = m ? Number(m.qty) || 0 : 0;
+      return { m: m, id: id, name: m ? m.name : "خامة محذوفة", unit: m ? m.unit : "", need: r3(need), have: have, short: !m || need > have + 1e-9 };
+    });
+    return { lines: lines, short: lines.some(function (l) { return l.short; }) };
+  }
+  function itemStats(target, id) {
+    var wasted = sumBy(K("waste").filter(function (x) { return x.target === target && x.itemId === id; }), function (x) { return x.qty; });
+    var item, base, unitCost;
+    if (target === "material") {
+      item = matById(id);
+      base = sumBy(K("purchase").filter(function (x) { return x.matId === id; }), function (x) { return x.qty; });
+      unitCost = item ? Number(item.unitCost) || 0 : 0;
+    } else {
+      item = prodById(id);
+      base = sumBy(K("batch").filter(function (x) { return x.productId === id; }), function (x) { return x.units; });
+      unitCost = item ? prodCost(item).unit : 0;
+    }
+    var coef = base > 0 ? wasted / base : null;
+    var after = coef != null && coef < 1 ? unitCost / (1 - coef) : null;
+    return { item: item, base: r3(base), wasted: r3(wasted), coef: coef, unitCost: unitCost, after: after };
+  }
+
+  /* ---------- shared UI ---------- */
+  function tileTo(box, lbl, val, cls, sub) {
+    box.appendChild(h("div", { class: "tile" },
+      h("span", { class: "lbl", text: lbl }),
+      h("span", { class: "val " + (cls || ""), dir: "ltr", text: val }),
+      sub ? h("span", { class: "sub", text: sub }) : null));
+  }
+  function tbl(el, heads, rows) {
+    el.textContent = "";
+    var tr = h("tr");
+    heads.forEach(function (hd) { tr.appendChild(h("th", { class: hd[1] || "", text: hd[0] })); });
+    el.appendChild(h("thead", null, tr));
+    var tb = h("tbody");
+    rows.forEach(function (r) {
+      var row = h("tr");
+      r.forEach(function (c, i) {
+        var td = h("td", { class: heads[i][1] || "" });
+        if (c instanceof Node) td.appendChild(c); else td.textContent = c == null ? "" : c;
+        row.appendChild(td);
+      });
+      tb.appendChild(row);
+    });
+    el.appendChild(tb);
+  }
+  function delBtn(d, msgId) {
+    var asking = state.confirmId === d.id;
+    return h("button", { type: "button", class: "mini danger" + (asking ? " confirm" : ""), text: asking ? "اضغط مرة أخرى للحذف" : "حذف", onclick: function () { askDelete(d, msgId); } });
+  }
+  function costLine(l, r, cls) { return h("div", { class: "l " + (cls || "") }, h("span", { text: l }), h("span", { dir: "ltr", text: r })); }
+
+  /* ---------- deletion with reversal ---------- */
+  var DEL = {
+    entry: function (d) { return remove(d); },
+    material: async function (m) {
+      var used = PRODS().filter(function (p) { return (p.recipe || []).some(function (r) { return r.mat === m.id; }); });
+      for (var i = 0; i < used.length; i++) await patch(used[i], { recipe: used[i].recipe.filter(function (r) { return r.mat !== m.id; }) });
+      await remove(m);
+      return used.length ? "تم حذف الخامة وأُزيلت من مكوّنات: " + used.map(function (p) { return p.name; }).join("، ") + "." : "";
+    },
+    product: function (d) { return remove(d); },
+    purchase: async function (p) {
+      var m = p.matId ? matById(p.matId) : null, note = "";
+      if (m) {
+        var have = Number(m.qty) || 0;
+        if (have + 1e-9 < Number(p.qty)) note = "تم الحذف. كان جزء من الكمية قد استُهلك أو تلف، فأصبح رصيد «" + m.name + "» في المخزن صفرًا.";
+        await patch(m, { qty: r3(Math.max(0, have - Number(p.qty))) });
+      }
+      var links = E().filter(function (e) { return e.refId === p.id; });
+      for (var i = 0; i < links.length; i++) await remove(links[i]);
+      await remove(p);
+      return note;
+    },
+    batch: async function (b) {
+      var note = "";
+      var lines = b.used || [];
+      for (var i = 0; i < lines.length; i++) {
+        var m = lines[i].matId ? matById(lines[i].matId) : matByName(lines[i].name);
+        if (m) await patch(m, { qty: r3((Number(m.qty) || 0) + Number(lines[i].qty)) });
+      }
+      var p = b.productId ? prodById(b.productId) : null;
+      if (p) {
+        var st = Number(p.stock) || 0;
+        if (st + 1e-9 < Number(b.units)) note = "تم الحذف. بعض القطع بيعت أو تلفت، فأصبح الرصيد الجاهز من «" + p.name + "» صفرًا.";
+        await patch(p, { stock: r3(Math.max(0, st - Number(b.units))) });
+      }
+      await remove(b);
+      return note;
+    },
+    sale: async function (s) {
+      var p = s.productId ? prodById(s.productId) : null;
+      if (p && Number(s.stockTaken) > 0) await patch(p, { stock: r3((Number(p.stock) || 0) + Number(s.stockTaken)) });
+      var links = E().filter(function (e) { return e.refId === s.id; });
+      for (var i = 0; i < links.length; i++) await remove(links[i]);
+      await remove(s);
+    },
+    waste: async function (w) {
+      var item = w.target === "material" ? matById(w.itemId) : prodById(w.itemId);
+      if (item) {
+        if (w.target === "material") await patch(item, { qty: r3((Number(item.qty) || 0) + Number(w.qty)) });
+        else await patch(item, { stock: r3((Number(item.stock) || 0) + Number(w.qty)) });
+      }
+      await remove(w);
+    }
+  };
+  function askDelete(d, msgId) {
+    var kind = d.kind || "entry";
+    if (kind === "material") {
+      var used = PRODS().filter(function (p) { return (p.recipe || []).some(function (r) { return r.mat === d.id; }); });
+      if (used.length && state.confirmId !== d.id) say(msgId, "«" + d.name + "» من مكوّنات: " + used.map(function (p) { return p.name; }).join("، ") + ". سيُحذف منها أيضًا. اضغط حذف مرة أخرى للتأكيد.", true);
+    }
+    if (state.confirmId === d.id) {
+      state.confirmId = null; clearTimeout(confirmTimer);
+      DEL[kind](d).then(function (note) { say(msgId, note || "تم الحذف.", false); }, function (err) { say(msgId, errText(err), true); });
+      return;
+    }
+    state.confirmId = d.id;
+    clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(function () { state.confirmId = null; render(); }, 4000);
+    render();
+  }
+
+  /* ---------- treasury view ---------- */
+  function renderTreasury() {
+    var T = treasury(), t = $("tTiles");
+    t.textContent = "";
+    tileTo(t, "الرصيد المتبقي", (T.bal < 0 ? "−" : "") + money(Math.abs(T.bal)), T.bal < 0 ? "neg" : "pos", T.bal < 0 ? "الرصيد بالسالب. سجّل وارد أو رصيدًا افتتاحيًا." : "الوارد ناقص الصادر");
+    tileTo(t, "إجمالي الوارد", money(T.inn), "pos");
+    tileTo(t, "إجمالي الصادر", money(T.out), "neg");
+    var b = $("banner"); b.textContent = "";
+    if (E().some(function (e) { return e.sample; })) {
+      b.appendChild(h("div", { class: "banner" }, h("span", { text: "بعض الحركات الظاهرة أمثلة للتجربة وليست بياناتك." }), h("button", { type: "button", class: "mini", text: "احذف الأمثلة", onclick: removeSamples })));
+    }
+    var tabs = $("tabs"); tabs.textContent = "";
+    [["all", "الكل"], ["income", "وارد"], ["expense", "صادر"]].forEach(function (x) {
+      tabs.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.filter === x[0]), text: x[1], onclick: function () { state.filter = x[0]; renderTreasury(); } }));
+    });
+    var rows = T.rows.filter(function (r) { return state.filter === "all" || r.e.type === state.filter; }).reverse();
+    var empty = $("ledgerEmpty");
+    if (!state.loaded) { empty.hidden = false; empty.textContent = "جارٍ تحميل الحركات…"; $("ledgerTbl").textContent = ""; return; }
+    empty.hidden = rows.length > 0;
+    empty.textContent = E().length ? "لا توجد حركات بهذا التصنيف." : "لا توجد حركات بعد. ابدأ برصيد افتتاحي من النموذج.";
+    if (!rows.length) { $("ledgerTbl").textContent = ""; } else {
+      tbl($("ledgerTbl"), [["التاريخ"], ["البيان"], ["وارد (ج.م)", "n"], ["صادر (ج.م)", "n"], ["الرصيد (ج.م)", "n"]], rows.map(function (r) {
+        var e = r.e, inc = e.type === "income", pend = e.status === "pending";
+        var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : "";
+        var cell = h("div", null,
+          h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
+          [e.category, e.note].filter(Boolean).length ? h("div", { class: "meta", text: [e.category, e.note].filter(Boolean).join(" · ") }) : null);
+        var acts = h("div", { class: "cell-acts" });
+        if (pend) {
+          acts.appendChild(h("span", { class: "pill pending", text: "معلّق" }));
+          acts.appendChild(h("button", { type: "button", class: "mini", text: "سجّل أنه تم", onclick: function () { patch(e, { status: "paid" }).catch(function (err) { say("msg", errText(err), true); }); } }));
+        }
+        if (src) acts.appendChild(h("span", { class: "meta", text: "يُحذف من صفحة " + src }));
+        else acts.appendChild(delBtn(e, "msg"));
+        cell.appendChild(acts);
+        return [dateLabel(e.date), cell, inc ? fm(e.amount) : "", inc ? "" : fm(e.amount), r.bal == null ? "—" : h("span", { class: r.bal < 0 ? "neg" : "", text: (r.bal < 0 ? "−" : "") + fm(Math.abs(r.bal)) })];
+      }));
+    }
+    $("export").hidden = !(downloads && E().length);
+    $("exportJson").hidden = !(downloads && state.docs.length);
+  }
+  async function removeSamples() {
+    var list = E().filter(function (e) { return e.sample; });
+    try { for (var i = 0; i < list.length; i++) await remove(list[i]); } catch (err) { say("msg", errText(err), true); }
+  }
+  function csvCell(v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; }
+  async function exportCsv() {
+    var rows = [["التاريخ", "البيان", "وارد", "صادر", "الرصيد", "ملاحظة"]];
+    treasury().rows.forEach(function (r) {
+      var e = r.e, inc = e.type === "income";
+      rows.push([e.date, e.party, inc ? e.amount : "", inc ? "" : e.amount, r.bal == null ? "" : r.bal, e.note]);
+    });
+    var csv = "﻿" + rows.map(function (r) { return r.map(csvCell).join(","); }).join("\r\n");
+    try { await downloads.save({ filename: "olive-oil-treasury-" + todayISO() + ".csv", data: csv }); }
+    catch (err) { if (!err || err.code !== "declined") say("msg", "تعذّر تجهيز الملف في هذا العرض.", true); }
+  }
+
+  async function exportJson() {
+    var docs = state.docs.map(function (d) { var o = Object.assign({}, d); delete o.id; return { id: d.id, data: o }; });
+    var json = JSON.stringify({ app: "olive-oil", version: 1, exportedAt: Date.now(), docs: docs });
+    try { await downloads.save({ filename: "olive-oil-backup-" + todayISO() + ".json", data: json }); say("msg", "تم تجهيز النسخة الاحتياطية (" + docs.length + " سجلًا).", false); }
+    catch (err) { if (!err || err.code !== "declined") say("msg", "تعذّر تجهيز الملف في هذا العرض.", true); }
+  }
+  async function readBackup(file) {
+    try {
+      var obj = JSON.parse(await file.text());
+      var docs = obj && obj.app === "olive-oil" && Array.isArray(obj.docs) ? obj.docs.filter(function (x) { return x && typeof x.id === "string" && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(x.id) && x.id !== "." && x.id !== ".." && !/^__.*__$/.test(x.id) && x.data && typeof x.data === "object" && !Array.isArray(x.data); }) : null;
+      if (!docs || !docs.length) throw new Error("bad");
+      state.importMsg = ""; state.importDone = 0; state.importPending = docs; renderMig();
+    } catch (e) { say("msg", "الملف ليس نسخة احتياطية صالحة من هذا التطبيق.", true); }
+  }
+  async function doImport() {
+    if (state.importing || !state.importPending) return;
+    if (!col) { state.importMsg = "الاستيراد يحتاج اتصالًا بقاعدة البيانات."; renderMig(); return; }
+    state.importing = true; state.importMsg = ""; renderMig();
+    var items = state.importPending, ok = 0;
+    try {
+      for (var i = 0; i < items.length; i++) { await col.doc(items[i].id).set(items[i].data); ok++; }
+      state.importDone = ok; state.importPending = null;
+    } catch (err) { state.importMsg = errText(err) + " تم استيراد " + ok + " من " + items.length + ". أعد المحاولة، ولن يتكرر أي سجل."; }
+    state.importing = false; renderMig();
+  }
+  $("exportJson").addEventListener("click", exportJson);
+  $("importBtn").addEventListener("click", function () { $("importFile").click(); });
+  $("importFile").addEventListener("change", function () { var f = $("importFile").files[0]; $("importFile").value = ""; if (f) readBackup(f); });
+
+  /* ---------- purchases view ---------- */
+  function syncPur() {
+    var name = $("purName").value, m = matByName(name);
+    $("purUnit").disabled = !!m;
+    if (m) $("purUnit").value = m.unit;
+    var q = parseFloat($("purQty").value) || 0, p = parseFloat($("purPrice").value) || 0;
+    $("purTotal").value = q > 0 && p > 0 ? fm(r2(q * p)) : "";
+    $("purHint").textContent = m ? "موجود في المخزن: " + qf(m.qty) + " " + m.unit + " بتكلفة " + money(m.unitCost) + " للوحدة." : (norm(name) ? "صنف جديد: يُضاف إلى المخزن تلقائيًا." : "");
+  }
+  function renderPurchases() {
+    var dl = $("matNames"); dl.textContent = "";
+    MATS().forEach(function (m) { dl.appendChild(h("option", { value: m.name })); });
+    var list = K("purchase").sort(newest);
+    $("purSum").textContent = list.length ? "إجمالي المشتريات: " + money(sumBy(list, function (p) { return p.total; })) : "";
+    $("purEmpty").hidden = !state.loaded || list.length > 0;
+    if (!list.length) { $("purTbl").textContent = ""; return; }
+    tbl($("purTbl"), [["التاريخ"], ["اسم الصنف / المادة"], ["الكمية", "n"], ["سعر الوحدة (ج.م)", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (p) {
+      return [dateLabel(p.date), p.name, qf(p.qty) + " " + (p.unit || ""), fm(p.unitPrice), h("b", { text: fm(p.total) }), delBtn(p, "purMsg")];
+    }));
+  }
+  $("purForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("purName").value.trim(), qty = parseFloat($("purQty").value), price = parseFloat($("purPrice").value), date = $("purDate").value;
+    if (!date) { say("purMsg", "اختر التاريخ.", true); return; }
+    if (!name) { say("purMsg", "اكتب اسم الصنف.", true); $("purName").focus(); return; }
+    if (!(qty > 0)) { say("purMsg", "أدخل كمية أكبر من صفر.", true); $("purQty").focus(); return; }
+    if (!(price >= 0)) { say("purMsg", "أدخل سعر الوحدة.", true); $("purPrice").focus(); return; }
+    var total = r2(qty * price), m = matByName(name), unit = m ? m.unit : $("purUnit").value;
+    try {
+      var matId;
+      if (m) {
+        var newQty = (Number(m.qty) || 0) + qty;
+        var avg = ((Number(m.qty) || 0) * (Number(m.unitCost) || 0) + qty * price) / newQty;
+        await patch(m, { qty: r3(newQty), unitCost: r4(avg) });
+        matId = m.id;
+      } else {
+        matId = await create({ kind: "material", name: name, unit: unit, qty: r3(qty), unitCost: r4(price), minQty: 0 });
+      }
+      var pid = await create({ kind: "purchase", date: date, name: name, unit: unit, qty: r3(qty), unitPrice: r4(price), total: total, matId: matId });
+      await treasuryEntry("expense", total, date, "شراء " + name, qf(qty) + " " + unit + " × " + fm(price), "purchase", pid);
+      $("purName").value = ""; $("purQty").value = ""; $("purPrice").value = ""; syncPur();
+      say("purMsg", "تم الشراء: خُصم " + money(total) + " من الخزينة وأُضيفت الكمية إلى المخزن.", false);
+      $("purName").focus();
+    } catch (err) { say("purMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
+  });
+  ["purName", "purQty", "purPrice"].forEach(function (id) { $(id).addEventListener("input", syncPur); });
+
+  /* ---------- stock view ---------- */
+  function isLow(m) { return Number(m.minQty) > 0 && Number(m.qty) <= Number(m.minQty); }
+  function matPanel(m) {
+    var cQ = numInput(m.qty), cC = numInput(m.unitCost), cM = numInput(m.minQty || "");
+    var msg = h("p", { class: "msg", role: "status" });
+    var fix = h("form", { autocomplete: "off", onsubmit: async function (ev) {
+      ev.preventDefault(); if (debounce(ev)) return;
+      var q = parseFloat(cQ.value), c = parseFloat(cC.value), mn = parseFloat(cM.value) || 0;
+      if (!(q >= 0) || !(c >= 0)) { msg.textContent = "أدخل كمية وتكلفة صحيحتين."; msg.className = "msg err"; return; }
+      try { await patch(m, { qty: r3(q), unitCost: r4(c), minQty: mn }); state.openMat = null; render(); }
+      catch (err) { msg.textContent = errText(err); msg.className = "msg err"; }
+    } },
+      h("h4", { text: "تصحيح الجرد" }),
+      field("الكمية الفعلية (" + m.unit + ")", cQ), field("تكلفة الوحدة (ج.م)", cC), field("حد إعادة الطلب", cM),
+      h("button", { type: "submit", class: "btn primary", text: "حفظ التصحيح" }));
+    return h("div", { class: "panel" }, fix, msg);
+  }
+  function renderStock() {
+    var mats = MATS(), prods = PRODS(), t = $("sTiles");
+    t.textContent = "";
+    var val = sumBy(mats, function (m) { return (Number(m.qty) || 0) * (Number(m.unitCost) || 0); });
+    tileTo(t, "قيمة الخامات في المخزن", money(val), "");
+    tileTo(t, "عدد الأصناف", String(mats.length), "");
+    var low = mats.filter(isLow).length;
+    tileTo(t, "تحتاج إعادة شراء", String(low), low ? "neg" : "", low ? "وصلت لحد إعادة الطلب أو أقل" : "لا توجد خامات ناقصة");
+    var ul = $("matList"); ul.textContent = "";
+    if (!state.loaded) ul.appendChild(h("li", { class: "empty", text: "جارٍ تحميل المخزن…" }));
+    else if (!mats.length) ul.appendChild(h("li", { class: "empty", text: "المخزن فارغ. تُضاف الخامات تلقائيًا عند تسجيل أول شراء من قسم المشتريات." }));
+    mats.forEach(function (m) {
+      var li = h("li", { class: "item" });
+      li.appendChild(h("div", { class: "item-head" },
+        h("div", null, h("h3", { text: m.name }), isLow(m) ? h("span", { class: "pill low", text: "قارب على النفاد" }) : null),
+        h("div", { class: "btns" },
+          h("button", { type: "button", class: "mini", text: state.openMat === m.id ? "إغلاق" : "تصحيح الجرد", onclick: function () { state.openMat = state.openMat === m.id ? null : m.id; renderStock(); } }),
+          delBtn(m, "mlmsg"))));
+      li.appendChild(h("div", { class: "kv" },
+        h("span", null, "المتاح: ", h("b", { text: qf(m.qty) + " " + m.unit })),
+        h("span", null, "تكلفة الوحدة: ", h("b", { text: money(m.unitCost) })),
+        h("span", null, "القيمة: ", h("b", { text: money((Number(m.qty) || 0) * (Number(m.unitCost) || 0)) }))));
+      if (state.openMat === m.id) li.appendChild(matPanel(m));
+      ul.appendChild(li);
+    });
+    $("finEmpty").hidden = !state.loaded || prods.length > 0;
+    if (!prods.length) $("finTbl").textContent = "";
+    else tbl($("finTbl"), [["المنتج"], ["الرصيد الجاهز (قطعة)", "n"], ["تكلفة القطعة (ج.م)", "n"], ["القيمة (ج.م)", "n"]], prods.map(function (p) {
+      var u = prodCost(p).unit;
+      return [p.name, qf(p.stock || 0), fm(u), fm((Number(p.stock) || 0) * u)];
+    }));
+  }
+
+  /* ---------- production view ---------- */
+  function cleanDraft() {
+    var agg = {}, order = [];
+    draft.forEach(function (r) {
+      var q = parseFloat(r.qty);
+      if (!r.mat || !(q > 0)) return;
+      if (!(r.mat in agg)) { agg[r.mat] = 0; order.push(r.mat); }
+      agg[r.mat] += q;
+    });
+    return order.map(function (id) { return { mat: id, qty: r4(agg[id]) }; });
+  }
+  function readNum(id, max) { var v = parseFloat($(id).value); if (!(v >= 0)) return 0; return max != null ? Math.min(v, max) : v; }
+  function updateDraftCost() {
+    var p = { recipe: cleanDraft(), wastePct: readNum("pwaste", 100), deprPct: readNum("pdepr", 100) };
+    var box = $("draftCost");
+    if (!p.recipe.length) { box.textContent = "أضف خامة وكميتها لتظهر تكلفة القطعة المتوقعة."; return; }
+    var c = prodCost(p), price = readNum("pprice");
+    var t = "تكلفة القطعة المتوقعة: " + money(c.unit);
+    if (price > 0) t += " · الربح: " + money(price - c.unit);
+    box.textContent = t;
+  }
+  function renderRecipe() {
+    var box = $("recipe");
+    box.textContent = "";
+    var mats = MATS();
+    if (!mats.length) { box.appendChild(h("p", { class: "hint", text: "لا توجد خامات في المخزن. سجّل مشتريات أولًا لتظهر هنا." })); updateDraftCost(); return; }
+    draft.forEach(function (r, i) {
+      var sel = h("select", { "aria-label": "الخامة" }, h("option", { value: "", text: "اختر خامة" }));
+      mats.forEach(function (m) { sel.appendChild(h("option", { value: m.id, text: m.name })); });
+      sel.value = r.mat;
+      var unit = h("span", { text: "الكمية" });
+      function setUnit() { var m = matById(sel.value); unit.textContent = m ? "الكمية (" + m.unit + ")" : "الكمية"; }
+      setUnit();
+      sel.addEventListener("change", function () { r.mat = sel.value; setUnit(); updateDraftCost(); });
+      var q = numInput(r.qty);
+      q.addEventListener("input", function () { r.qty = q.value; updateDraftCost(); });
+      var rm = h("button", { type: "button", class: "mini", text: "إزالة", onclick: function () { draft.splice(i, 1); if (!draft.length) draft.push({ mat: "", qty: "" }); renderRecipe(); } });
+      box.appendChild(h("div", { class: "recipe-row" }, h("label", { class: "field" }, h("span", { text: "الخامة" }), sel), h("label", { class: "field" }, unit, q), rm));
+    });
+    updateDraftCost();
+  }
+  function prodCard(p) {
+    var c = prodCost(p), li = h("li", { class: "item" });
+    li.appendChild(h("div", { class: "item-head" },
+      h("div", null, h("h3", { text: p.name }), h("div", { class: "hint", text: "الرصيد الجاهز في المخزن: " + qf(p.stock || 0) + " قطعة" })),
+      h("div", { class: "btns" }, h("button", { type: "button", class: "mini", text: "تعديل", onclick: function () { loadEdit(p); } }), delBtn(p, "plmsg"))));
+    var cost = h("div", { class: "cost" });
+    c.lines.forEach(function (l) {
+      cost.appendChild(costLine(l.m ? l.m.name + " (" + qf(l.qty) + " " + l.m.unit + " × " + money(l.m.unitCost) + ")" : "خامة محذوفة", money(l.cost), "sub"));
+    });
+    cost.appendChild(costLine("إجمالي الخامات", money(c.base)));
+    if (c.waste > 0) cost.appendChild(costLine("هالك التصنيع المقدّر (" + qf(p.wastePct) + "%)", money(c.waste)));
+    if (c.dep > 0) cost.appendChild(costLine("الإهلاك (" + qf(p.deprPct) + "%)", money(c.dep)));
+    cost.appendChild(costLine("تكلفة القطعة", money(c.unit), "total"));
+    var st = itemStats("product", p.id);
+    if (st.wasted > 0) {
+      cost.appendChild(costLine("معامل الهالك الفعلي (" + qf(st.wasted) + " من " + qf(st.base) + " قطعة)", st.coef == null ? "—" : (st.coef * 100).toFixed(1) + "%", "sub"));
+      if (st.after != null) cost.appendChild(costLine("تكلفة القطعة بعد الهالك", money(st.after), "total"));
+    }
+    li.appendChild(cost);
+    var price = Number(p.sellPrice) || 0;
+    if (price > 0) {
+      var prof = price - c.unit;
+      li.appendChild(h("div", { class: "kv" },
+        h("span", null, "سعر البيع: ", h("b", { text: money(price) })),
+        h("span", null, "ربح القطعة: ", h("b", { class: prof < 0 ? "neg" : "pos", text: money(prof) })),
+        h("span", null, "هامش الربح: ", h("b", { text: (prof / price * 100).toFixed(1) + "%" }))));
+    }
+    var uIn = numInput(1, "1"); uIn.min = "1";
+    var out = h("ul", { class: "need", "aria-live": "polite" });
+    var go = h("button", { type: "button", class: "btn primary", text: "صنّع واسحب الخامات" });
+    function refresh() {
+      var u = parseFloat(uIn.value);
+      out.textContent = "";
+      if (!(u > 0)) { go.disabled = true; return; }
+      var plan = planFor(p, u);
+      plan.lines.forEach(function (l) {
+        out.appendChild(h("li", { class: l.short ? "neg" : "", text: l.name + ": يحتاج " + qf(l.need) + " " + l.unit + " (المتاح " + qf(l.have) + ")" + (l.short ? " · ناقص " + qf(l.need - l.have) : "") }));
+      });
+      out.appendChild(h("li", { text: "تكلفة الدفعة: " + money(c.unit * u) }));
+      go.disabled = plan.short || !plan.lines.length;
+    }
+    uIn.addEventListener("input", refresh);
+    go.addEventListener("click", async function () {
+      var u = parseFloat(uIn.value);
+      if (!(u > 0) || producing) return;
+      producing = true; go.disabled = true;
+      say("plmsg", "جارٍ التصنيع وخصم الخامات… لا تغلق الصفحة.", false);
+      try { await produce(p, u); say("plmsg", "تم إنتاج " + qf(u) + " قطعة من «" + p.name + "»: خُصمت الخامات من المخزن وأُضيفت القطع لمخزون المنتجات الجاهزة.", false); }
+      catch (err) { say("plmsg", errText(err), true); }
+      producing = false;
+    });
+    refresh();
+    li.appendChild(h("div", { class: "prod" }, h("div", { class: "prod-row" }, field("عدد القطع", uIn), go), out));
+    return li;
+  }
+  function renderProduction() {
+    var ul = $("prodList"); ul.textContent = "";
+    if (!state.loaded) ul.appendChild(h("li", { class: "empty", text: "جارٍ تحميل المنتجات…" }));
+    else if (!PRODS().length) ul.appendChild(h("li", { class: "empty", text: "لا توجد منتجات بعد. أضف منتجًا وحدّد الخامات التي تدخل في القطعة الواحدة لتظهر تكلفتها." }));
+    PRODS().forEach(function (p) { ul.appendChild(prodCard(p)); });
+    var list = K("batch").sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); }).slice(0, 30);
+    $("histCard").hidden = !list.length;
+    var hs = $("hist"); hs.textContent = "";
+    list.forEach(function (b) {
+      hs.appendChild(h("li", null,
+        h("strong", { text: dateLabel(b.date) + " · " + (b.productName || "منتج") + " × " + qf(b.units) }),
+        h("span", { class: "hint", text: "التكلفة الكلية " + money(b.totalCost) + " (" + money(b.unitCost) + " للقطعة)" }),
+        h("span", { class: "hint", text: "المسحوب: " + (b.used || []).map(function (u) { return u.name + " " + qf(u.qty) + " " + u.unit; }).join("، ") }),
+        h("div", { class: "cell-acts" }, delBtn(b, "histMsg"))));
+    });
+    if (!document.activeElement || !$("pform").contains(document.activeElement)) renderRecipe();
+  }
+  async function produce(p, units) {
+    var plan = planFor(p, units);
+    if (plan.short) throw biz("الخامات في المخزن لا تكفي لهذه الكمية.");
+    var c = prodCost(p);
+    for (var i = 0; i < plan.lines.length; i++) {
+      var l = plan.lines[i];
+      await patch(l.m, { qty: r3(l.have - l.need) });
+    }
+    await patch(p, { stock: r3((Number(p.stock) || 0) + units) });
+    await create({ kind: "batch", productId: p.id, productName: p.name, units: units, unitCost: r2(c.unit), totalCost: r2(c.unit * units), date: todayISO(),
+      used: plan.lines.map(function (l) { return { matId: l.id, name: l.name, unit: l.unit, qty: l.need }; }) });
+  }
+  function loadEdit(p) {
+    state.editProd = p.id;
+    $("pname").value = p.name || "";
+    $("pprice").value = p.sellPrice || "";
+    $("pwaste").value = p.wastePct || "";
+    $("pdepr").value = p.deprPct || "";
+    draft = (p.recipe || []).map(function (r) { return { mat: r.mat, qty: String(r.qty) }; });
+    if (!draft.length) draft.push({ mat: "", qty: "" });
+    $("pr1").textContent = "تعديل المنتج";
+    $("psave").textContent = "حفظ التعديل";
+    $("pcancel").hidden = false;
+    renderRecipe();
+    $("pname").focus();
+  }
+  function resetProdForm() {
+    state.editProd = null;
+    $("pform").reset();
+    draft = [{ mat: "", qty: "" }];
+    $("pr1").textContent = "منتج جديد";
+    $("psave").textContent = "حفظ المنتج";
+    $("pcancel").hidden = true;
+    renderRecipe();
+  }
+  $("addRow").addEventListener("click", function () { draft.push({ mat: "", qty: "" }); renderRecipe(); });
+  ["pwaste", "pdepr", "pprice"].forEach(function (id) { $(id).addEventListener("input", updateDraftCost); });
+  $("pcancel").addEventListener("click", function () { resetProdForm(); say("pmsg", "", false); });
+  $("pform").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("pname").value.trim(), recipe = cleanDraft();
+    if (!name) { say("pmsg", "اكتب اسم المنتج.", true); $("pname").focus(); return; }
+    if (!recipe.length) { say("pmsg", "أضف خامة واحدة على الأقل بكمية أكبر من صفر.", true); return; }
+    var fields = { name: name, sellPrice: readNum("pprice"), wastePct: readNum("pwaste", 100), deprPct: readNum("pdepr", 100), recipe: recipe };
+    try {
+      if (state.editProd) {
+        var p = prodById(state.editProd);
+        if (p) await patch(p, fields);
+      } else {
+        fields.kind = "product"; fields.stock = 0;
+        await create(fields);
+      }
+      resetProdForm();
+      say("pmsg", "تم حفظ المنتج.", false);
+    } catch (err) { say("pmsg", errText(err), true); }
+  });
+
+  /* ---------- waste view ---------- */
+  function wasteItem() {
+    var v = $("wItem").value, i = v.indexOf(":");
+    if (i < 0) return null;
+    var target = v.slice(0, i), id = v.slice(i + 1);
+    var item = target === "material" ? matById(id) : prodById(id);
+    return item ? { target: target, id: id, item: item } : null;
+  }
+  function syncWaste() {
+    var w = wasteItem(), hint = $("wHint");
+    if (!w) { hint.textContent = ""; return; }
+    var have = w.target === "material" ? Number(w.item.qty) || 0 : Number(w.item.stock) || 0;
+    var unit = w.target === "material" ? w.item.unit : "قطعة";
+    hint.textContent = "المتاح في المخزن: " + qf(have) + " " + unit;
+  }
+  function renderWaste() {
+    var rd = $("reasons"); rd.textContent = "";
+    REASONS.forEach(function (r) { rd.appendChild(h("option", { value: r })); });
+    var sel = $("wItem"), cur = sel.value;
+    sel.textContent = "";
+    sel.appendChild(h("option", { value: "", text: "اختر الصنف" }));
+    var g1 = h("optgroup", { label: "خامات" }), g2 = h("optgroup", { label: "منتجات جاهزة" });
+    MATS().forEach(function (m) { g1.appendChild(h("option", { value: "material:" + m.id, text: m.name })); });
+    PRODS().forEach(function (p) { g2.appendChild(h("option", { value: "product:" + p.id, text: p.name })); });
+    if (g1.children.length) sel.appendChild(g1);
+    if (g2.children.length) sel.appendChild(g2);
+    sel.value = cur;
+    if (sel.selectedIndex < 0) sel.selectedIndex = 0;
+    syncWaste();
+    var list = K("waste").sort(newest);
+    $("wSum").textContent = list.length ? "إجمالي خسارة الهالك: " + money(sumBy(list, function (x) { return x.loss; })) : "";
+    $("wEmpty").hidden = !state.loaded || list.length > 0;
+    if (!list.length) $("wTbl").textContent = "";
+    else tbl($("wTbl"), [["التاريخ"], ["الصنف"], ["الكمية", "n"], ["السبب"], ["قيمة الخسارة (ج.م)", "n"], [""]], list.map(function (x) {
+      return [dateLabel(x.date), x.itemName, qf(x.qty) + " " + (x.unit || ""), x.reason, fm(x.loss), delBtn(x, "wMsg")];
+    }));
+    var keys = [], seen = {};
+    list.forEach(function (x) { var k = x.target + ":" + x.itemId; if (!seen[k]) { seen[k] = 1; keys.push([x.target, x.itemId, x.itemName]); } });
+    $("wStatEmpty").hidden = keys.length > 0;
+    if (!keys.length) $("wStatTbl").textContent = "";
+    else tbl($("wStatTbl"), [["الصنف"], ["الأساس", ""], ["الهالك", "n"], ["معامل الهالك", "n"], ["تكلفة الوحدة (ج.م)", "n"], ["التكلفة بعد الهالك (ج.م)", "n"]], keys.map(function (k) {
+      var s = itemStats(k[0], k[1]);
+      return [k[2], k[0] === "material" ? "المشتريات: " + qf(s.base) : "المُنتَج: " + qf(s.base), qf(s.wasted), s.coef == null ? "—" : (s.coef * 100).toFixed(1) + "%", fm(s.unitCost), s.after == null ? "—" : h("b", { text: fm(s.after) })];
+    }));
+  }
+  $("wItem").addEventListener("change", syncWaste);
+  $("wForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var w = wasteItem(), qty = parseFloat($("wQty").value), reason = $("wReason").value.trim(), date = $("wDate").value;
+    if (!date) { say("wMsg", "اختر التاريخ.", true); return; }
+    if (!w) { say("wMsg", "اختر الصنف.", true); $("wItem").focus(); return; }
+    if (!(qty > 0)) { say("wMsg", "أدخل كمية أكبر من صفر.", true); $("wQty").focus(); return; }
+    if (!reason) { say("wMsg", "اكتب سبب الهالك.", true); $("wReason").focus(); return; }
+    var isMat = w.target === "material", have = isMat ? Number(w.item.qty) || 0 : Number(w.item.stock) || 0;
+    if (qty > have + 1e-9) { say("wMsg", "الكمية أكبر من المتاح في المخزن (" + qf(have) + ").", true); return; }
+    var unitCost = isMat ? Number(w.item.unitCost) || 0 : prodCost(w.item).unit;
+    try {
+      await patch(w.item, isMat ? { qty: r3(have - qty) } : { stock: r3(have - qty) });
+      await create({ kind: "waste", date: date, target: w.target, itemId: w.id, itemName: w.item.name, unit: isMat ? w.item.unit : "قطعة", qty: r3(qty), reason: reason, unitCost: r2(unitCost), loss: r2(qty * unitCost) });
+      $("wQty").value = ""; $("wReason").value = "";
+      say("wMsg", "تم تسجيل الهالك وخُصمت الكمية من المخزن.", false);
+    } catch (err) { say("wMsg", errText(err), true); }
+  });
+
+  /* ---------- sales view ---------- */
+  function syncSale() {
+    var name = $("saleProduct").value, p = prodByName(name);
+    var pr = parseFloat($("salePrice").value) || 0, q = parseFloat($("saleQty").value) || 0;
+    $("saleTotal").value = pr > 0 && q > 0 ? fm(r2(pr * q)) : "";
+    $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة · تكلفة القطعة " + money(prodCost(p).unit) : "";
+  }
+  $("saleProduct").addEventListener("input", function () {
+    var p = prodByName($("saleProduct").value);
+    if (p && Number(p.sellPrice) > 0 && !$("salePrice").value) $("salePrice").value = p.sellPrice;
+    syncSale();
+  });
+  ["salePrice", "saleQty"].forEach(function (id) { $(id).addEventListener("input", syncSale); });
+  function renderSales() {
+    var dl = $("prodNames"); dl.textContent = "";
+    PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
+    var list = K("sale").sort(newest);
+    var tot = sumBy(list, function (s) { return s.total; }), profit = sumBy(list.filter(function (s) { return s.unitCost > 0; }), function (s) { return s.total - s.unitCost * s.qty; });
+    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
+    $("saleEmpty").hidden = !state.loaded || list.length > 0;
+    if (!list.length) { $("saleTbl").textContent = ""; return; }
+    tbl($("saleTbl"), [["التاريخ"], ["اسم المنتج"], ["سعر القطعة (ج.م)", "n"], ["عدد القطع", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (s) {
+      var cell = h("div", null, h("div", { class: "party", text: s.product }));
+      if (s.unitCost > 0) cell.appendChild(h("div", { class: "meta", text: "ربح تقديري " + money(s.total - s.unitCost * s.qty) }));
+      return [dateLabel(s.date), cell, fm(s.price), qf(s.qty), h("b", { text: fm(s.total) }), delBtn(s, "saleMsg")];
+    }));
+  }
+  $("saleForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("saleProduct").value.trim(), price = parseFloat($("salePrice").value), qty = parseFloat($("saleQty").value), date = $("saleDate").value;
+    if (!date) { say("saleMsg", "اختر التاريخ.", true); return; }
+    if (!name) { say("saleMsg", "اكتب اسم المنتج.", true); $("saleProduct").focus(); return; }
+    if (!(price >= 0) || !($("salePrice").value !== "")) { say("saleMsg", "أدخل سعر القطعة.", true); $("salePrice").focus(); return; }
+    if (!(qty >= 1) || Math.floor(qty) !== qty) { say("saleMsg", "أدخل عدد قطع صحيحًا (1 أو أكثر).", true); $("saleQty").focus(); return; }
+    var p = prodByName(name), total = r2(price * qty);
+    var taken = p ? Math.min(Number(p.stock) || 0, qty) : 0;
+    try {
+      if (p && taken > 0) await patch(p, { stock: r3((Number(p.stock) || 0) - taken) });
+      var sid = await create({ kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 });
+      await treasuryEntry("income", total, date, "بيع " + name, qf(qty) + " × " + fm(price), "sale", sid);
+      $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = ""; syncSale();
+      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من المخزون الجاهز." : "."), false);
+      $("saleProduct").focus();
+    } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
+  });
+
+  /* ---------- net profit view ---------- */
+  state.period = "all";
+  function inPeriod(d) { return state.period === "all" || String(d || "").slice(0, 7) === state.period; }
+  function profitData() {
+    var sales = K("sale").filter(function (s) { return inPeriod(s.date); });
+    var rev = sumBy(sales, function (s) { return s.total; });
+    var cogs = sumBy(sales, function (s) { return (Number(s.unitCost) || 0) * (Number(s.qty) || 0); });
+    var noCost = sales.filter(function (s) { return !(Number(s.unitCost) > 0); }).length;
+    var opex = E().filter(function (e) { return e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات" && e.status !== "pending" && inPeriod(e.date); }).sort(newest);
+    var opexTotal = sumBy(opex, function (e) { return e.amount; });
+    var wasteLoss = sumBy(K("waste").filter(function (w) { return inPeriod(w.date); }), function (w) { return w.loss; });
+    var gross = rev - cogs;
+    return { rev: rev, cogs: cogs, noCost: noCost, opex: opex, opexTotal: opexTotal, wasteLoss: wasteLoss, gross: gross, net: gross - opexTotal - wasteLoss, count: sales.length };
+  }
+  function signed(n) { return (n < 0 ? "−" : "") + fm(Math.abs(n)); }
+  function renderProfit() {
+    var sel = $("pfPeriod"), months = {};
+    K("sale").concat(K("waste"), E()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
+    months[todayISO().slice(0, 7)] = 1;
+    sel.textContent = "";
+    sel.appendChild(h("option", { value: "all", text: "كل الفترة" }));
+    Object.keys(months).sort().reverse().forEach(function (m) {
+      sel.appendChild(h("option", { value: m, text: new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" }) }));
+    });
+    sel.value = state.period;
+    if (sel.selectedIndex < 0) { sel.value = "all"; state.period = "all"; }
+    var P = profitData(), t = $("pfTiles");
+    t.textContent = "";
+    tileTo(t, "صافي الربح", (P.net < 0 ? "−" : "") + money(Math.abs(P.net)), P.net < 0 ? "neg" : "pos", P.rev > 0 ? "هامش " + (P.net / P.rev * 100).toFixed(1) + "% من المبيعات" : "لا توجد مبيعات في الفترة");
+    tileTo(t, "إجمالي المبيعات", money(P.rev), "", P.count + " عملية بيع");
+    tileTo(t, "مجمل الربح", (P.gross < 0 ? "−" : "") + money(Math.abs(P.gross)), P.gross < 0 ? "neg" : "", "المبيعات ناقص تكلفة البضاعة");
+    tbl($("pfTbl"), [["البند"], ["المبلغ (ج.م)", "n"]], [
+      ["إجمالي المبيعات", fm(P.rev)],
+      ["ناقص: تكلفة البضاعة المباعة", fm(P.cogs)],
+      [h("b", { text: "مجمل الربح" }), h("b", { text: signed(P.gross) })],
+      ["ناقص: المصروفات التشغيلية", fm(P.opexTotal)],
+      ["ناقص: خسائر الهالك", fm(P.wasteLoss)],
+      [h("b", { text: "صافي الربح" }), h("b", { class: P.net < 0 ? "neg" : "pos", text: signed(P.net) })]
+    ]);
+    var notes = ["تكلفة البضاعة المباعة = تكلفة القطعة وقت البيع × عدد القطع (من قسم الإنتاج)."];
+    if (P.noCost) notes.push("تنبيه: " + P.noCost + " عملية بيع بلا تكلفة لأن المنتج غير مسجّل في الإنتاج، فالربح فيها أعلى من الحقيقي.");
+    $("pfNote").textContent = notes.join(" ");
+    $("pfOpexEmpty").hidden = P.opex.length > 0;
+    if (!P.opex.length) $("pfOpex").textContent = "";
+    else tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", h("b", { text: fm(P.opexTotal) })]]));
+  }
+  $("pfPeriod").addEventListener("change", function () { state.period = $("pfPeriod").value; renderProfit(); });
+
+  /* ---------- treasury form ---------- */
+  $("form").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var amount = parseFloat($("amount").value), date = $("date").value, party = $("party").value.trim();
+    if (!(amount > 0)) { say("msg", "أدخل مبلغًا أكبر من صفر.", true); $("amount").focus(); return; }
+    if (!date) { say("msg", "اختر التاريخ.", true); $("date").focus(); return; }
+    if (!party) { say("msg", "اكتب البيان.", true); $("party").focus(); return; }
+    var type = document.querySelector('input[name="ttype"]:checked').value;
+    try {
+      await treasuryEntry(type, amount, date, party, $("note").value.trim(), "manual", "");
+      $("amount").value = ""; $("party").value = ""; $("note").value = "";
+      say("msg", "تم حفظ الحركة.", false);
+      $("amount").focus();
+    } catch (err) { say("msg", errText(err), true); }
+  });
+  $("export").addEventListener("click", exportCsv);
+
+  /* ---------- shell ---------- */
+  function renderStatus() {
+    var el = $("saveState");
+    var map = { connecting: ["جارٍ التحميل", ""], saved: ["محفوظ تلقائيًا · بيانات مشتركة", "ok"], local: ["غير محفوظ: هذا العرض لا يدعم الحفظ", "bad"], error: ["تعذّر تحميل البيانات", "bad"] };
+    var s = map[state.mode];
+    el.textContent = s[0];
+    el.className = "save-state " + s[1];
+  }
+  function renderViews() {
+    var nav = $("views"); nav.textContent = "";
+    VIEWS.forEach(function (v) {
+      var b = h("button", { type: "button", text: v[1], onclick: function () { state.view = v[0]; render(); } });
+      if (state.view === v[0]) b.setAttribute("aria-current", "page");
+      nav.appendChild(b);
+    });
+  }
+  function renderMig() {
+    var b = $("migBanner"); b.textContent = "";
+    if (state.importDone) { b.appendChild(h("div", { class: "banner" }, h("span", { text: "تم استيراد " + state.importDone + " سجلًا من النسخة الاحتياطية." }))); return; }
+    if (state.importPending) {
+      var run = state.importing;
+      var okBtn = h("button", { type: "button", class: "btn primary", text: run ? "جارٍ الاستيراد…" : "تأكيد الاستيراد", onclick: doImport });
+      if (run) okBtn.disabled = true;
+      b.appendChild(h("div", { class: "banner" },
+        h("span", { text: "ملف النسخة الاحتياطية يحوي " + state.importPending.length + " سجلًا. الاستيراد يستبدل أي سجل له نفس المعرّف ولا يحذف غيره." }),
+        h("div", { class: "btns" }, okBtn,
+          run ? null : h("button", { type: "button", class: "btn", text: "إلغاء", onclick: function () { state.importPending = null; renderMig(); } }))));
+      if (state.importMsg) b.appendChild(h("p", { class: "msg err", role: "status", text: state.importMsg }));
+      return;
+    }
+    if (state.migDone) { b.appendChild(h("div", { class: "banner" }, h("span", { text: "تم نقل " + state.migDone + " سجلًا إلى المساحة المشتركة. يراها الآن كل من تشاركه الصفحة. نسختك الخاصة القديمة باقية دون تغيير." }))); return; }
+    if (!state.migrate) return;
+    var btn = h("button", { type: "button", class: "btn primary", text: state.migrating ? "جارٍ النقل…" : "انقل بياناتي إلى المساحة المشتركة", onclick: doMigrate });
+    if (state.migrating) btn.disabled = true;
+    b.appendChild(h("div", { class: "banner" },
+      h("span", { text: "وجدنا " + state.migrate.length + " سجلًا في مساحتك الخاصة من قبل المشاركة. انقلها مرة واحدة ليراها ويعدّلها كل من تشاركه الصفحة. تبقى نسختك الخاصة كما هي." }), btn));
+    if (state.migMsg) b.appendChild(h("p", { class: "msg err", role: "status", text: state.migMsg }));
+  }
+  async function doMigrate() {
+    if (state.migrating || !state.migrate || !col) return;
+    state.migrating = true; state.migMsg = ""; renderMig();
+    var items = state.migrate;
+    try {
+      for (var i = 0; i < items.length; i++) await col.doc(items[i].id).set(items[i].data);
+      await dbRef.doc("data/users/" + uidRef + "/migrated").set({ at: Date.now(), count: items.length });
+      state.migDone = items.length; state.migrate = null;
+    } catch (err) { state.migMsg = errText(err) + " يمكنك إعادة المحاولة، ولن يتكرر أي سجل."; }
+    state.migrating = false; renderMig();
+  }
+  function render() {
+    renderStatus(); renderViews(); renderMig();
+    VIEWS.forEach(function (v) { $("v_" + v[0]).hidden = state.view !== v[0]; });
+    if (state.view === "treasury") renderTreasury();
+    else if (state.view === "purchases") renderPurchases();
+    else if (state.view === "stock") renderStock();
+    else if (state.view === "production") renderProduction();
+    else if (state.view === "waste") renderWaste();
+    else if (state.view === "profit") renderProfit();
+    else renderSales();
+  }
+
+  /* ---------- boot ---------- */
+  ["date", "purDate", "wDate", "saleDate"].forEach(function (id) { $(id).value = todayISO(); });
+  UNITS.forEach(function (u) { $("purUnit").appendChild(h("option", { value: u, text: u })); });
+  renderRecipe();
+  render();
+  (async function () {
+    var c = window.claude, db = null, user = null;
+    try { if (c && c.use) { db = await c.use("db"); user = await c.use("user"); downloads = await c.use("downloads"); } } catch (e) { db = null; }
+    var uid = null;
+    try { uid = user ? await user.id() : null; } catch (e) { uid = null; }
+    if (!db) { state.mode = "local"; state.loaded = true; render(); return; }
+    dbRef = db; uidRef = uid;
+    col = db.collection("olive");
+    col.onSnapshot(function (snap) {
+      state.docs = snap.docs.map(function (d) { return Object.assign({}, d.data() || {}, { id: d.id }); });
+      state.loaded = true; state.mode = "saved"; render();
+    }, function () { state.mode = "error"; state.loaded = true; render(); });
+    if (uid) {
+      try {
+        var old = await db.collection("data/users/" + uid).get();
+        var done = old.docs.some(function (d) { return d.id === "migrated"; });
+        var items = old.docs.filter(function (d) { return d.id !== "migrated"; }).map(function (d) { return { id: d.id, data: Object.assign({}, d.data() || {}) }; });
+        if (items.length && !done) { state.migrate = items; render(); }
+      } catch (e) { /* no private data to move */ }
+    }
+  })();
+})();
+
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, reload } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    if (k === "class") el.className = attrs[k];
+    else if (k === "text") el.textContent = attrs[k];
+    else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), attrs[k]);
+    else el.setAttribute(k, attrs[k]);
+  }
+  kids.forEach((c) => { if (c != null) el.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+  return el;
+}
+const LS = "olive_fb_cfg";
+let memCfg = null;
+function loadCfg() { try { return JSON.parse(localStorage.getItem(LS) || "null"); } catch (e) { return memCfg; } }
+function saveCfg(c) { memCfg = c; try { localStorage.setItem(LS, JSON.stringify(c)); } catch (e) { /* storage blocked */ } }
+function clearCfg() { memCfg = null; try { localStorage.removeItem(LS); } catch (e) { /* ignore */ } }
+function parseCfg(text) {
+  const cfg = {}; const re = /([A-Za-z]+)\s*:\s*["']([^"']+)["']/g; let m;
+  while ((m = re.exec(text))) cfg[m[1]] = m[2];
+  return cfg.apiKey && cfg.projectId && cfg.appId ? cfg : null;
+}
+(function () {
+  const m = /#cfg=([^&]+)/.exec(location.hash);
+  if (!m) return;
+  try { const c = JSON.parse(atob(decodeURIComponent(m[1]))); if (c && c.apiKey && c.projectId && c.appId) saveCfg(c); } catch (e) { /* bad link */ }
+  history.replaceState(null, "", location.pathname + location.search);
+})();
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+const gate = $("gate"), box = $("gatebox");
+function showGate(title, nodes) {
+  box.textContent = "";
+  box.appendChild(h("h1", { class: "gtitle", text: "زيت الزيتون" }));
+  box.appendChild(h("div", { class: "card" }, h("h2", { text: title }), ...nodes));
+  gate.hidden = false; $("appRoot").hidden = true;
+}
+function msgEl(text, bad) { return h("p", { class: "msg" + (bad ? " err" : ""), role: "status", text: text || "" }); }
+function field(label, input) { return h("label", { class: "field" }, h("span", { text: label }), input); }
+
+let app, auth, db, cfg, justSignedUp = false;
+
+function stepConfig(note) {
+  const ta = h("textarea", { id: "cfgText", rows: "8", dir: "ltr", placeholder: 'const firebaseConfig = {\n  apiKey: "...",\n  authDomain: "...",\n  projectId: "...",\n  appId: "..."\n};' });
+  const m = msgEl(note, !!note);
+  showGate("إعداد قاعدة البيانات", [
+    h("p", { class: "hint", text: "الصق هنا إعداد Firebase الذي نسخته من موقع Firebase (الخطوة الخامسة في الدليل). يُحفظ على هذا الجهاز ولا تحتاج لإدخاله ثانية." }),
+    ta,
+    h("button", { type: "button", class: "btn primary", text: "حفظ ومتابعة", onclick: () => {
+      const c = parseCfg(ta.value);
+      if (!c) { m.textContent = "لم أجد الإعداد في النص. تأكد أنك نسخت كل الأسطر من const firebaseConfig إلى القوس الأخير."; m.className = "msg err"; return; }
+      saveCfg(c); location.reload();
+    } }),
+    m
+  ]);
+}
+function authError(e) {
+  const c = (e && e.code) || "";
+  if (c === "auth/invalid-credential" || c === "auth/user-not-found" || c === "auth/wrong-password") return "البريد أو كلمة المرور غير صحيحة.";
+  if (c === "auth/email-already-in-use") return "هذا البريد مسجّل من قبل. اضغط «دخول» بدل «إنشاء حساب».";
+  if (c === "auth/weak-password") return "كلمة المرور قصيرة. اكتب 6 أحرف أو أرقام على الأقل.";
+  if (c === "auth/invalid-email") return "البريد الإلكتروني غير صحيح.";
+  if (c === "auth/network-request-failed") return "لا يوجد اتصال بالإنترنت.";
+  if (c === "auth/operation-not-allowed") return "تسجيل الدخول بالبريد غير مفعّل في Firebase. فعّله من Authentication ثم Sign-in method.";
+  if (c === "auth/too-many-requests") return "محاولات كثيرة. انتظر قليلًا ثم أعد المحاولة.";
+  if (c === "auth/invalid-api-key" || c === "auth/api-key-not-valid.-please-pass-a-valid-api-key.") return "إعداد Firebase غير صحيح (مفتاح غير صالح). غيّر الإعداد من الرابط أسفل الصفحة.";
+  return "تعذّرت العملية (" + (c || "خطأ غير معروف") + ").";
+}
+function stepLogin(note) {
+  const email = h("input", { type: "text", inputmode: "email", id: "em", autocomplete: "username", dir: "ltr", autocapitalize: "none" });
+  const pass = h("input", { type: "password", id: "pw", autocomplete: "current-password", dir: "ltr" });
+  const m = msgEl(note, !!note);
+  const bad = (t) => { m.textContent = t; m.className = "msg err"; };
+  const val = () => { const e = email.value.trim().toLowerCase(); if (!e || !pass.value) { bad("اكتب البريد وكلمة المرور."); return null; } return e; };
+  showGate("تسجيل الدخول", [
+    field("البريد الإلكتروني", email), field("كلمة المرور", pass),
+    h("div", { class: "btns" },
+      h("button", { type: "button", class: "btn primary", text: "دخول", onclick: async () => { const e = val(); if (!e) return; try { await signInWithEmailAndPassword(auth, e, pass.value); } catch (x) { bad(authError(x)); } } }),
+      h("button", { type: "button", class: "btn", text: "إنشاء حساب", onclick: async () => { const e = val(); if (!e) return; try { justSignedUp = true; const cr = await createUserWithEmailAndPassword(auth, e, pass.value); await sendEmailVerification(cr.user); } catch (x) { justSignedUp = false; bad(authError(x)); } } })),
+    h("button", { type: "button", class: "mini", text: "نسيت كلمة المرور", onclick: async () => { const e = email.value.trim().toLowerCase(); if (!e) { bad("اكتب بريدك أولًا."); return; } try { await sendPasswordResetEmail(auth, e); m.textContent = "أرسلنا رسالة لإعادة تعيين كلمة المرور إلى بريدك."; m.className = "msg"; } catch (x) { bad(authError(x)); } } }),
+    m,
+    h("button", { type: "button", class: "mini", text: "تغيير إعداد Firebase", onclick: () => { clearCfg(); location.reload(); } })
+  ]);
+}
+function stepVerify(user) {
+  const m = msgEl(justSignedUp ? "أرسلنا رسالة التحقق. افتح بريدك واضغط الرابط." : "", false);
+  showGate("تأكيد البريد الإلكتروني", [
+    h("p", { text: "لحماية بياناتك، لا يعمل التطبيق إلا بعد تأكيد بريدك: " + user.email }),
+    h("p", { class: "hint", text: "افتح رسالة Firebase في بريدك (وراجع الرسائل غير المهمة Spam) واضغط الرابط، ثم ارجع هنا واضغط «تم التأكيد»." }),
+    h("div", { class: "btns" },
+      h("button", { type: "button", class: "btn primary", text: "تم التأكيد", onclick: async () => {
+        try { await reload(auth.currentUser); await auth.currentUser.getIdToken(true); } catch (x) { m.textContent = authError(x); m.className = "msg err"; return; }
+        if (auth.currentUser.emailVerified) enter(auth.currentUser); else { m.textContent = "لم يتأكد البريد بعد. اضغط الرابط في الرسالة أولًا."; m.className = "msg err"; }
+      } }),
+      h("button", { type: "button", class: "btn", text: "أرسل الرسالة مرة أخرى", onclick: async () => { try { await sendEmailVerification(auth.currentUser); m.textContent = "تم إرسال رسالة جديدة."; m.className = "msg"; } catch (x) { m.textContent = authError(x); m.className = "msg err"; } } }),
+      h("button", { type: "button", class: "mini", text: "تسجيل الخروج", onclick: () => signOut(auth) })),
+    m
+  ]);
+}
+function stepDenied(e, user) {
+  const c = (e && e.code) || "";
+  const text = c === "permission-denied"
+    ? "هذا البريد (" + user.email + ") غير مسموح له بالدخول، أو لم تُنشر قواعد Firestore بعد. راجع الخطوة الرابعة في الدليل وتأكد أن بريدك مكتوب في القواعد، ثم اضغط «إعادة المحاولة»."
+    : "تعذّر الاتصال بقاعدة البيانات (" + (c || "خطأ") + "). تأكد من الإنترنت ومن أنك أنشأت Firestore Database في الخطوة الثالثة.";
+  showGate("لا يمكن فتح البيانات", [
+    h("p", { text }),
+    h("div", { class: "btns" },
+      h("button", { type: "button", class: "btn primary", text: "إعادة المحاولة", onclick: () => enter(user) }),
+      h("button", { type: "button", class: "btn", text: "تسجيل الخروج", onclick: () => signOut(auth) }))
+  ]);
+}
+
+function sanitize(d) { return JSON.parse(JSON.stringify(d)); }
+function needOnline() { if (navigator.onLine === false) throw { msg: "لا يوجد اتصال بالإنترنت. لم يُحفظ شيء." }; }
+function makeCol(path) {
+  const c = collection(db, path);
+  const wrap = (s) => ({ docs: s.docs.map((d) => ({ id: d.id, exists: true, data: () => d.data() })), size: s.size });
+  const mk = (r) => ({
+    id: r.id,
+    get: async () => { const s = await getDoc(r); return { id: s.id, exists: s.exists(), data: () => s.data() }; },
+    set: async (d) => { needOnline(); await setDoc(r, sanitize(d)); },
+    update: async (f) => { needOnline(); await updateDoc(r, sanitize(f)); },
+    delete: async () => { needOnline(); await deleteDoc(r); }
+  });
+  return {
+    doc: (id) => mk(id ? doc(c, id) : doc(c)),
+    get: async () => wrap(await getDocs(c)),
+    onSnapshot: (next, err) => onSnapshot(c, (s) => next(wrap(s)), err)
+  };
+}
+function mime(name) { return /\.csv$/i.test(name) ? "text/csv;charset=utf-8" : /\.json$/i.test(name) ? "application/json" : "text/plain"; }
+
+async function enter(user) {
+  try { await getDoc(doc(db, "olive", "_probe")); } catch (e) { stepDenied(e, user); return; }
+  startApp(user);
+}
+function startApp(user) {
+  const empty = { docs: [], size: 0 };
+  window.claude = {
+    use: async (name) => {
+      if (name === "db") return { collection: (p) => (p === "olive" ? makeCol(p) : { get: async () => empty, doc: () => ({ set: async () => {} }), onSnapshot: () => () => {} }), doc: () => ({ set: async () => {} }) };
+      if (name === "user") return { id: async () => user.uid };
+      if (name === "downloads") return { save: async (r) => {
+        const blob = r.data instanceof Blob ? r.data : new Blob([r.data], { type: mime(r.filename) });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = r.filename;
+        document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+        return { status: "saved" };
+      } };
+      return null;
+    }
+  };
+  gate.hidden = true; $("appRoot").hidden = false;
+  if (!window.__oliveStarted) {
+    window.__oliveStarted = true;
+    const s = document.createElement("script"); s.textContent = $("appcode").textContent; document.body.appendChild(s);
+    mountAccount(user);
+  }
+}
+function mountAccount(user) {
+  const header = document.querySelector("header.top");
+  if (!header) return;
+  const panel = h("section", { class: "card", id: "acct", hidden: "" });
+  const link = h("input", { type: "text", readonly: "", dir: "ltr", id: "inviteLink" });
+  const note = msgEl("", false);
+  const inviteUrl = () => location.origin + location.pathname + "#cfg=" + encodeURIComponent(btoa(JSON.stringify(cfg)));
+  panel.appendChild(h("h2", { text: "الحساب" }));
+  panel.appendChild(h("p", { text: "مسجّل الدخول بـ " + user.email }));
+  panel.appendChild(h("p", { class: "hint", text: "لدعوة شريكك: أرسل له الرابط التالي. يفتحه في Chrome وينشئ حسابه ببريده، بشرط أن يكون بريده مكتوبًا في قواعد Firestore." }));
+  panel.appendChild(link);
+  panel.appendChild(h("div", { class: "btns" },
+    h("button", { type: "button", class: "btn", text: "انسخ رابط الدعوة", onclick: async () => {
+      link.value = inviteUrl();
+      try { await navigator.clipboard.writeText(link.value); note.textContent = "تم النسخ."; } catch (e) { link.select(); note.textContent = "حدّد الرابط وانسخه يدويًا."; }
+      note.className = "msg";
+    } }),
+    h("button", { type: "button", class: "btn", text: "تحديث التطبيق", onclick: async () => {
+      try { const rs = await navigator.serviceWorker.getRegistrations(); await Promise.all(rs.map((r) => r.unregister())); const ks = await caches.keys(); await Promise.all(ks.map((k) => caches.delete(k))); } catch (e) { /* ignore */ }
+      location.reload();
+    } }),
+    h("button", { type: "button", class: "btn", text: "تسجيل الخروج", onclick: async () => { await signOut(auth); location.reload(); } })));
+  panel.appendChild(note);
+  header.after(panel);
+  const btn = h("button", { type: "button", class: "mini", text: "الحساب", "aria-expanded": "false", onclick: () => { panel.hidden = !panel.hidden; btn.setAttribute("aria-expanded", String(!panel.hidden)); } });
+  header.appendChild(btn);
+}
+
+cfg = loadCfg();
+if (!cfg) stepConfig();
+else {
+  try { app = initializeApp(cfg); auth = getAuth(app); db = getFirestore(app); }
+  catch (e) { clearCfg(); stepConfig("إعداد Firebase غير صالح. الصقه من جديد."); }
+  if (auth) onAuthStateChanged(auth, (user) => {
+    if (!user) stepLogin();
+    else if (!user.emailVerified) stepVerify(user);
+    else enter(user);
+  });
+}
+
+</script>
+</body>
+</html>
