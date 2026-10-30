@@ -267,6 +267,7 @@ header.top .mini { margin-inline-start: auto; }
             <div class="field"><label for="purTotal">الإجمالي (ج.م)</label><input id="purTotal" type="text" readonly tabindex="-1"></div>
           </div>
           <p class="hint" id="purHint" aria-live="polite"></p>
+          <div class="field" id="purWhF" hidden><label for="purWh">تُضاف الكمية إلى مخزن</label><select id="purWh"></select></div>
           <button type="submit" class="btn primary">سجّل الشراء</button>
           <p id="purMsg" class="msg" role="status"></p>
         </form>
@@ -284,6 +285,7 @@ header.top .mini { margin-inline-start: auto; }
   <!-- ======== المخزن ======== -->
   <div class="view" id="v_stock" hidden>
     <section class="tiles" id="sTiles" aria-label="ملخص المخزن"></section>
+    <div class="tabs" id="sTabs" role="group" aria-label="عرض حسب المخزن" hidden></div>
     <section class="card" aria-labelledby="sh1">
       <h2 id="sh1">الخامات</h2>
       <p class="hint">تزيد الكميات تلقائيًا من المشتريات، وتنقص من الإنتاج والهالك.</p>
@@ -294,6 +296,33 @@ header.top .mini { margin-inline-start: auto; }
       <h2 id="sh2">المنتجات الجاهزة</h2>
       <div class="tbl-wrap"><table id="finTbl"></table></div>
       <p class="empty" id="finEmpty" hidden>لا توجد منتجات جاهزة بعد. أنشئ منتجًا وصنّعه من قسم الإنتاج.</p>
+    </section>
+    <section class="card" id="mvCard" aria-labelledby="sh4" hidden>
+      <h2 id="sh4">نقل بين المخازن</h2>
+      <form id="mvForm" autocomplete="off">
+        <div class="field"><label for="mvItem">الصنف</label><select id="mvItem"></select></div>
+        <div class="two">
+          <div class="field"><label for="mvFrom">من مخزن</label><select id="mvFrom"></select></div>
+          <div class="field"><label for="mvTo">إلى مخزن</label><select id="mvTo"></select></div>
+        </div>
+        <p class="hint" id="mvHint" aria-live="polite"></p>
+        <div class="field"><label for="mvQty">الكمية</label><input id="mvQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+        <button type="submit" class="btn primary">انقل</button>
+        <p id="mvMsg" class="msg" role="status"></p>
+      </form>
+      <h3 class="sub-h">آخر عمليات النقل</h3>
+      <ul class="hist" id="mvHist"></ul>
+      <p class="empty" id="mvEmpty" hidden>لا توجد عمليات نقل بعد.</p>
+    </section>
+    <section class="card" id="whCard" aria-labelledby="sh3">
+      <h2 id="sh3">المخازن</h2>
+      <p class="hint">«المخزن الرئيسي» يحوي كل الكميات الحالية. أضف مخازن أخرى، ثم اختر المخزن في الشراء والإنتاج والبيع والهالك، أو انقل الكميات بين المخازن.</p>
+      <form id="whForm" autocomplete="off">
+        <div class="field"><label for="whName">اسم مخزن جديد</label><input id="whName" type="text" maxlength="40" placeholder="مثال: مخزن المصنع"></div>
+        <button type="submit" class="btn primary">إضافة مخزن</button>
+      </form>
+      <ul class="items" id="whList"></ul>
+      <p id="whMsg" class="msg" role="status"></p>
     </section>
   </div>
 
@@ -345,6 +374,7 @@ header.top .mini { margin-inline-start: auto; }
         <form id="wForm" autocomplete="off">
           <div class="field"><label for="wDate">التاريخ</label><input id="wDate" type="date"></div>
           <div class="field"><label for="wItem">الصنف</label><select id="wItem"></select></div>
+          <div class="field" id="wWhF" hidden><label for="wWh">من مخزن</label><select id="wWh"></select></div>
           <p class="hint" id="wHint" aria-live="polite"></p>
           <div class="field"><label for="wQty">الكمية التالفة</label><input id="wQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
           <div class="field"><label for="wReason">سبب الهالك</label><input id="wReason" type="text" maxlength="100" list="reasons" placeholder="مثال: تلف أثناء التخزين"></div>
@@ -378,6 +408,7 @@ header.top .mini { margin-inline-start: auto; }
           <div class="field"><label for="saleDate">التاريخ</label><input id="saleDate" type="date"></div>
           <div class="field"><label for="saleProduct">اسم المنتج</label><input id="saleProduct" type="text" maxlength="60" list="prodNames"></div>
           <datalist id="prodNames"></datalist>
+          <div class="field" id="saleWhF" hidden><label for="saleWh">تُسحب القطع من مخزن</label><select id="saleWh"></select></div>
           <p class="hint" id="saleHint" aria-live="polite"></p>
           <div class="two">
             <div class="field"><label for="salePrice">سعر القطعة (ج.م)</label><input id="salePrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
@@ -529,7 +560,7 @@ document.documentElement.lang = "ar";
   var UNITS = ["كجم", "جرام", "لتر", "متر", "قطعة", "علبة", "لوح", "كرتونة"];
   var REASONS = ["تلف أثناء التخزين", "انتهاء صلاحية", "كسر", "عيب تصنيع", "فاقد أثناء التصنيع", "سوء نقل"];
   var now = new Date();
-  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null };
+  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null, swh: "all", fromWh: "main", toWh: "main", renWh: null };
   var draft = [{ mat: "", qty: "" }];
   var col = null, dbRef = null, uidRef = null, downloads = null, confirmTimer = null;
 
@@ -596,6 +627,63 @@ document.documentElement.lang = "ar";
   function matByName(n) { var k = norm(n); return k ? (MATS().filter(function (m) { return norm(m.name) === k; })[0] || null) : null; }
   function prodByName(n) { var k = norm(n); return k ? (PRODS().filter(function (p) { return norm(p.name) === k; })[0] || null) : null; }
 
+  /* ---------- warehouses ----------
+     Each material/product keeps its overall quantity (qty / stock) exactly as before.
+     `locs` lists what sits in the extra warehouses: [{ q: quantity, w: warehouseId }].
+     The rest (total minus extra warehouses) is the implicit "main" warehouse. */
+  var MAIN = "main";
+  function WHS() { return [{ id: MAIN, name: "المخزن الرئيسي" }].concat(K("warehouse").sort(byName)); }
+  function whById(id) { return id === MAIN ? WHS()[0] : (K("warehouse").filter(function (w) { return w.id === id; })[0] || null); }
+  function whName(id) { var w = whById(id); return w ? w.name : "المخزن الرئيسي"; }
+  function normWh(id) { return id && whById(id) ? id : MAIN; }
+  function multiWh() { return K("warehouse").length > 0; }
+  function stockField(it) { return it.kind === "material" ? "qty" : "stock"; }
+  function locsOf(it) { return Array.isArray(it.locs) ? it.locs.filter(function (l) { return l && whById(l.w) && l.w !== MAIN; }) : []; }
+  function bucketsOf(it) {
+    var b = {}, s = 0;
+    locsOf(it).forEach(function (l) { b[l.w] = Number(l.q) || 0; s += b[l.w]; });
+    b[MAIN] = Math.max(0, r3((Number(it[stockField(it)]) || 0) - s));
+    return b;
+  }
+  function whQty(it, wh) { var b = bucketsOf(it); return b[normWh(wh)] || 0; }
+  function locsFrom(b) {
+    return Object.keys(b).filter(function (w) { return w !== MAIN && b[w] > 1e-9; }).sort().map(function (w) { return { q: r3(b[w]), w: w }; });
+  }
+  /* fields to patch when `delta` (+/-) is added at warehouse `wh` (total changes too) */
+  function addAt(it, wh, delta) {
+    wh = normWh(wh);
+    var f = stockField(it), out = {}, b = bucketsOf(it);
+    out[f] = r3((Number(it[f]) || 0) + delta);
+    if (wh !== MAIN) { b[wh] = r3((b[wh] || 0) + delta); out.locs = locsFrom(b); }
+    else if (Array.isArray(it.locs)) out.locs = locsFrom(b);
+    return out;
+  }
+  /* remove up to `amt`, preferring `wh`, then main, then the others (used when undoing an operation) */
+  function takeFields(it, wh, amt) {
+    var f = stockField(it), tot = Number(it[f]) || 0, b = bucketsOf(it), left = amt, seen = {};
+    [normWh(wh), MAIN].concat(Object.keys(b)).forEach(function (w) {
+      if (seen[w] || !(w in b) || left <= 1e-9) return;
+      seen[w] = 1;
+      var t = Math.min(b[w], left); b[w] = r3(b[w] - t); left = r3(left - t);
+    });
+    var taken = r3(amt - left), out = {};
+    out[f] = r3(Math.max(0, tot - taken));
+    if (Array.isArray(it.locs) || Object.keys(b).length > 1) out.locs = locsFrom(b);
+    return { fields: out, taken: taken, short: left };
+  }
+  /* move quantity between warehouses: total unchanged */
+  function moveFields(it, from, to, q) {
+    var b = bucketsOf(it);
+    b[normWh(from)] = r3((b[normWh(from)] || 0) - q);
+    b[normWh(to)] = r3((b[normWh(to)] || 0) + q);
+    return { locs: locsFrom(b) };
+  }
+  function whSummary(it, unit) {
+    var b = bucketsOf(it), parts = [];
+    WHS().forEach(function (w) { if ((b[w.id] || 0) > 1e-9) parts.push(w.name + ": " + qf(b[w.id]) + (unit ? " " + unit : "")); });
+    return parts.join(" · ");
+  }
+
   async function create(data) {
     data.createdAt = Date.now();
     if (col) {
@@ -659,14 +747,14 @@ document.documentElement.lang = "ar";
     var dep = (base + waste) * (Number(p.deprPct) || 0) / 100;
     return { lines: lines, base: base, waste: waste, dep: dep, unit: base + waste + dep };
   }
-  function planFor(p, units) {
+  function planFor(p, units, wh) {
     var f = 1 + (Number(p.wastePct) || 0) / 100, agg = {}, order = [];
     (p.recipe || []).forEach(function (r) {
       if (!(r.mat in agg)) { agg[r.mat] = 0; order.push(r.mat); }
       agg[r.mat] += (Number(r.qty) || 0) * f * units;
     });
     var lines = order.map(function (id) {
-      var m = matById(id), need = agg[id], have = m ? Number(m.qty) || 0 : 0;
+      var m = matById(id), need = agg[id], have = m ? whQty(m, wh) : 0;
       return { m: m, id: id, name: m ? m.name : "خامة محذوفة", unit: m ? m.unit : "", need: r3(need), have: have, short: !m || need > have + 1e-9 };
     });
     return { lines: lines, short: lines.some(function (l) { return l.short; }) };
@@ -732,9 +820,9 @@ document.documentElement.lang = "ar";
     purchase: async function (p) {
       var m = p.matId ? matById(p.matId) : null, note = "";
       if (m) {
-        var have = Number(m.qty) || 0;
-        if (have + 1e-9 < Number(p.qty)) note = "تم الحذف. كان جزء من الكمية قد استُهلك أو تلف، فأصبح رصيد «" + m.name + "» في المخزن صفرًا.";
-        await patch(m, { qty: r3(Math.max(0, have - Number(p.qty))) });
+        var tk = takeFields(m, p.wh, Number(p.qty));
+        if (tk.short > 1e-9) note = "تم الحذف. كان جزء من الكمية قد استُهلك أو تلف، فأصبح رصيد «" + m.name + "» في المخزن صفرًا.";
+        await patch(m, tk.fields);
       }
       var links = E().filter(function (e) { return e.refId === p.id; });
       for (var i = 0; i < links.length; i++) await remove(links[i]);
@@ -746,30 +834,32 @@ document.documentElement.lang = "ar";
       var lines = b.used || [];
       for (var i = 0; i < lines.length; i++) {
         var m = lines[i].matId ? matById(lines[i].matId) : matByName(lines[i].name);
-        if (m) await patch(m, { qty: r3((Number(m.qty) || 0) + Number(lines[i].qty)) });
+        if (m) await patch(m, addAt(m, b.from, Number(lines[i].qty)));
       }
       var p = b.productId ? prodById(b.productId) : null;
       if (p) {
-        var st = Number(p.stock) || 0;
-        if (st + 1e-9 < Number(b.units)) note = "تم الحذف. بعض القطع بيعت أو تلفت، فأصبح الرصيد الجاهز من «" + p.name + "» صفرًا.";
-        await patch(p, { stock: r3(Math.max(0, st - Number(b.units))) });
+        var tk = takeFields(p, b.to, Number(b.units));
+        if (tk.short > 1e-9) note = "تم الحذف. بعض القطع بيعت أو تلفت، فأصبح الرصيد الجاهز من «" + p.name + "» صفرًا.";
+        await patch(p, tk.fields);
       }
       await remove(b);
       return note;
     },
     sale: async function (s) {
       var p = s.productId ? prodById(s.productId) : null;
-      if (p && Number(s.stockTaken) > 0) await patch(p, { stock: r3((Number(p.stock) || 0) + Number(s.stockTaken)) });
+      if (p && Number(s.stockTaken) > 0) await patch(p, addAt(p, s.wh, Number(s.stockTaken)));
       var links = E().filter(function (e) { return e.refId === s.id; });
       for (var i = 0; i < links.length; i++) await remove(links[i]);
       await remove(s);
     },
     waste: async function (w) {
       var item = w.target === "material" ? matById(w.itemId) : prodById(w.itemId);
-      if (item) {
-        if (w.target === "material") await patch(item, { qty: r3((Number(item.qty) || 0) + Number(w.qty)) });
-        else await patch(item, { stock: r3((Number(item.stock) || 0) + Number(w.qty)) });
-      }
+      if (item) await patch(item, addAt(item, w.wh, Number(w.qty)));
+      await remove(w);
+    },
+    warehouse: async function (w) {
+      var held = MATS().concat(PRODS()).filter(function (it) { return whQty(it, w.id) > 1e-9; });
+      if (held.length) throw biz("لا يمكن حذف «" + w.name + "» لأن فيه كميات (" + held.slice(0, 3).map(function (it) { return it.name; }).join("، ") + (held.length > 3 ? "…" : "") + "). انقلها إلى مخزن آخر أولًا.");
       await remove(w);
     }
   };
@@ -893,7 +983,9 @@ document.documentElement.lang = "ar";
     $("purEmpty").hidden = !state.loaded || list.length > 0;
     if (!list.length) { $("purTbl").textContent = ""; return; }
     tbl($("purTbl"), [["التاريخ"], ["اسم الصنف / المادة"], ["الكمية", "n"], ["سعر الوحدة (ج.م)", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (p) {
-      return [dateLabel(p.date), p.name, qf(p.qty) + " " + (p.unit || ""), fm(p.unitPrice), h("b", { text: fm(p.total) }), delBtn(p, "purMsg")];
+      var nm = h("div", null, h("div", { class: "party", text: p.name }));
+      if (multiWh() && p.wh && whById(p.wh)) nm.appendChild(h("div", { class: "meta", text: "في " + whName(p.wh) }));
+      return [dateLabel(p.date), nm, qf(p.qty) + " " + (p.unit || ""), fm(p.unitPrice), h("b", { text: fm(p.total) }), delBtn(p, "purMsg")];
     }));
   }
   $("purForm").addEventListener("submit", async function (ev) {
@@ -903,21 +995,25 @@ document.documentElement.lang = "ar";
     if (!name) { say("purMsg", "اكتب اسم الصنف.", true); $("purName").focus(); return; }
     if (!(qty > 0)) { say("purMsg", "أدخل كمية أكبر من صفر.", true); $("purQty").focus(); return; }
     if (!(price >= 0)) { say("purMsg", "أدخل سعر الوحدة.", true); $("purPrice").focus(); return; }
-    var total = r2(qty * price), m = matByName(name), unit = m ? m.unit : $("purUnit").value;
+    var total = r2(qty * price), m = matByName(name), unit = m ? m.unit : $("purUnit").value, wh = normWh($("purWh").value);
     try {
       var matId;
       if (m) {
         var newQty = (Number(m.qty) || 0) + qty;
         var avg = ((Number(m.qty) || 0) * (Number(m.unitCost) || 0) + qty * price) / newQty;
-        await patch(m, { qty: r3(newQty), unitCost: r4(avg) });
+        await patch(m, Object.assign(addAt(m, wh, r3(qty)), { unitCost: r4(avg) }));
         matId = m.id;
       } else {
-        matId = await create({ kind: "material", name: name, unit: unit, qty: r3(qty), unitCost: r4(price), minQty: 0 });
+        var mrec = { kind: "material", name: name, unit: unit, qty: r3(qty), unitCost: r4(price), minQty: 0 };
+        if (wh !== MAIN) mrec.locs = [{ q: r3(qty), w: wh }];
+        matId = await create(mrec);
       }
-      var pid = await create({ kind: "purchase", date: date, name: name, unit: unit, qty: r3(qty), unitPrice: r4(price), total: total, matId: matId });
+      var prec = { kind: "purchase", date: date, name: name, unit: unit, qty: r3(qty), unitPrice: r4(price), total: total, matId: matId };
+      if (wh !== MAIN) prec.wh = wh;
+      var pid = await create(prec);
       await treasuryEntry("expense", total, date, "شراء " + name, qf(qty) + " " + unit + " × " + fm(price), "purchase", pid);
       $("purName").value = ""; $("purQty").value = ""; $("purPrice").value = ""; syncPur();
-      say("purMsg", "تم الشراء: خُصم " + money(total) + " من الخزينة وأُضيفت الكمية إلى المخزن.", false);
+      say("purMsg", "تم الشراء: خُصم " + money(total) + " من الخزينة وأُضيفت الكمية إلى " + (multiWh() ? "«" + whName(wh) + "»" : "المخزن") + ".", false);
       $("purName").focus();
     } catch (err) { say("purMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
@@ -925,53 +1021,179 @@ document.documentElement.lang = "ar";
 
   /* ---------- stock view ---------- */
   function isLow(m) { return Number(m.minQty) > 0 && Number(m.qty) <= Number(m.minQty); }
+  function whSelect(val) {
+    var sel = h("select", { "aria-label": "المخزن" });
+    WHS().forEach(function (w) { sel.appendChild(h("option", { value: w.id, text: w.name })); });
+    sel.value = normWh(val);
+    return sel;
+  }
+  function fillWhSelect(sel, preferSecond) {
+    var cur = sel.value;
+    sel.textContent = "";
+    WHS().forEach(function (w) { sel.appendChild(h("option", { value: w.id, text: w.name })); });
+    sel.value = cur && whById(cur) ? cur : (preferSecond && WHS()[1] ? WHS()[1].id : MAIN);
+  }
   function matPanel(m) {
-    var cQ = numInput(m.qty), cC = numInput(m.unitCost), cM = numInput(m.minQty || "");
+    var multi = multiWh(), whSel = whSelect(state.swh !== "all" ? state.swh : MAIN);
+    var cQ = numInput(whQty(m, whSel.value)), cC = numInput(m.unitCost), cM = numInput(m.minQty || "");
+    whSel.addEventListener("change", function () { cQ.value = whQty(m, whSel.value); });
     var msg = h("p", { class: "msg", role: "status" });
     var fix = h("form", { autocomplete: "off", onsubmit: async function (ev) {
       ev.preventDefault(); if (debounce(ev)) return;
       var q = parseFloat(cQ.value), c = parseFloat(cC.value), mn = parseFloat(cM.value) || 0;
       if (!(q >= 0) || !(c >= 0)) { msg.textContent = "أدخل كمية وتكلفة صحيحتين."; msg.className = "msg err"; return; }
-      try { await patch(m, { qty: r3(q), unitCost: r4(c), minQty: mn }); state.openMat = null; render(); }
+      try {
+        var wh = normWh(whSel.value), fl = addAt(m, wh, r3(q - whQty(m, wh)));
+        fl.unitCost = r4(c); fl.minQty = mn;
+        await patch(m, fl); state.openMat = null; render();
+      }
       catch (err) { msg.textContent = errText(err); msg.className = "msg err"; }
     } },
       h("h4", { text: "تصحيح الجرد" }),
-      field("الكمية الفعلية (" + m.unit + ")", cQ), field("تكلفة الوحدة (ج.م)", cC), field("حد إعادة الطلب", cM),
+      multi ? field("المخزن", whSel) : null,
+      field("الكمية الفعلية (" + m.unit + ")" + (multi ? " في هذا المخزن" : ""), cQ), field("تكلفة الوحدة (ج.م)", cC), field("حد إعادة الطلب", cM),
       h("button", { type: "submit", class: "btn primary", text: "حفظ التصحيح" }));
     return h("div", { class: "panel" }, fix, msg);
   }
+  var FIN_EMPTY = "لا توجد منتجات جاهزة بعد. أنشئ منتجًا وصنّعه من قسم الإنتاج.";
   function renderStock() {
-    var mats = MATS(), prods = PRODS(), t = $("sTiles");
+    var mats = MATS(), prods = PRODS(), t = $("sTiles"), multi = multiWh();
+    if (state.swh !== "all" && !whById(state.swh)) state.swh = "all";
+    var sw = state.swh, scoped = multi && sw !== "all";
+    var tb = $("sTabs"); tb.textContent = ""; tb.hidden = !multi;
+    if (multi) [["all", "كل المخازن"]].concat(WHS().map(function (w) { return [w.id, w.name]; })).forEach(function (x) {
+      tb.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.swh === x[0]), text: x[1], onclick: function () { state.swh = x[0]; renderStock(); } }));
+    });
+    var qOf = function (it) { return scoped ? whQty(it, sw) : (Number(it[stockField(it)]) || 0); };
+    var shownMats = scoped ? mats.filter(function (m) { return qOf(m) > 1e-9; }) : mats;
+    var shownProds = scoped ? prods.filter(function (p) { return qOf(p) > 1e-9; }) : prods;
     t.textContent = "";
-    var val = sumBy(mats, function (m) { return (Number(m.qty) || 0) * (Number(m.unitCost) || 0); });
-    tileTo(t, "قيمة الخامات في المخزن", money(val), "");
-    tileTo(t, "عدد الأصناف", String(mats.length), "");
+    var val = sumBy(shownMats, function (m) { return qOf(m) * (Number(m.unitCost) || 0); });
+    tileTo(t, scoped ? "قيمة الخامات في «" + whName(sw) + "»" : "قيمة الخامات في المخزن", money(val), "");
+    tileTo(t, "عدد الأصناف", String(shownMats.length), "");
     var low = mats.filter(isLow).length;
     tileTo(t, "تحتاج إعادة شراء", String(low), low ? "neg" : "", low ? "وصلت لحد إعادة الطلب أو أقل" : "لا توجد خامات ناقصة");
     var ul = $("matList"); ul.textContent = "";
     if (!state.loaded) ul.appendChild(h("li", { class: "empty", text: "جارٍ تحميل المخزن…" }));
     else if (!mats.length) ul.appendChild(h("li", { class: "empty", text: "المخزن فارغ. تُضاف الخامات تلقائيًا عند تسجيل أول شراء من قسم المشتريات." }));
-    mats.forEach(function (m) {
+    else if (!shownMats.length) ul.appendChild(h("li", { class: "empty", text: "لا توجد خامات في «" + whName(sw) + "»." }));
+    shownMats.forEach(function (m) {
       var li = h("li", { class: "item" });
       li.appendChild(h("div", { class: "item-head" },
         h("div", null, h("h3", { text: m.name }), isLow(m) ? h("span", { class: "pill low", text: "قارب على النفاد" }) : null),
         h("div", { class: "btns" },
           h("button", { type: "button", class: "mini", text: state.openMat === m.id ? "إغلاق" : "تصحيح الجرد", onclick: function () { state.openMat = state.openMat === m.id ? null : m.id; renderStock(); } }),
           delBtn(m, "mlmsg"))));
-      li.appendChild(h("div", { class: "kv" },
-        h("span", null, "المتاح: ", h("b", { text: qf(m.qty) + " " + m.unit })),
+      var kv = h("div", { class: "kv" },
+        h("span", null, scoped ? "المتاح في هذا المخزن: " : "المتاح: ", h("b", { text: qf(qOf(m)) + " " + m.unit })),
         h("span", null, "تكلفة الوحدة: ", h("b", { text: money(m.unitCost) })),
-        h("span", null, "القيمة: ", h("b", { text: money((Number(m.qty) || 0) * (Number(m.unitCost) || 0)) }))));
+        h("span", null, "القيمة: ", h("b", { text: money(qOf(m) * (Number(m.unitCost) || 0)) })));
+      li.appendChild(kv);
+      if (multi && !scoped) li.appendChild(h("div", { class: "hint", text: "التوزيع: " + (whSummary(m, m.unit) || "لا شيء") }));
       if (state.openMat === m.id) li.appendChild(matPanel(m));
       ul.appendChild(li);
     });
-    $("finEmpty").hidden = !state.loaded || prods.length > 0;
-    if (!prods.length) $("finTbl").textContent = "";
-    else tbl($("finTbl"), [["المنتج"], ["الرصيد الجاهز (قطعة)", "n"], ["تكلفة القطعة (ج.م)", "n"], ["القيمة (ج.م)", "n"]], prods.map(function (p) {
-      var u = prodCost(p).unit;
-      return [p.name, qf(p.stock || 0), fm(u), fm((Number(p.stock) || 0) * u)];
-    }));
+    $("finEmpty").hidden = !state.loaded || shownProds.length > 0;
+    $("finEmpty").textContent = prods.length ? "لا توجد منتجات جاهزة في «" + whName(sw) + "»." : FIN_EMPTY;
+    if (!shownProds.length) $("finTbl").textContent = "";
+    else {
+      var heads = [["المنتج"], [scoped ? "الرصيد في هذا المخزن (قطعة)" : "الرصيد الجاهز (قطعة)", "n"], ["تكلفة القطعة (ج.م)", "n"], ["القيمة (ج.م)", "n"]];
+      if (multi && !scoped) heads.push(["التوزيع"]);
+      tbl($("finTbl"), heads, shownProds.map(function (p) {
+        var u = prodCost(p).unit, row = [p.name, qf(qOf(p)), fm(u), fm(qOf(p) * u)];
+        if (multi && !scoped) row.push(whSummary(p, "") || "—");
+        return row;
+      }));
+    }
+    renderWarehouses();
   }
+  function renderWarehouses() {
+    var multi = multiWh(), ul = $("whList");
+    var ae = document.activeElement;
+    if (!(state.renWh && ae && ae.tagName === "INPUT" && ul.contains(ae))) {
+      ul.textContent = "";
+      WHS().forEach(function (w) {
+        var held = MATS().concat(PRODS()).filter(function (it) { return whQty(it, w.id) > 1e-9; }).length;
+        var li = h("li", { class: "item" }), head = h("div", { class: "item-head" });
+        if (state.renWh === w.id) {
+          var inp = h("input", { type: "text", maxlength: "40", value: w.name, "aria-label": "اسم المخزن" });
+          head.appendChild(h("div", { class: "field" }, inp));
+          head.appendChild(h("div", { class: "btns" },
+            h("button", { type: "button", class: "mini", text: "حفظ الاسم", onclick: async function () {
+              var n = inp.value.trim();
+              if (!n) { say("whMsg", "اكتب اسم المخزن.", true); return; }
+              if (WHS().some(function (x) { return x.id !== w.id && norm(x.name) === norm(n); })) { say("whMsg", "هذا الاسم مستخدم لمخزن آخر.", true); return; }
+              try { await patch(w, { name: n }); state.renWh = null; say("whMsg", "تم تغيير الاسم.", false); render(); } catch (err) { say("whMsg", errText(err), true); }
+            } }),
+            h("button", { type: "button", class: "mini", text: "إلغاء", onclick: function () { state.renWh = null; renderStock(); } })));
+        } else {
+          head.appendChild(h("div", null, h("h3", { text: w.name }), h("span", { class: "hint", text: held ? held + " صنف فيه كميات" : "فارغ" })));
+          if (w.id === MAIN) head.appendChild(h("span", { class: "tag", text: "الأساسي" }));
+          else head.appendChild(h("div", { class: "btns" },
+            h("button", { type: "button", class: "mini", text: "تغيير الاسم", onclick: function () { state.renWh = w.id; renderStock(); } }),
+            delBtn(w, "whMsg")));
+        }
+        li.appendChild(head); ul.appendChild(li);
+      });
+    }
+    var mv = $("mvCard"); mv.hidden = !multi;
+    if (!multi) return;
+    var sel = $("mvItem"), cur = sel.value;
+    sel.textContent = "";
+    sel.appendChild(h("option", { value: "", text: "اختر الصنف" }));
+    var g1 = h("optgroup", { label: "خامات" }), g2 = h("optgroup", { label: "منتجات جاهزة" });
+    MATS().forEach(function (m) { g1.appendChild(h("option", { value: "material:" + m.id, text: m.name })); });
+    PRODS().forEach(function (p) { g2.appendChild(h("option", { value: "product:" + p.id, text: p.name })); });
+    if (g1.children.length) sel.appendChild(g1);
+    if (g2.children.length) sel.appendChild(g2);
+    sel.value = cur; if (sel.selectedIndex < 0) sel.selectedIndex = 0;
+    fillWhSelect($("mvFrom")); fillWhSelect($("mvTo"), true);
+    syncMv();
+    var list = K("transfer").sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); }).slice(0, 15), hs = $("mvHist");
+    hs.textContent = "";
+    $("mvEmpty").hidden = list.length > 0;
+    list.forEach(function (x) {
+      hs.appendChild(h("li", null,
+        h("strong", { text: dateLabel(x.date) + " · " + (x.itemName || "صنف") + " × " + qf(x.qty) + " " + (x.unit || "") }),
+        h("span", { class: "hint", text: "من «" + (x.fromName || "المخزن الرئيسي") + "» إلى «" + (x.toName || "المخزن الرئيسي") + "»" })));
+    });
+  }
+  function mvItem() {
+    var v = $("mvItem").value, i = v.indexOf(":");
+    if (i < 0) return null;
+    var target = v.slice(0, i), id = v.slice(i + 1), item = target === "material" ? matById(id) : prodById(id);
+    return item ? { target: target, id: id, item: item } : null;
+  }
+  function syncMv() {
+    var it = mvItem(), hint = $("mvHint");
+    if (!it) { hint.textContent = ""; return; }
+    var from = $("mvFrom").value;
+    hint.textContent = "المتاح في «" + whName(from) + "»: " + qf(whQty(it.item, from)) + " " + (it.target === "material" ? it.item.unit : "قطعة");
+  }
+  ["mvItem", "mvFrom", "mvTo"].forEach(function (id) { $(id).addEventListener("change", syncMv); });
+  $("mvForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var it = mvItem(), from = $("mvFrom").value, to = $("mvTo").value, qty = parseFloat($("mvQty").value);
+    if (!it) { say("mvMsg", "اختر الصنف.", true); $("mvItem").focus(); return; }
+    if (from === to) { say("mvMsg", "اختر مخزنين مختلفين.", true); return; }
+    if (!(qty > 0)) { say("mvMsg", "أدخل كمية أكبر من صفر.", true); $("mvQty").focus(); return; }
+    var have = whQty(it.item, from);
+    if (qty > have + 1e-9) { say("mvMsg", "الكمية أكبر من المتاح في «" + whName(from) + "» (" + qf(have) + ").", true); return; }
+    try {
+      await patch(it.item, moveFields(it.item, from, to, r3(qty)));
+      await create({ kind: "transfer", date: todayISO(), target: it.target, itemId: it.id, itemName: it.item.name, unit: it.target === "material" ? it.item.unit : "قطعة", qty: r3(qty), from: from, to: to, fromName: whName(from), toName: whName(to) });
+      $("mvQty").value = "";
+      say("mvMsg", "تم نقل " + qf(qty) + " من «" + whName(from) + "» إلى «" + whName(to) + "».", false);
+    } catch (err) { say("mvMsg", errText(err), true); }
+  });
+  $("whForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var n = $("whName").value.trim();
+    if (!n) { say("whMsg", "اكتب اسم المخزن.", true); $("whName").focus(); return; }
+    if (WHS().some(function (x) { return norm(x.name) === norm(n); })) { say("whMsg", "يوجد مخزن بهذا الاسم.", true); return; }
+    try { await create({ kind: "warehouse", name: n }); $("whName").value = ""; say("whMsg", "تمت إضافة المخزن «" + n + "».", false); }
+    catch (err) { say("whMsg", errText(err), true); }
+  });
 
   /* ---------- production view ---------- */
   function cleanDraft() {
@@ -1017,7 +1239,7 @@ document.documentElement.lang = "ar";
   function prodCard(p) {
     var c = prodCost(p), li = h("li", { class: "item" });
     li.appendChild(h("div", { class: "item-head" },
-      h("div", null, h("h3", { text: p.name }), h("div", { class: "hint", text: "الرصيد الجاهز في المخزن: " + qf(p.stock || 0) + " قطعة" })),
+      h("div", null, h("h3", { text: p.name }), h("div", { class: "hint", text: "الرصيد الجاهز في المخزن: " + qf(p.stock || 0) + " قطعة" + (multiWh() && whSummary(p, "") ? " (" + whSummary(p, "") + ")" : "") })),
       h("div", { class: "btns" }, h("button", { type: "button", class: "mini", text: "تعديل", onclick: function () { loadEdit(p); } }), delBtn(p, "plmsg"))));
     var cost = h("div", { class: "cost" });
     c.lines.forEach(function (l) {
@@ -1044,13 +1266,21 @@ document.documentElement.lang = "ar";
     var uIn = numInput(1, "1"); uIn.min = "1";
     var out = h("ul", { class: "need", "aria-live": "polite" });
     var go = h("button", { type: "button", class: "btn primary", text: "صنّع واسحب الخامات" });
+    var fromSel = null, toSel = null;
+    if (multiWh()) {
+      fromSel = whSelect(state.fromWh); toSel = whSelect(state.toWh);
+      fromSel.addEventListener("change", function () { state.fromWh = fromSel.value; refresh(); });
+      toSel.addEventListener("change", function () { state.toWh = toSel.value; });
+    }
+    function curFrom() { return fromSel ? normWh(fromSel.value) : MAIN; }
+    function curTo() { return toSel ? normWh(toSel.value) : MAIN; }
     function refresh() {
       var u = parseFloat(uIn.value);
       out.textContent = "";
       if (!(u > 0)) { go.disabled = true; return; }
-      var plan = planFor(p, u);
+      var plan = planFor(p, u, curFrom());
       plan.lines.forEach(function (l) {
-        out.appendChild(h("li", { class: l.short ? "neg" : "", text: l.name + ": يحتاج " + qf(l.need) + " " + l.unit + " (المتاح " + qf(l.have) + ")" + (l.short ? " · ناقص " + qf(l.need - l.have) : "") }));
+        out.appendChild(h("li", { class: l.short ? "neg" : "", text: l.name + ": يحتاج " + qf(l.need) + " " + l.unit + " (المتاح " + qf(l.have) + (fromSel ? " في «" + whName(curFrom()) + "»" : "") + ")" + (l.short ? " · ناقص " + qf(l.need - l.have) : "") }));
       });
       out.appendChild(h("li", { text: "تكلفة الدفعة: " + money(c.unit * u) }));
       go.disabled = plan.short || !plan.lines.length;
@@ -1061,12 +1291,18 @@ document.documentElement.lang = "ar";
       if (!(u > 0) || producing) return;
       producing = true; go.disabled = true;
       say("plmsg", "جارٍ التصنيع وخصم الخامات… لا تغلق الصفحة.", false);
-      try { await produce(p, u); say("plmsg", "تم إنتاج " + qf(u) + " قطعة من «" + p.name + "»: خُصمت الخامات من المخزن وأُضيفت القطع لمخزون المنتجات الجاهزة.", false); }
+      try {
+        var f0 = curFrom(), t0 = curTo();
+        await produce(p, u, f0, t0);
+        say("plmsg", "تم إنتاج " + qf(u) + " قطعة من «" + p.name + "»: خُصمت الخامات من " + (fromSel ? "«" + whName(f0) + "»" : "المخزن") + " وأُضيفت القطع " + (toSel ? "إلى «" + whName(t0) + "»." : "لمخزون المنتجات الجاهزة."), false);
+      }
       catch (err) { say("plmsg", errText(err), true); }
       producing = false;
     });
     refresh();
-    li.appendChild(h("div", { class: "prod" }, h("div", { class: "prod-row" }, field("عدد القطع", uIn), go), out));
+    li.appendChild(h("div", { class: "prod" },
+      fromSel ? h("div", { class: "two" }, field("تُسحب الخامات من", fromSel), field("تُضاف القطع إلى", toSel)) : null,
+      h("div", { class: "prod-row" }, field("عدد القطع", uIn), go), out));
     return li;
   }
   function renderProduction() {
@@ -1082,21 +1318,26 @@ document.documentElement.lang = "ar";
         h("strong", { text: dateLabel(b.date) + " · " + (b.productName || "منتج") + " × " + qf(b.units) }),
         h("span", { class: "hint", text: "التكلفة الكلية " + money(b.totalCost) + " (" + money(b.unitCost) + " للقطعة)" }),
         h("span", { class: "hint", text: "المسحوب: " + (b.used || []).map(function (u) { return u.name + " " + qf(u.qty) + " " + u.unit; }).join("، ") }),
+        multiWh() && (b.from || b.to) ? h("span", { class: "hint", text: "من «" + whName(normWh(b.from)) + "» إلى «" + whName(normWh(b.to)) + "»" }) : null,
         h("div", { class: "cell-acts" }, delBtn(b, "histMsg"))));
     });
     if (!document.activeElement || !$("pform").contains(document.activeElement)) renderRecipe();
   }
-  async function produce(p, units) {
-    var plan = planFor(p, units);
-    if (plan.short) throw biz("الخامات في المخزن لا تكفي لهذه الكمية.");
+  async function produce(p, units, from, to) {
+    from = normWh(from); to = normWh(to);
+    var plan = planFor(p, units, from);
+    if (plan.short) throw biz("الخامات في " + (multiWh() ? "«" + whName(from) + "»" : "المخزن") + " لا تكفي لهذه الكمية.");
     var c = prodCost(p);
     for (var i = 0; i < plan.lines.length; i++) {
       var l = plan.lines[i];
-      await patch(l.m, { qty: r3(l.have - l.need) });
+      await patch(l.m, addAt(l.m, from, -l.need));
     }
-    await patch(p, { stock: r3((Number(p.stock) || 0) + units) });
-    await create({ kind: "batch", productId: p.id, productName: p.name, units: units, unitCost: r2(c.unit), totalCost: r2(c.unit * units), date: todayISO(),
-      used: plan.lines.map(function (l) { return { matId: l.id, name: l.name, unit: l.unit, qty: l.need }; }) });
+    await patch(p, addAt(p, to, units));
+    var rec = { kind: "batch", productId: p.id, productName: p.name, units: units, unitCost: r2(c.unit), totalCost: r2(c.unit * units), date: todayISO(),
+      used: plan.lines.map(function (l) { return { matId: l.id, name: l.name, unit: l.unit, qty: l.need }; }) };
+    if (from !== MAIN) rec.from = from;
+    if (to !== MAIN) rec.to = to;
+    await create(rec);
   }
   function loadEdit(p) {
     state.editProd = p.id;
@@ -1154,9 +1395,9 @@ document.documentElement.lang = "ar";
   function syncWaste() {
     var w = wasteItem(), hint = $("wHint");
     if (!w) { hint.textContent = ""; return; }
-    var have = w.target === "material" ? Number(w.item.qty) || 0 : Number(w.item.stock) || 0;
+    var wh = normWh($("wWh").value), have = whQty(w.item, wh);
     var unit = w.target === "material" ? w.item.unit : "قطعة";
-    hint.textContent = "المتاح في المخزن: " + qf(have) + " " + unit;
+    hint.textContent = "المتاح في " + (multiWh() ? "«" + whName(wh) + "»" : "المخزن") + ": " + qf(have) + " " + unit;
   }
   function renderWaste() {
     var rd = $("reasons"); rd.textContent = "";
@@ -1189,6 +1430,7 @@ document.documentElement.lang = "ar";
     }));
   }
   $("wItem").addEventListener("change", syncWaste);
+  $("wWh").addEventListener("change", syncWaste);
   $("wForm").addEventListener("submit", async function (ev) {
     ev.preventDefault(); if (debounce(ev)) return;
     var w = wasteItem(), qty = parseFloat($("wQty").value), reason = $("wReason").value.trim(), date = $("wDate").value;
@@ -1196,14 +1438,16 @@ document.documentElement.lang = "ar";
     if (!w) { say("wMsg", "اختر الصنف.", true); $("wItem").focus(); return; }
     if (!(qty > 0)) { say("wMsg", "أدخل كمية أكبر من صفر.", true); $("wQty").focus(); return; }
     if (!reason) { say("wMsg", "اكتب سبب الهالك.", true); $("wReason").focus(); return; }
-    var isMat = w.target === "material", have = isMat ? Number(w.item.qty) || 0 : Number(w.item.stock) || 0;
-    if (qty > have + 1e-9) { say("wMsg", "الكمية أكبر من المتاح في المخزن (" + qf(have) + ").", true); return; }
+    var isMat = w.target === "material", wh = normWh($("wWh").value), have = whQty(w.item, wh);
+    if (qty > have + 1e-9) { say("wMsg", "الكمية أكبر من المتاح في " + (multiWh() ? "«" + whName(wh) + "»" : "المخزن") + " (" + qf(have) + ").", true); return; }
     var unitCost = isMat ? Number(w.item.unitCost) || 0 : prodCost(w.item).unit;
     try {
-      await patch(w.item, isMat ? { qty: r3(have - qty) } : { stock: r3(have - qty) });
-      await create({ kind: "waste", date: date, target: w.target, itemId: w.id, itemName: w.item.name, unit: isMat ? w.item.unit : "قطعة", qty: r3(qty), reason: reason, unitCost: r2(unitCost), loss: r2(qty * unitCost) });
+      await patch(w.item, addAt(w.item, wh, -r3(qty)));
+      var wrec = { kind: "waste", date: date, target: w.target, itemId: w.id, itemName: w.item.name, unit: isMat ? w.item.unit : "قطعة", qty: r3(qty), reason: reason, unitCost: r2(unitCost), loss: r2(qty * unitCost) };
+      if (wh !== MAIN) wrec.wh = wh;
+      await create(wrec);
       $("wQty").value = ""; $("wReason").value = "";
-      say("wMsg", "تم تسجيل الهالك وخُصمت الكمية من المخزن.", false);
+      say("wMsg", "تم تسجيل الهالك وخُصمت الكمية من " + (multiWh() ? "«" + whName(wh) + "»." : "المخزن."), false);
     } catch (err) { say("wMsg", errText(err), true); }
   });
 
@@ -1232,8 +1476,10 @@ document.documentElement.lang = "ar";
       br.appendChild(costLine("الصافي", fm(r2(gross - d.amount)), "total"));
       br.hidden = false;
     } else br.hidden = true;
-    $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة · تكلفة القطعة " + money(prodCost(p).unit) : "";
+    var wh = normWh($("saleWh").value);
+    $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة" + (multiWh() ? " (في «" + whName(wh) + "»: " + qf(whQty(p, wh)) + ")" : "") + " · تكلفة القطعة " + money(prodCost(p).unit) : "";
   }
+  $("saleWh").addEventListener("change", syncSale);
   Array.prototype.forEach.call(document.querySelectorAll('input[name="sdisc"]'), function (r) {
     r.addEventListener("change", function () {
       var t = document.querySelector('input[name="sdisc"]:checked').value;
@@ -1276,17 +1522,18 @@ document.documentElement.lang = "ar";
     var p = prodByName(name), gross = r2(price * qty), disc = saleDiscount(gross);
     if (disc.err) { say("saleMsg", disc.err, true); $("saleDisc").focus(); return; }
     var total = r2(gross - disc.amount);
-    var taken = p ? Math.min(Number(p.stock) || 0, qty) : 0;
+    var swh = normWh($("saleWh").value), taken = p ? Math.min(whQty(p, swh), qty) : 0;
     try {
-      if (p && taken > 0) await patch(p, { stock: r3((Number(p.stock) || 0) - taken) });
+      if (p && taken > 0) await patch(p, addAt(p, swh, -taken));
       var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
+      if (taken > 0 && swh !== MAIN) rec.wh = swh;
       if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
       var sid = await create(rec);
       await treasuryEntry("income", total, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.amount > 0 ? " − خصم " + fm(disc.amount) : ""), "sale", sid);
       $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
       document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
       syncSale();
-      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من المخزون الجاهز." : "."), false);
+      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "»." : "المخزون الجاهز.") : "."), false);
       $("saleProduct").focus();
     } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
@@ -1684,8 +1931,18 @@ document.documentElement.lang = "ar";
     } catch (err) { state.migMsg = errText(err) + " يمكنك إعادة المحاولة، ولن يتكرر أي سجل."; }
     state.migrating = false; renderMig();
   }
+  function renderWhSelects() {
+    var multi = multiWh();
+    [["purWh", "purWhF"], ["saleWh", "saleWhF"], ["wWh", "wWhF"]].forEach(function (x) {
+      $(x[1]).hidden = !multi;
+      var sel = $(x[0]), cur = sel.value;
+      sel.textContent = "";
+      WHS().forEach(function (w) { sel.appendChild(h("option", { value: w.id, text: w.name })); });
+      sel.value = cur && whById(cur) ? cur : MAIN;
+    });
+  }
   function render() {
-    renderStatus(); renderViews(); renderMig();
+    renderStatus(); renderViews(); renderMig(); renderWhSelects();
     VIEWS.forEach(function (v) { $("v_" + v[0]).hidden = state.view !== v[0]; });
     if (state.view === "treasury") renderTreasury();
     else if (state.view === "purchases") renderPurchases();
