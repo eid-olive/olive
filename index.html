@@ -98,6 +98,7 @@ input[readonly] { background: var(--accent-soft); font-weight: 600; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 @media (max-width: 380px) { .two { grid-template-columns: 1fr; } }
 .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg.three { grid-template-columns: repeat(3, 1fr); }
 .seg label { position: relative; text-align: center; cursor: pointer; }
 .seg input { position: absolute; opacity: 0; inset: 0; }
 .seg span { display: block; padding: 10px 8px; font-weight: 500; color: var(--fg); }
@@ -159,6 +160,30 @@ td.n.strong { font-weight: 700; }
 .hist li { padding: 10px 0; border-block-start: 1px solid var(--line); display: grid; gap: 2px; }
 .hist li:first-child { border-block-start: 0; }
 .sub-h { font-size: 18px; margin-block-start: 8px; }
+
+/* contacts + files */
+input[type="tel"], input[type="search"], textarea { min-height: 44px; padding: 8px 12px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--bg); width: 100%; min-width: 0; }
+a.mini { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
+.add-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.add-row h2 { margin: 0; }
+.gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 640px) { .gallery { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.gcard { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); cursor: pointer; text-align: start; overflow: hidden; }
+.gcard:hover { border-color: var(--accent); }
+.gcard img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--accent-soft); display: block; }
+.gcard .gt { padding: 0 10px; font-weight: 600; overflow-wrap: anywhere; line-height: 1.4; }
+.gcard .gm { padding: 0 10px 10px; font-size: 12px; color: var(--muted); }
+.fprev { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fprev img { max-height: 150px; max-width: 100%; border-radius: 4px; border: 1px solid var(--line); }
+.viewer { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .72); display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 700px) { .viewer { align-items: center; padding: 24px; } }
+.vbox { background: var(--surface); width: 100%; max-width: 720px; max-height: 100%; overflow: auto; border-radius: 10px 10px 0 0; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 700px) { .vbox { border-radius: 10px; } }
+.vtop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.vtop strong { font-family: var(--font-display); font-size: 20px; overflow-wrap: anywhere; }
+.vimg { background: var(--bg); border-radius: 6px; display: flex; justify-content: center; align-items: center; min-height: 140px; }
+.vimg img { max-width: 100%; max-height: 52vh; object-fit: contain; display: block; }
+body.noscroll { overflow: hidden; }
 
 input[type="password"], input[type="email"], textarea {
   min-height: 44px; padding: 8px 12px; border-radius: 4px; border: 1.5px solid var(--line); background: var(--bg); width: 100%; min-width: 0;
@@ -358,7 +383,16 @@ header.top .mini { margin-inline-start: auto; }
             <div class="field"><label for="salePrice">سعر القطعة (ج.م)</label><input id="salePrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
             <div class="field"><label for="saleQty">عدد القطع</label><input id="saleQty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></div>
           </div>
-          <div class="field"><label for="saleTotal">الإجمالي (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
+          <div class="field"><span class="lab" id="discLab">خصم على هذا البيع (اختياري)</span>
+            <div class="seg three" role="radiogroup" aria-labelledby="discLab">
+              <label><input type="radio" name="sdisc" value="none" checked><span>بدون خصم</span></label>
+              <label><input type="radio" name="sdisc" value="amount"><span>مبلغ (ج.م)</span></label>
+              <label><input type="radio" name="sdisc" value="percent"><span>نسبة (%)</span></label>
+            </div>
+          </div>
+          <div class="field" id="discField" hidden><label for="saleDisc" id="saleDiscLab">قيمة الخصم (ج.م)</label><input id="saleDisc" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+          <div class="cost" id="saleBreak" hidden aria-live="polite"></div>
+          <div class="field"><label for="saleTotal">الإجمالي بعد الخصم (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
           <button type="submit" class="btn primary">سجّل البيع</button>
           <p id="saleMsg" class="msg" role="status"></p>
         </form>
@@ -389,6 +423,96 @@ header.top .mini { margin-inline-start: auto; }
       <p class="empty" id="pfOpexEmpty" hidden>لا توجد مصروفات تشغيلية في هذه الفترة.</p>
     </section>
   </div>
+
+  <!-- ======== جهات الاتصال ======== -->
+  <div class="view" id="v_contacts" hidden>
+    <section class="card" id="cFormCard" aria-labelledby="cFormTitle" hidden>
+      <h2 id="cFormTitle">جهة اتصال جديدة</h2>
+      <form id="cForm" autocomplete="off" novalidate>
+        <div class="two">
+          <div class="field"><label for="cName">الاسم</label><input id="cName" type="text" maxlength="80" placeholder="مثال: أحمد محمد"></div>
+          <div class="field"><label for="cCat">التصنيف</label><select id="cCat"></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="cPhone">رقم الهاتف</label><input id="cPhone" type="tel" inputmode="tel" dir="ltr" maxlength="30" placeholder="01012345678"></div>
+          <div class="field"><label for="cPhone2">رقم آخر (اختياري)</label><input id="cPhone2" type="tel" inputmode="tel" dir="ltr" maxlength="30"></div>
+        </div>
+        <div class="field"><label for="cAddr">العنوان</label><input id="cAddr" type="text" maxlength="160" placeholder="المدينة، الشارع، علامة مميزة"></div>
+        <div class="field"><label for="cNote">ملاحظة (اختياري)</label><input id="cNote" type="text" maxlength="160"></div>
+        <div class="btns">
+          <button type="submit" class="btn primary" id="cSave">حفظ جهة الاتصال</button>
+          <button type="button" class="btn" id="cCancel">إلغاء</button>
+        </div>
+        <p id="cFormMsg" class="msg" role="status"></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="ch2">
+      <div class="add-row">
+        <h2 id="ch2">جهات الاتصال</h2>
+        <button type="button" class="btn primary" id="cAdd">＋ جهة جديدة</button>
+      </div>
+      <div class="field"><label for="cSearch">بحث بالاسم أو الرقم أو العنوان</label><input id="cSearch" type="search" autocomplete="off"></div>
+      <div class="tabs" id="cTabs" role="group" aria-label="تصفية حسب التصنيف"></div>
+      <p id="cMsg" class="msg" role="status"></p>
+      <ul class="items" id="cList"></ul>
+      <p class="empty" id="cEmpty" hidden></p>
+    </section>
+  </div>
+
+  <!-- ======== الملفات والصور ======== -->
+  <div class="view" id="v_files" hidden>
+    <section class="card" aria-labelledby="fh1">
+      <h2 id="fh1">إضافة صورة</h2>
+      <form id="fForm" autocomplete="off" novalidate>
+        <div class="btns">
+          <button type="button" class="btn" id="fCam">التقاط صورة</button>
+          <button type="button" class="btn" id="fPick">اختيار من المعرض</button>
+        </div>
+        <input type="file" id="fCamIn" accept="image/*" capture="environment" hidden>
+        <input type="file" id="fPickIn" accept="image/*" hidden>
+        <div class="fprev" id="fPrev" hidden><img id="fPrevImg" alt="معاينة الصورة"><span class="hint" id="fPrevInfo"></span></div>
+        <div class="field"><label for="fTitle">العنوان</label><input id="fTitle" type="text" maxlength="80" placeholder="مثال: فاتورة مورد الزجاجات"></div>
+        <div class="two">
+          <div class="field"><label for="fCat">التصنيف</label><select id="fCat"></select></div>
+          <div class="field"><label for="fDate">التاريخ</label><input id="fDate" type="date"></div>
+        </div>
+        <div class="field"><label for="fNote">ملاحظة (اختياري)</label><input id="fNote" type="text" maxlength="160"></div>
+        <button type="submit" class="btn primary" id="fSave" disabled>حفظ الصورة</button>
+        <p id="fMsg" class="msg" role="status"></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="fh2">
+      <h2 id="fh2">المعرض</h2>
+      <div class="field"><label for="fSearch">بحث بالعنوان أو الملاحظة</label><input id="fSearch" type="search" autocomplete="off"></div>
+      <div class="tabs" id="fTabs" role="group" aria-label="تصفية حسب التصنيف"></div>
+      <ul class="gallery" id="fGrid"></ul>
+      <p class="empty" id="fEmpty" hidden></p>
+      <p class="hint">تُضغط الصورة قبل حفظها لتبقى صغيرة، وتظهر لشريكك مباشرة. النسخة الاحتياطية (JSON) لا تشمل الصور.</p>
+    </section>
+    <div class="viewer" id="fViewer" role="dialog" aria-modal="true" aria-labelledby="vTitle" hidden>
+      <div class="vbox">
+        <div class="vtop"><strong id="vTitle"></strong><button type="button" class="mini" id="vClose">إغلاق</button></div>
+        <div class="vimg"><img id="vImg" alt=""></div>
+        <p class="hint" id="vLoad" hidden></p>
+        <p class="meta" id="vMeta"></p>
+        <div class="btns">
+          <button type="button" class="mini" id="vDown">تنزيل</button>
+          <a class="mini" id="vOpen" target="_blank" rel="noopener" hidden>فتح بالحجم الكامل</a>
+          <button type="button" class="mini" id="vEdit">تعديل البيانات</button>
+          <button type="button" class="mini danger" id="vDel">حذف</button>
+        </div>
+        <form id="vForm" autocomplete="off" hidden>
+          <div class="field"><label for="vTitleIn">العنوان</label><input id="vTitleIn" type="text" maxlength="80"></div>
+          <div class="two">
+            <div class="field"><label for="vCatIn">التصنيف</label><select id="vCatIn"></select></div>
+            <div class="field"><label for="vNoteIn">ملاحظة</label><input id="vNoteIn" type="text" maxlength="160"></div>
+          </div>
+          <div class="btns"><button type="submit" class="btn primary">حفظ التعديل</button><button type="button" class="btn" id="vCancel">إلغاء</button></div>
+        </form>
+        <p id="vMsg" class="msg" role="status"></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -399,11 +523,13 @@ document.documentElement.dir = "rtl";
 document.documentElement.lang = "ar";
 (function () {
   "use strict";
-  var VIEWS = [["treasury", "الخزينة"], ["purchases", "المشتريات"], ["stock", "المخزن"], ["production", "الإنتاج"], ["waste", "الهالك"], ["sales", "المبيعات"], ["profit", "صافي الربح"]];
+  var HOSTED = !!window.__oliveHosted;
+  var VIEWS = [["treasury", "الخزينة"], ["purchases", "المشتريات"], ["stock", "المخزن"], ["production", "الإنتاج"], ["waste", "الهالك"], ["sales", "المبيعات"], ["profit", "صافي الربح"], ["contacts", "جهات الاتصال"]];
+  if (HOSTED) VIEWS.push(["files", "الملفات والصور"]);
   var UNITS = ["كجم", "جرام", "لتر", "متر", "قطعة", "علبة", "لوح", "كرتونة"];
   var REASONS = ["تلف أثناء التخزين", "انتهاء صلاحية", "كسر", "عيب تصنيع", "فاقد أثناء التصنيع", "سوء نقل"];
   var now = new Date();
-  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0 };
+  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null };
   var draft = [{ mat: "", qty: "" }];
   var col = null, dbRef = null, uidRef = null, downloads = null, confirmTimer = null;
 
@@ -602,6 +728,7 @@ document.documentElement.lang = "ar";
       return used.length ? "تم حذف الخامة وأُزيلت من مكوّنات: " + used.map(function (p) { return p.name; }).join("، ") + "." : "";
     },
     product: function (d) { return remove(d); },
+    contact: function (d) { return remove(d); },
     purchase: async function (p) {
       var m = p.matId ? matById(p.matId) : null, note = "";
       if (m) {
@@ -721,7 +848,7 @@ document.documentElement.lang = "ar";
   }
 
   async function exportJson() {
-    var docs = state.docs.map(function (d) { var o = Object.assign({}, d); delete o.id; return { id: d.id, data: o }; });
+    var docs = state.docs.filter(function (d) { return d.kind !== "file" && d.kind !== "fileimg"; }).map(function (d) { var o = Object.assign({}, d); delete o.id; return { id: d.id, data: o }; });
     var json = JSON.stringify({ app: "olive-oil", version: 1, exportedAt: Date.now(), docs: docs });
     try { await downloads.save({ filename: "olive-oil-backup-" + todayISO() + ".json", data: json }); say("msg", "تم تجهيز النسخة الاحتياطية (" + docs.length + " سجلًا).", false); }
     catch (err) { if (!err || err.code !== "declined") say("msg", "تعذّر تجهيز الملف في هذا العرض.", true); }
@@ -729,7 +856,7 @@ document.documentElement.lang = "ar";
   async function readBackup(file) {
     try {
       var obj = JSON.parse(await file.text());
-      var docs = obj && obj.app === "olive-oil" && Array.isArray(obj.docs) ? obj.docs.filter(function (x) { return x && typeof x.id === "string" && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(x.id) && x.id !== "." && x.id !== ".." && !/^__.*__$/.test(x.id) && x.data && typeof x.data === "object" && !Array.isArray(x.data); }) : null;
+      var docs = obj && obj.app === "olive-oil" && Array.isArray(obj.docs) ? obj.docs.filter(function (x) { return x && typeof x.id === "string" && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(x.id) && x.id !== "." && x.id !== ".." && x.id.charAt(0) !== "~" && !/^__.*__$/.test(x.id) && x.data && x.data.kind !== "file" && x.data.kind !== "fileimg" && typeof x.data === "object" && !Array.isArray(x.data); }) : null;
       if (!docs || !docs.length) throw new Error("bad");
       state.importMsg = ""; state.importDone = 0; state.importPending = docs; renderMig();
     } catch (e) { say("msg", "الملف ليس نسخة احتياطية صالحة من هذا التطبيق.", true); }
@@ -1081,12 +1208,42 @@ document.documentElement.lang = "ar";
   });
 
   /* ---------- sales view ---------- */
+  function saleDiscount(gross) {
+    var type = document.querySelector('input[name="sdisc"]:checked').value, raw = parseFloat($("saleDisc").value);
+    var none = { type: "", value: 0, amount: 0, err: "" };
+    if (type === "none") return none;
+    if (!(raw > 0)) return { type: type, value: 0, amount: 0, err: "أدخل قيمة الخصم، أو اختر «بدون خصم»." };
+    if (type === "percent") {
+      if (raw > 100) return { type: type, value: raw, amount: 0, err: "نسبة الخصم لا تزيد عن 100%." };
+      return { type: type, value: raw, amount: r2(gross * raw / 100), err: "" };
+    }
+    if (raw > gross + 1e-9) return { type: type, value: raw, amount: 0, err: "الخصم أكبر من إجمالي البيع (" + fm(gross) + " ج.م)." };
+    return { type: type, value: raw, amount: r2(raw), err: "" };
+  }
   function syncSale() {
     var name = $("saleProduct").value, p = prodByName(name);
     var pr = parseFloat($("salePrice").value) || 0, q = parseFloat($("saleQty").value) || 0;
-    $("saleTotal").value = pr > 0 && q > 0 ? fm(r2(pr * q)) : "";
+    var gross = r2(pr * q), d = saleDiscount(gross), br = $("saleBreak");
+    $("saleTotal").value = pr > 0 && q > 0 ? fm(r2(gross - d.amount)) : "";
+    br.textContent = "";
+    if (gross > 0 && d.amount > 0) {
+      br.appendChild(costLine("الإجمالي قبل الخصم", fm(gross), "sub"));
+      br.appendChild(costLine("الخصم" + (d.type === "percent" ? " (" + qf(d.value) + "%)" : ""), "−" + fm(d.amount), "sub"));
+      br.appendChild(costLine("الصافي", fm(r2(gross - d.amount)), "total"));
+      br.hidden = false;
+    } else br.hidden = true;
     $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة · تكلفة القطعة " + money(prodCost(p).unit) : "";
   }
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="sdisc"]'), function (r) {
+    r.addEventListener("change", function () {
+      var t = document.querySelector('input[name="sdisc"]:checked').value;
+      $("discField").hidden = t === "none";
+      $("saleDiscLab").textContent = t === "percent" ? "نسبة الخصم (%)" : "قيمة الخصم (ج.م)";
+      if (t === "none") $("saleDisc").value = "";
+      syncSale();
+    });
+  });
+  $("saleDisc").addEventListener("input", syncSale);
   $("saleProduct").addEventListener("input", function () {
     var p = prodByName($("saleProduct").value);
     if (p && Number(p.sellPrice) > 0 && !$("salePrice").value) $("salePrice").value = p.sellPrice;
@@ -1098,11 +1255,13 @@ document.documentElement.lang = "ar";
     PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
     var list = K("sale").sort(newest);
     var tot = sumBy(list, function (s) { return s.total; }), profit = sumBy(list.filter(function (s) { return s.unitCost > 0; }), function (s) { return s.total - s.unitCost * s.qty; });
-    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
+    var discTot = sumBy(list, function (s) { return s.discount; });
+    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (discTot > 0 ? " · خصومات: " + money(discTot) : "") + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
     $("saleEmpty").hidden = !state.loaded || list.length > 0;
     if (!list.length) { $("saleTbl").textContent = ""; return; }
     tbl($("saleTbl"), [["التاريخ"], ["اسم المنتج"], ["سعر القطعة (ج.م)", "n"], ["عدد القطع", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (s) {
       var cell = h("div", null, h("div", { class: "party", text: s.product }));
+      if (s.discount > 0) cell.appendChild(h("div", { class: "meta", text: "خصم " + money(s.discount) + (s.discType === "percent" ? " (" + qf(s.discValue) + "%)" : "") + " من " + money(s.gross) }));
       if (s.unitCost > 0) cell.appendChild(h("div", { class: "meta", text: "ربح تقديري " + money(s.total - s.unitCost * s.qty) }));
       return [dateLabel(s.date), cell, fm(s.price), qf(s.qty), h("b", { text: fm(s.total) }), delBtn(s, "saleMsg")];
     }));
@@ -1114,14 +1273,20 @@ document.documentElement.lang = "ar";
     if (!name) { say("saleMsg", "اكتب اسم المنتج.", true); $("saleProduct").focus(); return; }
     if (!(price >= 0) || !($("salePrice").value !== "")) { say("saleMsg", "أدخل سعر القطعة.", true); $("salePrice").focus(); return; }
     if (!(qty >= 1) || Math.floor(qty) !== qty) { say("saleMsg", "أدخل عدد قطع صحيحًا (1 أو أكثر).", true); $("saleQty").focus(); return; }
-    var p = prodByName(name), total = r2(price * qty);
+    var p = prodByName(name), gross = r2(price * qty), disc = saleDiscount(gross);
+    if (disc.err) { say("saleMsg", disc.err, true); $("saleDisc").focus(); return; }
+    var total = r2(gross - disc.amount);
     var taken = p ? Math.min(Number(p.stock) || 0, qty) : 0;
     try {
       if (p && taken > 0) await patch(p, { stock: r3((Number(p.stock) || 0) - taken) });
-      var sid = await create({ kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 });
-      await treasuryEntry("income", total, date, "بيع " + name, qf(qty) + " × " + fm(price), "sale", sid);
-      $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = ""; syncSale();
-      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من المخزون الجاهز." : "."), false);
+      var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
+      if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
+      var sid = await create(rec);
+      await treasuryEntry("income", total, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.amount > 0 ? " − خصم " + fm(disc.amount) : ""), "sale", sid);
+      $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
+      document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
+      syncSale();
+      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من المخزون الجاهز." : "."), false);
       $("saleProduct").focus();
     } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
@@ -1191,6 +1356,285 @@ document.documentElement.lang = "ar";
   });
   $("export").addEventListener("click", exportCsv);
 
+  /* ---------- contacts ---------- */
+  var CCATS = ["عميل", "مورد", "عامل", "أخرى"];
+  function toEn(s) { return String(s == null ? "" : s).replace(/[٠-٩]/g, function (c) { return String(c.charCodeAt(0) - 1632); }).replace(/[۰-۹]/g, function (c) { return String(c.charCodeAt(0) - 1776); }); }
+  function digits(s) { return toEn(s).replace(/\D/g, ""); }
+  function dial(p) { return toEn(p).replace(/[^\d+]/g, ""); }
+  function waNum(p) {
+    var d = digits(p);
+    if (!d) return "";
+    if (d.indexOf("00") === 0) return d.slice(2);
+    if (d.charAt(0) === "0") return "20" + d.slice(1);
+    return d;
+  }
+  function sn(s) { return norm(toEn(s)).replace(/[ً-ٰٟ]/g, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه"); }
+  function CONTACTS() { return K("contact").sort(byName); }
+  function cCat(c) { return CCATS.indexOf(c.cat) >= 0 ? c.cat : "أخرى"; }
+  function contactMatches(c, q, qd) {
+    if (!q) return true;
+    if (sn([c.name, c.phone, c.phone2, c.address, c.note, cCat(c)].join(" ")).indexOf(q) >= 0) return true;
+    return qd.length >= 3 && (digits(c.phone).indexOf(qd) >= 0 || digits(c.phone2).indexOf(qd) >= 0);
+  }
+  function contactItem(c) {
+    var li = h("li", { class: "item" });
+    li.appendChild(h("div", { class: "item-head" }, h("h3", { text: c.name || "بدون اسم" }), h("span", { class: "tag", text: cCat(c) })));
+    var kv = h("div", { class: "kv" });
+    [c.phone, c.phone2].forEach(function (p) { if (p) kv.appendChild(h("span", null, "هاتف: ", h("b", { dir: "ltr", text: p }))); });
+    if (kv.childNodes.length) li.appendChild(kv);
+    if (c.address) li.appendChild(h("p", { class: "meta", text: "العنوان: " + c.address }));
+    if (c.note) li.appendChild(h("p", { class: "meta", text: c.note }));
+    var acts = h("div", { class: "btns" });
+    if (c.phone) {
+      acts.appendChild(h("a", { class: "mini", href: "tel:" + dial(c.phone), text: "اتصال" }));
+      var wa = waNum(c.phone);
+      if (wa) acts.appendChild(h("a", { class: "mini", href: "https://wa.me/" + wa, target: "_blank", rel: "noopener", text: "واتساب" }));
+    }
+    if (c.address) acts.appendChild(h("a", { class: "mini", href: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(c.address), target: "_blank", rel: "noopener", text: "الخريطة" }));
+    acts.appendChild(h("button", { type: "button", class: "mini", text: "تعديل", onclick: function () { editContact(c); } }));
+    acts.appendChild(delBtn(c, "cMsg"));
+    li.appendChild(acts);
+    return li;
+  }
+  function renderContacts() {
+    var all = CONTACTS(), tabs = $("cTabs");
+    tabs.textContent = "";
+    [["all", "الكل"]].concat(CCATS.map(function (x) { return [x, x]; })).forEach(function (x) {
+      var n = x[0] === "all" ? all.length : all.filter(function (c) { return cCat(c) === x[0]; }).length;
+      tabs.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.ccat === x[0]), text: x[1] + " (" + n + ")", onclick: function () { state.ccat = x[0]; renderContacts(); } }));
+    });
+    var q = sn(state.cq), qd = digits(state.cq);
+    var list = all.filter(function (c) { return (state.ccat === "all" || cCat(c) === state.ccat) && contactMatches(c, q, qd); });
+    var ul = $("cList"); ul.textContent = "";
+    list.forEach(function (c) { ul.appendChild(contactItem(c)); });
+    var em = $("cEmpty");
+    em.hidden = !state.loaded || list.length > 0;
+    em.textContent = all.length ? "لا توجد نتائج مطابقة." : "لا توجد جهات اتصال بعد. اضغط «＋ جهة جديدة» لإضافة أول واحدة.";
+  }
+  function showContactForm(show) { $("cFormCard").hidden = !show; $("cAdd").hidden = show; }
+  function resetContactForm() {
+    ["cName", "cPhone", "cPhone2", "cAddr", "cNote"].forEach(function (i) { $(i).value = ""; });
+    $("cCat").value = CCATS[0]; state.editC = null;
+    $("cSave").textContent = "حفظ جهة الاتصال"; $("cFormTitle").textContent = "جهة اتصال جديدة"; say("cFormMsg", "", false);
+  }
+  function editContact(c) {
+    resetContactForm(); state.editC = c.id;
+    $("cName").value = c.name || ""; $("cCat").value = cCat(c); $("cPhone").value = c.phone || ""; $("cPhone2").value = c.phone2 || ""; $("cAddr").value = c.address || ""; $("cNote").value = c.note || "";
+    $("cSave").textContent = "حفظ التعديل"; $("cFormTitle").textContent = "تعديل جهة الاتصال";
+    say("cMsg", "", false); showContactForm(true);
+    $("cFormCard").scrollIntoView({ block: "start" }); $("cName").focus();
+  }
+  $("cAdd").addEventListener("click", function () { resetContactForm(); say("cMsg", "", false); showContactForm(true); $("cName").focus(); });
+  $("cCancel").addEventListener("click", function () { resetContactForm(); showContactForm(false); });
+  $("cSearch").addEventListener("input", function () { state.cq = $("cSearch").value; renderContacts(); });
+  $("cForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("cName").value.trim(), phone = toEn($("cPhone").value).trim(), phone2 = toEn($("cPhone2").value).trim();
+    if (!name) { say("cFormMsg", "اكتب الاسم.", true); $("cName").focus(); return; }
+    if (phone && digits(phone).length < 5) { say("cFormMsg", "رقم الهاتف قصير. راجعه.", true); $("cPhone").focus(); return; }
+    if (phone2 && digits(phone2).length < 5) { say("cFormMsg", "الرقم الآخر قصير. راجعه.", true); $("cPhone2").focus(); return; }
+    var data = { name: name, cat: $("cCat").value, phone: phone, phone2: phone2, address: $("cAddr").value.trim(), note: $("cNote").value.trim() };
+    var editing = state.editC;
+    try {
+      if (editing) {
+        var cur = K("contact").filter(function (c) { return c.id === editing; })[0];
+        if (!cur) throw biz("هذه الجهة لم تعد موجودة.");
+        await patch(cur, data);
+      } else await create(Object.assign({ kind: "contact" }, data));
+      resetContactForm(); showContactForm(false);
+      say("cMsg", editing ? "تم حفظ التعديل." : "تمت إضافة جهة الاتصال.", false);
+    } catch (err) { say("cFormMsg", errText(err), true); }
+  });
+
+  /* ---------- files & photos (stored compressed in the shared database) ---------- */
+  var FCATS = ["فواتير", "إيصالات", "عقود", "هويات وأوراق رسمية", "صور المنتج", "أخرى"];
+  var FULL_MAX = 700000, viewerFull = null, viewerUrl = null, viewerOpener = null;
+  function FILES() { return K("file").sort(newest); }
+  function fCat(d) { return FCATS.indexOf(d.cat) >= 0 ? d.cat : "أخرى"; }
+  function fileById(id) { return K("file").filter(function (d) { return d.id === id; })[0] || null; }
+  function loadBitmap(file) {
+    return (async function () {
+      if (window.createImageBitmap) {
+        try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch (e1) { /* try next */ }
+        try { return await createImageBitmap(file); } catch (e2) { /* try image element */ }
+      }
+      return await new Promise(function (res, rej) {
+        var u = URL.createObjectURL(file), im = new Image();
+        im.onload = function () { URL.revokeObjectURL(u); res(im); };
+        im.onerror = function () { URL.revokeObjectURL(u); rej(new Error("img")); };
+        im.src = u;
+      });
+    })();
+  }
+  function drawScaled(src, maxSide) {
+    var w = src.naturalWidth || src.width, hh = src.naturalHeight || src.height, k = Math.min(1, maxSide / Math.max(w, hh));
+    var c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(hh * k));
+    var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(src, 0, 0, c.width, c.height);
+    return c;
+  }
+  async function compressPhoto(file) {
+    var src;
+    try { src = await loadBitmap(file); } catch (e) { throw biz("تعذّر قراءة الصورة. جرّب صورة بصيغة JPG أو PNG."); }
+    if (!(src.naturalWidth || src.width)) throw biz("تعذّر قراءة الصورة. جرّب صورة أخرى.");
+    var thumb = drawScaled(src, 320).toDataURL("image/jpeg", 0.62);
+    var sides = [1600, 1360, 1120, 900, 720], qs = [0.74, 0.62, 0.5], best = null;
+    for (var i = 0; i < sides.length && !best; i++) {
+      var cv = drawScaled(src, sides[i]);
+      for (var j = 0; j < qs.length; j++) {
+        var u = cv.toDataURL("image/jpeg", qs[j]);
+        if (u.length <= FULL_MAX) { best = { full: u, w: cv.width, h: cv.height }; break; }
+      }
+    }
+    if (src.close) { try { src.close(); } catch (e3) { /* ignore */ } }
+    if (!best) throw biz("الصورة كبيرة جدًا حتى بعد الضغط. جرّب صورة أخرى.");
+    best.thumb = thumb; best.bytes = Math.round(best.full.length * 0.75);
+    return best;
+  }
+  function dataToBlob(u) {
+    var p = String(u).split(","), m = /data:([^;]+)/.exec(p[0] || ""), bin = atob(p[1] || ""), n = bin.length, a = new Uint8Array(n);
+    for (var i = 0; i < n; i++) a[i] = bin.charCodeAt(i);
+    return new Blob([a], { type: m ? m[1] : "image/jpeg" });
+  }
+  function fileName(d) { return "olive-photo-" + (String(d.date || todayISO()).replace(/[^0-9-]/g, "") || "x") + "-" + String(d.id || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 5) + ".jpg"; }
+  function kb(n) { return Math.max(1, Math.round(n / 1024)) + " ك.ب"; }
+  function clearPending() {
+    state.pending = null; $("fPrev").hidden = true; $("fPrevImg").removeAttribute("src"); $("fSave").disabled = true;
+  }
+  async function onPhoto(ev) {
+    var f = ev.target.files && ev.target.files[0]; ev.target.value = "";
+    if (!f) return;
+    clearPending(); say("fMsg", "جارٍ تجهيز الصورة…", false);
+    try {
+      var r = await compressPhoto(f);
+      state.pending = r;
+      $("fPrevImg").src = r.thumb; $("fPrevInfo").textContent = "بعد الضغط: " + r.w + "×" + r.h + " · " + kb(r.bytes);
+      $("fPrev").hidden = false; $("fSave").disabled = false; say("fMsg", "", false);
+    } catch (err) { say("fMsg", errText(err), true); }
+  }
+  $("fCam").addEventListener("click", function () { $("fCamIn").click(); });
+  $("fPick").addEventListener("click", function () { $("fPickIn").click(); });
+  $("fCamIn").addEventListener("change", onPhoto);
+  $("fPickIn").addEventListener("change", onPhoto);
+  $("fSearch").addEventListener("input", function () { state.fq = $("fSearch").value; renderFiles(); });
+  $("fForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var p = state.pending;
+    if (!p) { say("fMsg", "اختر صورة أولًا.", true); return; }
+    if (!col) { say("fMsg", "الحفظ غير متاح في هذا العرض.", true); return; }
+    var cat = $("fCat").value, date = $("fDate").value || todayISO();
+    var title = $("fTitle").value.trim() || (cat + " " + dateLabel(date));
+    var mref = col.doc(), iid = "~" + mref.id;
+    $("fSave").disabled = true; say("fMsg", "جارٍ الحفظ…", false);
+    try {
+      await col.doc(iid).set({ kind: "fileimg", parent: mref.id, data: p.full, createdAt: Date.now() });
+      try {
+        await mref.set({ kind: "file", title: title, cat: cat, date: date, note: $("fNote").value.trim(), thumb: p.thumb, imgId: iid, w: p.w, h: p.h, bytes: p.bytes, createdAt: Date.now() });
+      } catch (e2) { try { await col.doc(iid).delete(); } catch (e3) { /* ignore */ } throw e2; }
+      $("fTitle").value = ""; $("fNote").value = ""; clearPending();
+      say("fMsg", "تم حفظ الصورة.", false);
+    } catch (err) { $("fSave").disabled = false; say("fMsg", errText(err), true); }
+  });
+  function renderFiles() {
+    var all = FILES(), tabs = $("fTabs");
+    tabs.textContent = "";
+    [["all", "الكل"]].concat(FCATS.map(function (x) { return [x, x]; })).forEach(function (x) {
+      var n = x[0] === "all" ? all.length : all.filter(function (d) { return fCat(d) === x[0]; }).length;
+      tabs.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.fcat === x[0]), text: x[1] + " (" + n + ")", onclick: function () { state.fcat = x[0]; renderFiles(); } }));
+    });
+    var q = sn(state.fq);
+    var list = all.filter(function (d) { return (state.fcat === "all" || fCat(d) === state.fcat) && (!q || sn([d.title, d.note, fCat(d)].join(" ")).indexOf(q) >= 0); });
+    var ul = $("fGrid"); ul.textContent = "";
+    list.forEach(function (d) {
+      var b = h("button", { type: "button", class: "gcard", onclick: function () { openFile(d.id, b); } },
+        h("img", { src: d.thumb || "", alt: d.title || "صورة" }),
+        h("span", { class: "gt", text: d.title || "بدون عنوان" }),
+        h("span", { class: "gm", text: dateLabel(d.date) + " · " + fCat(d) }));
+      ul.appendChild(h("li", null, b));
+    });
+    var em = $("fEmpty");
+    em.hidden = !state.loaded || list.length > 0;
+    em.textContent = all.length ? "لا توجد نتائج مطابقة." : "لا توجد صور بعد. التقط صورة أو اخترها من المعرض في الأعلى.";
+    if (state.openF) refreshViewer();
+  }
+  function refreshViewer() {
+    var d = state.openF ? fileById(state.openF) : null;
+    if (!d) { if (state.openF) closeViewer(); return; }
+    $("vTitle").textContent = d.title || "بدون عنوان";
+    $("vMeta").textContent = dateLabel(d.date) + " · " + fCat(d) + (d.note ? " · " + d.note : "");
+    $("vForm").hidden = !state.vEdit;
+    var asking = state.confirmId === d.id;
+    $("vDel").textContent = asking ? "اضغط مرة أخرى للحذف" : "حذف";
+    $("vDel").className = "mini danger" + (asking ? " confirm" : "");
+  }
+  async function openFile(id, opener) {
+    var d = fileById(id); if (!d) return;
+    state.openF = id; state.vEdit = false; viewerOpener = opener || null; viewerFull = null;
+    $("fViewer").hidden = false; document.body.classList.add("noscroll");
+    try { history.pushState({ oliveViewer: 1 }, ""); } catch (e) { /* ignore */ }
+    $("vImg").src = d.thumb || ""; $("vOpen").hidden = true; say("vMsg", "", false);
+    $("vLoad").hidden = false; $("vLoad").textContent = "جارٍ تحميل الصورة الكاملة…";
+    refreshViewer(); $("vClose").focus();
+    try {
+      var s = await col.doc(d.imgId).get();
+      if (state.openF !== id) return;
+      var dat = s.exists && s.data() && s.data().data;
+      if (!dat) { $("vLoad").textContent = "الصورة الكاملة غير موجودة. يظهر هنا الشكل المصغّر فقط."; return; }
+      viewerFull = dat; $("vImg").src = dat; $("vLoad").hidden = true;
+      if (viewerUrl) URL.revokeObjectURL(viewerUrl);
+      viewerUrl = URL.createObjectURL(dataToBlob(dat)); $("vOpen").href = viewerUrl; $("vOpen").hidden = false;
+    } catch (e) { if (state.openF === id) $("vLoad").textContent = "تعذّر تحميل الصورة الكاملة. تأكد من الإنترنت."; }
+  }
+  function doCloseViewer() {
+    state.openF = null; state.vEdit = false; viewerFull = null;
+    $("fViewer").hidden = true; document.body.classList.remove("noscroll"); $("vImg").removeAttribute("src");
+    if (viewerUrl) { URL.revokeObjectURL(viewerUrl); viewerUrl = null; }
+    if (viewerOpener && viewerOpener.isConnected) viewerOpener.focus();
+  }
+  function closeViewer() {
+    if (!state.openF) return;
+    doCloseViewer();
+    if (history.state && history.state.oliveViewer) history.back();
+  }
+  window.addEventListener("popstate", function () { if (state.openF) doCloseViewer(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && state.openF) closeViewer(); });
+  $("fViewer").addEventListener("click", function (e) { if (e.target === $("fViewer")) closeViewer(); });
+  $("vClose").addEventListener("click", closeViewer);
+  $("vDown").addEventListener("click", async function () {
+    var d = fileById(state.openF);
+    if (!d || !viewerFull) { say("vMsg", "انتظر حتى تُحمَّل الصورة الكاملة.", true); return; }
+    try { await downloads.save({ filename: fileName(d), data: dataToBlob(viewerFull) }); say("vMsg", "تم تجهيز الصورة للتنزيل.", false); }
+    catch (err) { if (!err || err.code !== "declined") say("vMsg", "تعذّر التنزيل.", true); }
+  });
+  $("vEdit").addEventListener("click", function () {
+    var d = fileById(state.openF); if (!d) return;
+    $("vTitleIn").value = d.title || ""; $("vCatIn").value = fCat(d); $("vNoteIn").value = d.note || "";
+    state.vEdit = true; refreshViewer(); $("vTitleIn").focus();
+  });
+  $("vCancel").addEventListener("click", function () { state.vEdit = false; refreshViewer(); });
+  $("vForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var d = fileById(state.openF); if (!d) return;
+    var title = $("vTitleIn").value.trim() || d.title;
+    try { await patch(d, { title: title, cat: $("vCatIn").value, note: $("vNoteIn").value.trim() }); state.vEdit = false; refreshViewer(); say("vMsg", "تم حفظ التعديل.", false); }
+    catch (err) { say("vMsg", errText(err), true); }
+  });
+  $("vDel").addEventListener("click", async function () {
+    var d = fileById(state.openF); if (!d) return;
+    if (state.confirmId === d.id) {
+      state.confirmId = null; clearTimeout(confirmTimer);
+      try {
+        if (d.imgId) await col.doc(d.imgId).delete();
+        await remove(d);
+        closeViewer(); say("fMsg", "تم حذف الصورة.", false);
+      } catch (err) { say("vMsg", errText(err), true); refreshViewer(); }
+      return;
+    }
+    state.confirmId = d.id; clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(function () { state.confirmId = null; if (state.openF) refreshViewer(); }, 4000);
+    refreshViewer();
+  });
+
   /* ---------- shell ---------- */
   function renderStatus() {
     var el = $("saveState");
@@ -1249,11 +1693,15 @@ document.documentElement.lang = "ar";
     else if (state.view === "production") renderProduction();
     else if (state.view === "waste") renderWaste();
     else if (state.view === "profit") renderProfit();
+    else if (state.view === "contacts") renderContacts();
+    else if (state.view === "files") renderFiles();
     else renderSales();
   }
 
   /* ---------- boot ---------- */
-  ["date", "purDate", "wDate", "saleDate"].forEach(function (id) { $(id).value = todayISO(); });
+  ["date", "purDate", "wDate", "saleDate", "fDate"].forEach(function (id) { $(id).value = todayISO(); });
+  CCATS.forEach(function (c) { $("cCat").appendChild(h("option", { value: c, text: c })); });
+  FCATS.forEach(function (c) { $("fCat").appendChild(h("option", { value: c, text: c })); $("vCatIn").appendChild(h("option", { value: c, text: c })); });
   UNITS.forEach(function (u) { $("purUnit").appendChild(h("option", { value: u, text: u })); });
   renderRecipe();
   render();
@@ -1284,7 +1732,7 @@ document.documentElement.lang = "ar";
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, reload } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, documentId } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
 function h(tag, attrs, ...kids) {
@@ -1403,6 +1851,8 @@ function sanitize(d) { return JSON.parse(JSON.stringify(d)); }
 function needOnline() { if (navigator.onLine === false) throw { msg: "لا يوجد اتصال بالإنترنت. لم يُحفظ شيء." }; }
 function makeCol(path) {
   const c = collection(db, path);
+  // Full-size photos live in docs whose id starts with "~"; keep them out of the live list (they load on demand).
+  const main = query(c, where(documentId(), "<", "~"));
   const wrap = (s) => ({ docs: s.docs.map((d) => ({ id: d.id, exists: true, data: () => d.data() })), size: s.size });
   const mk = (r) => ({
     id: r.id,
@@ -1413,8 +1863,8 @@ function makeCol(path) {
   });
   return {
     doc: (id) => mk(id ? doc(c, id) : doc(c)),
-    get: async () => wrap(await getDocs(c)),
-    onSnapshot: (next, err) => onSnapshot(c, (s) => next(wrap(s)), err)
+    get: async () => wrap(await getDocs(main)),
+    onSnapshot: (next, err) => onSnapshot(main, (s) => next(wrap(s)), err)
   };
 }
 function mime(name) { return /\.csv$/i.test(name) ? "text/csv;charset=utf-8" : /\.json$/i.test(name) ? "application/json" : "text/plain"; }
@@ -1445,6 +1895,7 @@ function startApp(user) {
   gate.hidden = true; $("appRoot").hidden = false;
   if (!window.__oliveStarted) {
     window.__oliveStarted = true;
+    window.__oliveHosted = true;
     const s = document.createElement("script"); s.textContent = $("appcode").textContent; document.body.appendChild(s);
     mountAccount(user);
   }
