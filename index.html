@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>زيت الزيتون</title>
-<meta name="theme-color" content="#4a6a1f">
+<title>قوافل تغلب</title>
+<meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -60,7 +60,15 @@ button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 header.top { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; }
-header.top h1 { font-size: clamp(30px, 7vw, 42px); }
+header.top h1 { font-size: clamp(28px, 7vw, 40px); }
+.actbar { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface); }
+.actrow { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; }
+.actrow .lab { font-weight: 600; }
+.actform { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.actform .field { flex: none; }
+.brand { display: flex; flex-direction: column; min-width: 0; }
+.tagline { font-size: 14px; color: var(--muted); }
+.brand-logo { width: 60px; height: 60px; border-radius: 50%; flex: none; background: #000 center / cover no-repeat; box-shadow: 0 0 0 1.5px var(--line); }
 .save-state { font-size: 13px; padding: 2px 12px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
 .save-state.ok { color: var(--pos); border-color: var(--pos); }
 .save-state.bad { color: var(--neg); border-color: var(--neg); }
@@ -113,6 +121,11 @@ input[readonly] { background: var(--accent-soft); font-weight: 600; }
 .tab[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .tbl-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 15px; }
+#pfTbl, #pfByAct, #pfOpex { min-width: 0; }
+#pfByAct th, #pfByAct td { padding-inline: 4px; }
+#pfByAct th { font-size: 12px; }
+#pfByAct td { font-size: 14px; }
+#pfByAct th:first-child, #pfByAct td:first-child { white-space: nowrap; overflow-wrap: normal; }
 th { text-align: start; font-size: 13px; font-weight: 500; color: var(--muted); padding: 8px 10px; border-block-end: 1.5px solid var(--fg); white-space: nowrap; }
 td { padding: 12px 10px; border-block-end: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
 th.n, td.n { direction: ltr; text-align: left; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -194,6 +207,9 @@ textarea { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13p
 .gtitle { font-size: clamp(30px, 8vw, 42px); text-align: center; }
 #acct { margin-block-end: 8px; }
 header.top .mini { margin-inline-start: auto; }
+.gbrand { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.brand-logo.big { width: 132px; height: 132px; }
+.brand-logo { background-image: url(data:image/jpeg;base64,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); }
 </style>
 </head>
 <body>
@@ -201,17 +217,32 @@ header.top .mini { margin-inline-start: auto; }
 <div id="appRoot" hidden>
 <div dir="rtl" lang="ar" class="app">
   <header class="top">
-    <h1>زيت الزيتون</h1>
+    <span class="brand-logo" role="img" aria-label="شعار قوافل تغلب"></span>
+    <div class="brand"><h1>قوافل تغلب</h1><span class="tagline">للمنتجات المنتقاة</span></div>
     <span id="saveState" class="save-state" role="status">جارٍ التحميل</span>
   </header>
 
   <nav class="views" id="views" aria-label="أقسام المشروع"></nav>
+  <section class="actbar" id="actBar" hidden aria-label="النشاط التجاري">
+    <div class="actrow">
+      <span class="lab">النشاط:</span>
+      <div class="tabs" id="actChips" role="group" aria-label="اختيار النشاط"></div>
+      <div class="btns" id="actBtns"></div>
+    </div>
+    <form class="actform" id="actForm" autocomplete="off" hidden>
+      <div class="field"><label for="actName" id="actNameLab">اسم النشاط الجديد</label><input id="actName" type="text" maxlength="40" placeholder="مثال: عسل النحل"></div>
+      <div class="btns"><button type="submit" class="btn primary" id="actSave">إضافة</button><button type="button" class="btn" id="actCancel">إلغاء</button></div>
+    </form>
+    <p class="msg" id="actMsg" role="status"></p>
+    <p class="hint" id="actHint"></p>
+  </section>
   <div id="migBanner"></div>
 
   <!-- ======== الخزينة ======== -->
   <div class="view" id="v_treasury">
     <section class="tiles" id="tTiles" aria-label="ملخص الخزينة"></section>
     <div id="banner"></div>
+    <div id="bkBanner"></div>
     <div class="main">
       <section class="card" aria-labelledby="th1">
         <h2 id="th1">حركة جديدة</h2>
@@ -228,6 +259,7 @@ header.top .mini { margin-inline-start: auto; }
             <div class="field"><label for="date">التاريخ</label><input id="date" type="date"></div>
           </div>
           <div class="field"><label for="party">البيان</label><input id="party" type="text" maxlength="80" placeholder="مثال: رصيد افتتاحي"></div>
+          <div class="field" id="tActF" hidden><label for="tAct">هذا المصروف يخص نشاط</label><select id="tAct"></select></div>
           <div class="field"><label for="note">ملاحظة (اختياري)</label><input id="note" type="text" maxlength="120"></div>
           <button type="submit" class="btn primary" id="save">حفظ الحركة</button>
           <p id="msg" class="msg" role="status"></p>
@@ -242,9 +274,11 @@ header.top .mini { margin-inline-start: auto; }
         <div class="btns">
           <button type="button" class="btn" id="export" hidden>تصدير حركة الخزينة (CSV)</button>
           <button type="button" class="btn" id="exportJson" hidden>نسخة احتياطية (JSON)</button>
+          <button type="button" class="btn" id="shareJson" hidden>إرسال نسخة إلى Drive</button>
           <button type="button" class="btn" id="importBtn">استيراد نسخة احتياطية</button>
-          <input type="file" id="importFile" accept=".json,application/json" hidden>
+          <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
         </div>
+        <p class="hint">النسخة الاحتياطية تشمل الحسابات والمخزون والأنشطة وجهات الاتصال، ولا تشمل الصور والملفات.</p>
       </section>
     </div>
   </div>
@@ -443,9 +477,21 @@ header.top .mini { margin-inline-start: auto; }
     <section class="tiles" id="pfTiles" aria-label="ملخص الربح"></section>
     <section class="card" aria-labelledby="pf1">
       <h2 id="pf1">قائمة الأرباح</h2>
+      <div class="field" id="pfActF" style="max-width: 280px" hidden><label for="pfAct">النشاط</label><select id="pfAct"></select></div>
       <div class="field" style="max-width: 280px"><label for="pfPeriod">الفترة</label><select id="pfPeriod"></select></div>
+      <div class="two" id="pfRange" hidden>
+        <div class="field"><label for="pfFrom">من تاريخ</label><input id="pfFrom" type="date"></div>
+        <div class="field"><label for="pfTo">إلى تاريخ</label><input id="pfTo" type="date"></div>
+      </div>
+      <p class="msg" id="pfRangeMsg" role="status"></p>
+      <p class="sumline" id="pfLabel"></p>
       <div class="tbl-wrap"><table id="pfTbl"></table></div>
       <p class="hint" id="pfNote"></p>
+    </section>
+    <section class="card" id="pfByCard" aria-labelledby="pf3" hidden>
+      <h2 id="pf3">الربح حسب النشاط</h2>
+      <div class="tbl-wrap"><table id="pfByAct"></table></div>
+      <p class="hint">«مصروفات عامة» هي الصادرات التي اخترت لها «عام» عند تسجيلها في الخزينة، فلا تُحسب على نشاط بعينه.</p>
     </section>
     <section class="card" aria-labelledby="pf2">
       <h2 id="pf2">المصروفات التشغيلية في الفترة</h2>
@@ -560,7 +606,7 @@ document.documentElement.lang = "ar";
   var UNITS = ["كجم", "جرام", "لتر", "متر", "قطعة", "علبة", "لوح", "كرتونة"];
   var REASONS = ["تلف أثناء التخزين", "انتهاء صلاحية", "كسر", "عيب تصنيع", "فاقد أثناء التصنيع", "سوء نقل"];
   var now = new Date();
-  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null, swh: "all", fromWh: "main", toWh: "main", renWh: null };
+  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null, swh: "all", fromWh: "main", toWh: "main", renWh: null, act: "main", actForm: null, newAct: null, pfAct: "all" };
   var draft = [{ mat: "", qty: "" }];
   var col = null, dbRef = null, uidRef = null, downloads = null, confirmTimer = null;
 
@@ -618,12 +664,28 @@ document.documentElement.lang = "ar";
   var producing = false;
 
   /* ---------- data access ---------- */
-  function K(kind) { return state.docs.filter(function (d) { return d.kind === kind; }); }
+  /* ---------- activities ----------
+     One treasury, several lines of business. Items, purchases, batches, sales, waste and transfers
+     belong to an activity (field `act`; a record with no `act` belongs to the original activity "main").
+     K() returns only the CURRENT activity's records for those kinds; KA() returns every activity's. */
+  var MAINACT = "main", MAINACT_NAME = "زيت الزيتون";
+  var SCOPED = { material: 1, product: 1, purchase: 1, batch: 1, sale: 1, waste: 1, transfer: 1 };
+  try { var savedAct = localStorage.getItem("qt_act"); if (savedAct) state.act = savedAct; } catch (e) { /* storage blocked */ }
+  function actOf(d) { return d.act || MAINACT; }
+  function KA(kind) { return state.docs.filter(function (d) { return d.kind === kind; }); }
+  function K(kind) {
+    var all = KA(kind);
+    return SCOPED[kind] ? all.filter(function (d) { return actOf(d) === state.act; }) : all;
+  }
   function E() { return state.docs.filter(function (d) { return !d.kind; }); }
+  function ACTS() { return [{ id: MAINACT, name: MAINACT_NAME }].concat(KA("activity").sort(byName)); }
+  function actById(id) { return id === MAINACT ? ACTS()[0] : (KA("activity").filter(function (a) { return a.id === id; })[0] || null); }
+  function actName(id) { var a = actById(id); return a ? a.name : MAINACT_NAME; }
+  function multiAct() { return KA("activity").length > 0; }
   function MATS() { return K("material").sort(byName); }
   function PRODS() { return K("product").sort(byName); }
-  function matById(id) { return K("material").filter(function (d) { return d.id === id; })[0] || null; }
-  function prodById(id) { return K("product").filter(function (d) { return d.id === id; })[0] || null; }
+  function matById(id) { return KA("material").filter(function (d) { return d.id === id; })[0] || null; }
+  function prodById(id) { return KA("product").filter(function (d) { return d.id === id; })[0] || null; }
   function matByName(n) { var k = norm(n); return k ? (MATS().filter(function (m) { return norm(m.name) === k; })[0] || null) : null; }
   function prodByName(n) { var k = norm(n); return k ? (PRODS().filter(function (p) { return norm(p.name) === k; })[0] || null) : null; }
 
@@ -686,6 +748,7 @@ document.documentElement.lang = "ar";
 
   async function create(data) {
     data.createdAt = Date.now();
+    if (SCOPED[data.kind] && data.act === undefined && state.act !== MAINACT) data.act = state.act;
     if (col) {
       var ref = col.doc();
       for (var a = 0; a < 3; a++) {
@@ -732,8 +795,12 @@ document.documentElement.lang = "ar";
     });
     return { rows: rows, bal: bal, inn: inn, out: out };
   }
-  function treasuryEntry(type, amount, date, party, note, source, refId) {
-    return create({ type: type, amount: r2(amount), date: date, party: party, note: note || "", source: source || "manual", refId: refId || "" });
+  /* act: for manual entries the chosen activity ("shared" = general expense); automatic entries follow the current activity */
+  function treasuryEntry(type, amount, date, party, note, source, refId, act) {
+    var rec = { type: type, amount: r2(amount), date: date, party: party, note: note || "", source: source || "manual", refId: refId || "" };
+    var a = act !== undefined ? act : (rec.source !== "manual" ? state.act : MAINACT);
+    if (a && a !== MAINACT) rec.act = a;
+    return create(rec);
   }
 
   /* ---------- cost model ---------- */
@@ -857,8 +924,14 @@ document.documentElement.lang = "ar";
       if (item) await patch(item, addAt(item, w.wh, Number(w.qty)));
       await remove(w);
     },
+    activity: async function (a) {
+      var inUse = state.docs.filter(function (d) { return d.act === a.id; }).length;
+      if (inUse) throw biz("لا يمكن حذف «" + a.name + "» لأن فيه " + inUse + " سجلًا (خامات أو مشتريات أو مبيعات…). احذف سجلاته أولًا.");
+      await remove(a);
+      return "تم حذف النشاط.";
+    },
     warehouse: async function (w) {
-      var held = MATS().concat(PRODS()).filter(function (it) { return whQty(it, w.id) > 1e-9; });
+      var held = KA("material").concat(KA("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; });
       if (held.length) throw biz("لا يمكن حذف «" + w.name + "» لأن فيه كميات (" + held.slice(0, 3).map(function (it) { return it.name; }).join("، ") + (held.length > 3 ? "…" : "") + "). انقلها إلى مخزن آخر أولًا.");
       await remove(w);
     }
@@ -881,7 +954,25 @@ document.documentElement.lang = "ar";
   }
 
   /* ---------- treasury view ---------- */
+  function entryActTag(e) {
+    if (!multiAct()) return "";
+    if (e.act === "shared") return "عام";
+    if (e.act) return actName(e.act);
+    return (e.source && e.source !== "manual") || e.type === "expense" ? MAINACT_NAME : "";
+  }
+  function renderTAct() {
+    var sel = $("tAct"), type = document.querySelector('input[name="ttype"]:checked').value;
+    $("tActF").hidden = !(multiAct() && type === "expense");
+    var cur = sel.value;
+    sel.textContent = "";
+    ACTS().forEach(function (a) { sel.appendChild(h("option", { value: a.id, text: a.name })); });
+    sel.appendChild(h("option", { value: "shared", text: "عام (مشترك بين الأنشطة)" }));
+    if (!cur || sel.dataset.forAct !== state.act) { sel.value = state.act; sel.dataset.forAct = state.act; } else sel.value = cur;
+    if (sel.selectedIndex < 0) sel.value = MAINACT;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="ttype"]'), function (r) { r.addEventListener("change", renderTAct); });
   function renderTreasury() {
+    renderTAct();
     var T = treasury(), t = $("tTiles");
     t.textContent = "";
     tileTo(t, "الرصيد المتبقي", (T.bal < 0 ? "−" : "") + money(Math.abs(T.bal)), T.bal < 0 ? "neg" : "pos", T.bal < 0 ? "الرصيد بالسالب. سجّل وارد أو رصيدًا افتتاحيًا." : "الوارد ناقص الصادر");
@@ -904,8 +995,9 @@ document.documentElement.lang = "ar";
       tbl($("ledgerTbl"), [["التاريخ"], ["البيان"], ["وارد (ج.م)", "n"], ["صادر (ج.م)", "n"], ["الرصيد (ج.م)", "n"]], rows.map(function (r) {
         var e = r.e, inc = e.type === "income", pend = e.status === "pending";
         var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : "";
+        var atag = entryActTag(e);
         var cell = h("div", null,
-          h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
+          h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, atag ? h("span", { class: "tag", text: atag }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
           [e.category, e.note].filter(Boolean).length ? h("div", { class: "meta", text: [e.category, e.note].filter(Boolean).join(" · ") }) : null);
         var acts = h("div", { class: "cell-acts" });
         if (pend) {
@@ -920,6 +1012,8 @@ document.documentElement.lang = "ar";
     }
     $("export").hidden = !(downloads && E().length);
     $("exportJson").hidden = !(downloads && state.docs.length);
+    $("shareJson").hidden = !(downloads && state.docs.length && canShareFiles());
+    renderBackupBanner();
   }
   async function removeSamples() {
     var list = E().filter(function (e) { return e.sample; });
@@ -933,15 +1027,48 @@ document.documentElement.lang = "ar";
       rows.push([e.date, e.party, inc ? e.amount : "", inc ? "" : e.amount, r.bal == null ? "" : r.bal, e.note]);
     });
     var csv = "﻿" + rows.map(function (r) { return r.map(csvCell).join(","); }).join("\r\n");
-    try { await downloads.save({ filename: "olive-oil-treasury-" + todayISO() + ".csv", data: csv }); }
+    try { await downloads.save({ filename: "qawafil-treasury-" + todayISO() + ".csv", data: csv }); }
     catch (err) { if (!err || err.code !== "declined") say("msg", "تعذّر تجهيز الملف في هذا العرض.", true); }
   }
 
+  /* backup file: records only (photos/files are not included); the "olive-oil" tag is kept so older backups still import */
+  function backupDocs() { return state.docs.filter(function (d) { return d.kind !== "file" && d.kind !== "fileimg"; }); }
+  function backupJson() {
+    var docs = backupDocs().map(function (d) { var o = Object.assign({}, d); delete o.id; return { id: d.id, data: o }; });
+    return JSON.stringify({ app: "olive-oil", version: 1, exportedAt: Date.now(), docs: docs });
+  }
+  function backupName() { return "qawafil-backup-" + todayISO() + ".json"; }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage blocked */ } }
+  function markBackup() { lsSet("qt_lastBackup", String(Date.now())); renderBackupBanner(); }
+  function canShareFiles() { return typeof navigator.share === "function" && typeof navigator.canShare === "function"; }
   async function exportJson() {
-    var docs = state.docs.filter(function (d) { return d.kind !== "file" && d.kind !== "fileimg"; }).map(function (d) { var o = Object.assign({}, d); delete o.id; return { id: d.id, data: o }; });
-    var json = JSON.stringify({ app: "olive-oil", version: 1, exportedAt: Date.now(), docs: docs });
-    try { await downloads.save({ filename: "olive-oil-backup-" + todayISO() + ".json", data: json }); say("msg", "تم تجهيز النسخة الاحتياطية (" + docs.length + " سجلًا).", false); }
+    try { await downloads.save({ filename: backupName(), data: backupJson() }); say("msg", "تم تجهيز النسخة الاحتياطية (" + backupDocs().length + " سجلًا). افتحها من التنزيلات وأرسلها إلى Drive لتحفظها خارج الهاتف.", false); markBackup(); }
     catch (err) { if (!err || err.code !== "declined") say("msg", "تعذّر تجهيز الملف في هذا العرض.", true); }
+  }
+  /* opens the phone's share sheet with the backup file so it can be sent to Drive (must run straight from a tap) */
+  async function shareBackup() {
+    var json = backupJson(), name = backupName(), pick = null;
+    try {
+      var f1 = new File([json], name, { type: "application/json" }), f2 = new File([json], name + ".txt", { type: "text/plain" });
+      if (canShareFiles()) pick = navigator.canShare({ files: [f1] }) ? f1 : (navigator.canShare({ files: [f2] }) ? f2 : null);
+    } catch (e) { pick = null; }
+    if (!pick) { say("msg", "هذا الجهاز لا يدعم الإرسال المباشر. اضغط «نسخة احتياطية (JSON)» ثم افتح الملف من التنزيلات وأرسله إلى Drive.", true); return; }
+    try { await navigator.share({ files: [pick], title: "نسخة احتياطية - قوافل تغلب" }); say("msg", "تمت المشاركة. تأكد أنك اخترت Drive وأن الملف ظهر هناك.", false); markBackup(); }
+    catch (err) { if (!err || err.name !== "AbortError") say("msg", "تعذّر إرسال النسخة. جرّب «نسخة احتياطية (JSON)».", true); }
+  }
+  function renderBackupBanner() {
+    var b = $("bkBanner"); b.textContent = "";
+    if (!state.loaded || !downloads || !backupDocs().length) return;
+    var last = Number(lsGet("qt_lastBackup")) || 0, snooze = Number(lsGet("qt_bkSnooze")) || 0, now = Date.now();
+    var days = last ? Math.floor((now - last) / 86400000) : null;
+    if ((last && days < 7) || now < snooze) return;
+    var msg = last ? "مرّ " + days + " يومًا على آخر نسخة احتياطية أخذتها من هذا الجهاز." : "لم تأخذ نسخة احتياطية من هذا الجهاز بعد. الحذف في التطبيق نهائي، والنسخة هي أمانك.";
+    var share = canShareFiles();
+    b.appendChild(h("div", { class: "banner" }, h("span", { text: msg }),
+      h("div", { class: "btns" },
+        h("button", { type: "button", class: "btn primary", text: share ? "أرسل نسخة إلى Drive" : "نزّل نسخة احتياطية", onclick: share ? shareBackup : exportJson }),
+        h("button", { type: "button", class: "mini", text: "ذكّرني لاحقًا", onclick: function () { lsSet("qt_bkSnooze", String(Date.now() + 2 * 86400000)); renderBackupBanner(); } }))));
   }
   async function readBackup(file) {
     try {
@@ -963,6 +1090,7 @@ document.documentElement.lang = "ar";
     state.importing = false; renderMig();
   }
   $("exportJson").addEventListener("click", exportJson);
+  $("shareJson").addEventListener("click", shareBackup);
   $("importBtn").addEventListener("click", function () { $("importFile").click(); });
   $("importFile").addEventListener("change", function () { var f = $("importFile").files[0]; $("importFile").value = ""; if (f) readBackup(f); });
 
@@ -1113,7 +1241,7 @@ document.documentElement.lang = "ar";
     if (!(state.renWh && ae && ae.tagName === "INPUT" && ul.contains(ae))) {
       ul.textContent = "";
       WHS().forEach(function (w) {
-        var held = MATS().concat(PRODS()).filter(function (it) { return whQty(it, w.id) > 1e-9; }).length;
+        var held = KA("material").concat(KA("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; }).length;
         var li = h("li", { class: "item" }), head = h("div", { class: "item-head" });
         if (state.renWh === w.id) {
           var inp = h("input", { type: "text", maxlength: "40", value: w.name, "aria-label": "اسم المخزن" });
@@ -1539,32 +1667,71 @@ document.documentElement.lang = "ar";
   });
 
   /* ---------- net profit view ---------- */
-  state.period = "all";
-  function inPeriod(d) { return state.period === "all" || String(d || "").slice(0, 7) === state.period; }
-  function profitData() {
-    var sales = K("sale").filter(function (s) { return inPeriod(s.date); });
+  state.period = "all"; state.pfFrom = ""; state.pfTo = "";
+  function rangeBad() { return state.period === "custom" && state.pfFrom && state.pfTo && state.pfFrom > state.pfTo; }
+  function inPeriod(d) {
+    d = String(d || "");
+    if (state.period === "all") return true;
+    if (state.period === "custom") return !rangeBad() && (!state.pfFrom || d >= state.pfFrom) && (!state.pfTo || d <= state.pfTo);
+    return d.slice(0, 7) === state.period;
+  }
+  function periodLabel() {
+    if (state.period === "all") return "كل الفترة";
+    if (state.period === "custom") {
+      if (state.pfFrom && state.pfTo) return "من " + dateLabel(state.pfFrom) + " إلى " + dateLabel(state.pfTo);
+      if (state.pfFrom) return "من " + dateLabel(state.pfFrom) + " حتى اليوم";
+      if (state.pfTo) return "حتى " + dateLabel(state.pfTo);
+      return "كل الفترة";
+    }
+    return new Date(+state.period.slice(0, 4), +state.period.slice(5, 7) - 1, 1).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" });
+  }
+  /* sel: "all" | an activity id | "shared" (general expenses only) */
+  function profitData(sel) {
+    sel = sel || "all";
+    function mine(x) { return sel === "all" || actOf(x) === sel; }
+    var sales = KA("sale").filter(function (s) { return mine(s) && inPeriod(s.date); });
     var rev = sumBy(sales, function (s) { return s.total; });
     var cogs = sumBy(sales, function (s) { return (Number(s.unitCost) || 0) * (Number(s.qty) || 0); });
     var noCost = sales.filter(function (s) { return !(Number(s.unitCost) > 0); }).length;
-    var opex = E().filter(function (e) { return e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات" && e.status !== "pending" && inPeriod(e.date); }).sort(newest);
+    var opex = E().filter(function (e) {
+      if (!(e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات" && e.status !== "pending" && inPeriod(e.date))) return false;
+      if (sel === "all") return true;
+      if (sel === "shared") return e.act === "shared";
+      return e.act !== "shared" && actOf(e) === sel;
+    }).sort(newest);
     var opexTotal = sumBy(opex, function (e) { return e.amount; });
-    var wasteLoss = sumBy(K("waste").filter(function (w) { return inPeriod(w.date); }), function (w) { return w.loss; });
+    var wasteLoss = sumBy(KA("waste").filter(function (w) { return mine(w) && inPeriod(w.date); }), function (w) { return w.loss; });
     var gross = rev - cogs;
     return { rev: rev, cogs: cogs, noCost: noCost, opex: opex, opexTotal: opexTotal, wasteLoss: wasteLoss, gross: gross, net: gross - opexTotal - wasteLoss, count: sales.length };
   }
   function signed(n) { return (n < 0 ? "−" : "") + fm(Math.abs(n)); }
   function renderProfit() {
     var sel = $("pfPeriod"), months = {};
-    K("sale").concat(K("waste"), E()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
+    KA("sale").concat(KA("waste"), E()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
+    var many = multiAct(), asel = $("pfAct");
+    if (state.pfAct !== "all" && !actById(state.pfAct)) state.pfAct = "all";
+    if (!many) state.pfAct = "all";
+    $("pfActF").hidden = !many;
+    asel.textContent = "";
+    asel.appendChild(h("option", { value: "all", text: "كل الأنشطة (الإجمالي)" }));
+    ACTS().forEach(function (a) { asel.appendChild(h("option", { value: a.id, text: a.name })); });
+    asel.value = state.pfAct;
     months[todayISO().slice(0, 7)] = 1;
     sel.textContent = "";
     sel.appendChild(h("option", { value: "all", text: "كل الفترة" }));
+    sel.appendChild(h("option", { value: "custom", text: "فترة مخصصة (من تاريخ إلى تاريخ)" }));
     Object.keys(months).sort().reverse().forEach(function (m) {
       sel.appendChild(h("option", { value: m, text: new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" }) }));
     });
     sel.value = state.period;
     if (sel.selectedIndex < 0) { sel.value = "all"; state.period = "all"; }
-    var P = profitData(), t = $("pfTiles");
+    var isCustom = state.period === "custom";
+    $("pfRange").hidden = !isCustom;
+    if (document.activeElement !== $("pfFrom")) $("pfFrom").value = state.pfFrom;
+    if (document.activeElement !== $("pfTo")) $("pfTo").value = state.pfTo;
+    say("pfRangeMsg", rangeBad() ? "تاريخ البداية بعد تاريخ النهاية. صحّح التواريخ." : "", true);
+    $("pfLabel").textContent = rangeBad() ? "" : "الفترة المعروضة: " + periodLabel() + (many ? " · النشاط: " + (state.pfAct === "all" ? "كل الأنشطة" : actName(state.pfAct)) : "");
+    var P = profitData(state.pfAct), t = $("pfTiles");
     t.textContent = "";
     tileTo(t, "صافي الربح", (P.net < 0 ? "−" : "") + money(Math.abs(P.net)), P.net < 0 ? "neg" : "pos", P.rev > 0 ? "هامش " + (P.net / P.rev * 100).toFixed(1) + "% من المبيعات" : "لا توجد مبيعات في الفترة");
     tileTo(t, "إجمالي المبيعات", money(P.rev), "", P.count + " عملية بيع");
@@ -1579,12 +1746,35 @@ document.documentElement.lang = "ar";
     ]);
     var notes = ["تكلفة البضاعة المباعة = تكلفة القطعة وقت البيع × عدد القطع (من قسم الإنتاج)."];
     if (P.noCost) notes.push("تنبيه: " + P.noCost + " عملية بيع بلا تكلفة لأن المنتج غير مسجّل في الإنتاج، فالربح فيها أعلى من الحقيقي.");
+    if (many && state.pfAct !== "all") {
+      var shOp = profitData("shared").opexTotal;
+      if (shOp > 0) notes.push("لم تُحسب هنا مصروفات عامة مشتركة بقيمة " + money(shOp) + " في هذه الفترة. تظهر في «كل الأنشطة».");
+    }
     $("pfNote").textContent = notes.join(" ");
     $("pfOpexEmpty").hidden = P.opex.length > 0;
+    function actTag(e) { return e.act === "shared" ? "عام" : actName(actOf(e)); }
     if (!P.opex.length) $("pfOpex").textContent = "";
+    else if (many) tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["النشاط"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", actTag(e), fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", "", h("b", { text: fm(P.opexTotal) })]]));
     else tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", h("b", { text: fm(P.opexTotal) })]]));
+    var byCard = $("pfByCard");
+    byCard.hidden = !(many && state.pfAct === "all");
+    if (!byCard.hidden) {
+      var defs = ACTS().map(function (a) { return { name: a.name, P: profitData(a.id) }; });
+      var sh = profitData("shared");
+      if (sh.opexTotal > 0) defs.push({ name: "مصروفات عامة", P: sh });
+      var rowsBy = defs.map(function (x) { return [x.name, fm(x.P.rev), fm(x.P.opexTotal + x.P.wasteLoss), h("span", { class: x.P.net < 0 ? "neg" : "pos", text: signed(x.P.net) })]; });
+      rowsBy.push([h("b", { text: "الإجمالي" }), h("b", { text: fm(P.rev) }), h("b", { text: fm(P.opexTotal + P.wasteLoss) }), h("b", { class: P.net < 0 ? "neg" : "pos", text: signed(P.net) })]);
+      tbl($("pfByAct"), [["النشاط"], ["المبيعات", "n"], ["مصروفات وهالك", "n"], ["الصافي", "n"]], rowsBy);
+    }
   }
-  $("pfPeriod").addEventListener("change", function () { state.period = $("pfPeriod").value; renderProfit(); });
+  $("pfAct").addEventListener("change", function () { state.pfAct = $("pfAct").value; renderProfit(); });
+  $("pfPeriod").addEventListener("change", function () {
+    state.period = $("pfPeriod").value;
+    if (state.period === "custom" && !state.pfFrom && !state.pfTo) { state.pfFrom = todayISO().slice(0, 8) + "01"; state.pfTo = todayISO(); }
+    renderProfit();
+  });
+  $("pfFrom").addEventListener("change", function () { state.pfFrom = $("pfFrom").value; renderProfit(); });
+  $("pfTo").addEventListener("change", function () { state.pfTo = $("pfTo").value; renderProfit(); });
 
   /* ---------- treasury form ---------- */
   $("form").addEventListener("submit", async function (ev) {
@@ -1595,7 +1785,7 @@ document.documentElement.lang = "ar";
     if (!party) { say("msg", "اكتب البيان.", true); $("party").focus(); return; }
     var type = document.querySelector('input[name="ttype"]:checked').value;
     try {
-      await treasuryEntry(type, amount, date, party, $("note").value.trim(), "manual", "");
+      await treasuryEntry(type, amount, date, party, $("note").value.trim(), "manual", "", type === "expense" && multiAct() ? $("tAct").value : MAINACT);
       $("amount").value = ""; $("party").value = ""; $("note").value = "";
       say("msg", "تم حفظ الحركة.", false);
       $("amount").focus();
@@ -1941,8 +2131,65 @@ document.documentElement.lang = "ar";
       sel.value = cur && whById(cur) ? cur : MAIN;
     });
   }
+  /* ---------- activity bar ---------- */
+  var ACT_VIEWS = { purchases: 1, stock: 1, production: 1, waste: 1, sales: 1 };
+  function openActForm(mode) {
+    state.actForm = mode;
+    $("actNameLab").textContent = mode === "rename" ? "الاسم الجديد للنشاط" : "اسم النشاط الجديد";
+    $("actSave").textContent = mode === "rename" ? "حفظ الاسم" : "إضافة";
+    $("actName").value = mode === "rename" ? actName(state.act) : "";
+    say("actMsg", "", false);
+    render();
+    $("actName").focus();
+  }
+  function switchAct(id) {
+    state.act = id; state.actForm = null; state.openMat = null; state.confirmId = null;
+    say("actMsg", "", false);
+    resetProdForm();
+    render();
+  }
+  function renderActBar() {
+    var bar = $("actBar");
+    bar.hidden = !ACT_VIEWS[state.view];
+    if (bar.hidden) return;
+    var chips = $("actChips"); chips.textContent = "";
+    ACTS().forEach(function (a) {
+      chips.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.act === a.id), text: a.name, onclick: function () { switchAct(a.id); } }));
+    });
+    var btns = $("actBtns"); btns.textContent = "";
+    btns.appendChild(h("button", { type: "button", class: "mini", text: "＋ نشاط جديد", onclick: function () { openActForm("add"); } }));
+    var cur = actById(state.act);
+    if (state.act !== MAINACT && cur) {
+      btns.appendChild(h("button", { type: "button", class: "mini", text: "تغيير الاسم", onclick: function () { openActForm("rename"); } }));
+      btns.appendChild(delBtn(cur, "actMsg"));
+    }
+    $("actForm").hidden = !state.actForm;
+    $("actHint").textContent = multiAct()
+      ? "أنت تعمل الآن على نشاط «" + actName(state.act) + "». الخامات والمشتريات والإنتاج والمبيعات والهالك منفصلة لكل نشاط، أما الخزينة ورأس المال فواحدة للجميع."
+      : "لإضافة نشاط جديد مثل عسل النحل اضغط «＋ نشاط جديد». الخزينة ورأس المال تبقى واحدة.";
+  }
+  $("actForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var n = $("actName").value.trim(), renaming = state.actForm === "rename";
+    if (!n) { say("actMsg", "اكتب اسم النشاط.", true); $("actName").focus(); return; }
+    if (ACTS().some(function (a) { return norm(a.name) === norm(n) && !(renaming && a.id === state.act); })) { say("actMsg", "يوجد نشاط بهذا الاسم.", true); return; }
+    try {
+      if (renaming) { await patch(actById(state.act), { name: n }); say("actMsg", "تم تغيير الاسم.", false); }
+      else {
+        var id = await create({ kind: "activity", name: n });
+        state.newAct = id; state.act = id; resetProdForm();
+        say("actMsg", "تمت إضافة النشاط «" + n + "» وأنت تعمل عليه الآن.", false);
+      }
+      state.actForm = null; $("actName").value = "";
+      render();
+    } catch (err) { say("actMsg", errText(err), true); }
+  });
+  $("actCancel").addEventListener("click", function () { state.actForm = null; say("actMsg", "", false); render(); });
   function render() {
-    renderStatus(); renderViews(); renderMig(); renderWhSelects();
+    if (state.loaded && state.act !== MAINACT && !actById(state.act) && state.act !== state.newAct) state.act = MAINACT;
+    if (state.newAct && actById(state.newAct)) state.newAct = null;
+    try { localStorage.setItem("qt_act", state.act); } catch (e) { /* storage blocked */ }
+    renderStatus(); renderViews(); renderActBar(); renderMig(); renderWhSelects();
     VIEWS.forEach(function (v) { $("v_" + v[0]).hidden = state.view !== v[0]; });
     if (state.view === "treasury") renderTreasury();
     else if (state.view === "purchases") renderPurchases();
@@ -2025,7 +2272,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 const gate = $("gate"), box = $("gatebox");
 function showGate(title, nodes) {
   box.textContent = "";
-  box.appendChild(h("h1", { class: "gtitle", text: "زيت الزيتون" }));
+  box.appendChild(h("div", { class: "gbrand" }, h("span", { class: "brand-logo big", role: "img", "aria-label": "شعار قوافل تغلب" }), h("h1", { class: "gtitle", text: "قوافل تغلب" })));
   box.appendChild(h("div", { class: "card" }, h("h2", { text: title }), ...nodes));
   gate.hidden = false; $("appRoot").hidden = true;
 }
