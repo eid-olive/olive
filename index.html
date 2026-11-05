@@ -66,6 +66,12 @@ header.top h1 { font-size: clamp(28px, 7vw, 40px); }
 .actrow .lab { font-weight: 600; }
 .actform { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
 .actform .field { flex: none; }
+section.card > h2.fold { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; min-height: 44px; }
+section.card > h2.fold::after { content: ""; flex: none; width: 11px; height: 11px; margin-inline-end: 6px; border: solid var(--muted); border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+section.card.collapsed > h2.fold::after { transform: rotate(135deg) translate(-2px, -2px); }
+section.card > h2.fold:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 4px; }
+section.card.collapsed > :not(h2) { display: none !important; }
+section.card.collapsed > h2.fold { margin-block-end: 0; }
 .brand { display: flex; flex-direction: column; min-width: 0; }
 .tagline { font-size: 14px; color: var(--muted); }
 .brand-logo { width: 60px; height: 60px; border-radius: 50%; flex: none; background: #000 center / cover no-repeat; box-shadow: 0 0 0 1.5px var(--line); }
@@ -121,7 +127,7 @@ input[readonly] { background: var(--accent-soft); font-weight: 600; }
 .tab[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .tbl-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 15px; }
-#pfTbl, #pfByAct, #pfOpex { min-width: 0; }
+#pfTbl, #pfByAct, #pfOpex, #dueTbl { min-width: 0; }
 #pfByAct th, #pfByAct td { padding-inline: 4px; }
 #pfByAct th { font-size: 12px; }
 #pfByAct td { font-size: 14px; }
@@ -458,16 +464,42 @@ header.top .mini { margin-inline-start: auto; }
           <div class="field" id="discField" hidden><label for="saleDisc" id="saleDiscLab">قيمة الخصم (ج.م)</label><input id="saleDisc" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
           <div class="cost" id="saleBreak" hidden aria-live="polite"></div>
           <div class="field"><label for="saleTotal">الإجمالي بعد الخصم (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
+          <div class="field"><span class="lab" id="payLab">طريقة الدفع</span>
+            <div class="seg three" role="radiogroup" aria-labelledby="payLab">
+              <label><input type="radio" name="spay" value="cash" checked><span>كاش</span></label>
+              <label><input type="radio" name="spay" value="credit"><span>آجل</span></label>
+              <label><input type="radio" name="spay" value="part"><span>جزء وجزء</span></label>
+            </div>
+          </div>
+          <div class="field" id="payPartF" hidden><label for="salePaid">المدفوع كاش الآن (ج.م)</label><input id="salePaid" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+          <div class="field" id="payCustF" hidden><label for="saleCust">اسم العميل (مطلوب في الآجل)</label><input id="saleCust" type="text" maxlength="60" list="custNames" placeholder="اسم من عليه المبلغ"></div>
+          <datalist id="custNames"></datalist>
+          <div class="cost" id="payBreak" hidden aria-live="polite"></div>
           <button type="submit" class="btn primary">سجّل البيع</button>
           <p id="saleMsg" class="msg" role="status"></p>
         </form>
-        <p class="hint">يُضاف الإجمالي إلى الخزينة تلقائيًا، وإن كان المنتج مصنَّعًا من قسم الإنتاج تُخصم القطع من مخزونه الجاهز.</p>
+        <p class="hint">يُضاف المبلغ المدفوع كاش إلى الخزينة تلقائيًا، وإن كان المنتج مصنَّعًا من قسم الإنتاج تُخصم القطع من مخزونه الجاهز. الجزء الآجل لا يدخل الخزينة حتى تسجّل تحصيله.</p>
       </section>
       <section class="card" aria-labelledby="sa2">
         <h2 id="sa2">سجل المبيعات</h2>
         <p class="sumline" id="saleSum"></p>
         <div class="tbl-wrap"><table id="saleTbl"></table></div>
         <p class="empty" id="saleEmpty" hidden>لا توجد مبيعات بعد. سجّل أول بيع من النموذج.</p>
+      </section>
+      <section class="card" aria-labelledby="sa3">
+        <h2 id="sa3">المبالغ الآجلة والتحصيل</h2>
+        <p class="sumline" id="dueSum"></p>
+        <form id="colForm" autocomplete="off" hidden>
+          <div class="field"><label for="colSale">اختر البيع الآجل</label><select id="colSale"></select></div>
+          <div class="two">
+            <div class="field"><label for="colAmt">المبلغ المحصّل (ج.م)</label><input id="colAmt" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+            <div class="field"><label for="colDate">التاريخ</label><input id="colDate" type="date"></div>
+          </div>
+          <button type="submit" class="btn primary">سجّل التحصيل</button>
+        </form>
+        <p id="colMsg" class="msg" role="status"></p>
+        <div class="tbl-wrap"><table id="dueTbl"></table></div>
+        <p class="empty" id="dueEmpty" hidden>لا توجد مبالغ آجلة. اختر «آجل» أو «جزء وجزء» عند تسجيل بيع.</p>
       </section>
     </div>
   </div>
@@ -875,7 +907,13 @@ document.documentElement.lang = "ar";
 
   /* ---------- deletion with reversal ---------- */
   var DEL = {
-    entry: function (d) { return remove(d); },
+    entry: async function (d) {
+      if (d.source === "collection") {
+        var sale = KA("sale").filter(function (x) { return x.id === d.refId; })[0];
+        if (sale) await patch(sale, { paid: Math.max(0, r2(salePaid(sale) - (Number(d.amount) || 0))) });
+      }
+      await remove(d);
+    },
     material: async function (m) {
       var used = PRODS().filter(function (p) { return (p.recipe || []).some(function (r) { return r.mat === m.id; }); });
       for (var i = 0; i < used.length; i++) await patch(used[i], { recipe: used[i].recipe.filter(function (r) { return r.mat !== m.id; }) });
@@ -994,7 +1032,7 @@ document.documentElement.lang = "ar";
     if (!rows.length) { $("ledgerTbl").textContent = ""; } else {
       tbl($("ledgerTbl"), [["التاريخ"], ["البيان"], ["وارد (ج.م)", "n"], ["صادر (ج.م)", "n"], ["الرصيد (ج.م)", "n"]], rows.map(function (r) {
         var e = r.e, inc = e.type === "income", pend = e.status === "pending";
-        var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : "";
+        var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : e.source === "collection" ? "تحصيل" : "";
         var atag = entryActTag(e);
         var cell = h("div", null,
           h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, atag ? h("span", { class: "tag", text: atag }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
@@ -1004,7 +1042,7 @@ document.documentElement.lang = "ar";
           acts.appendChild(h("span", { class: "pill pending", text: "معلّق" }));
           acts.appendChild(h("button", { type: "button", class: "mini", text: "سجّل أنه تم", onclick: function () { patch(e, { status: "paid" }).catch(function (err) { say("msg", errText(err), true); }); } }));
         }
-        if (src) acts.appendChild(h("span", { class: "meta", text: "يُحذف من صفحة " + src }));
+        if (src) acts.appendChild(h("span", { class: "meta", text: "يُحذف من صفحة " + (e.source === "collection" ? "المبيعات" : src) }));
         else acts.appendChild(delBtn(e, "msg"));
         cell.appendChild(acts);
         return [dateLabel(e.date), cell, inc ? fm(e.amount) : "", inc ? "" : fm(e.amount), r.bal == null ? "—" : h("span", { class: r.bal < 0 ? "neg" : "", text: (r.bal < 0 ? "−" : "") + fm(Math.abs(r.bal)) })];
@@ -1592,11 +1630,41 @@ document.documentElement.lang = "ar";
     if (raw > gross + 1e-9) return { type: type, value: raw, amount: 0, err: "الخصم أكبر من إجمالي البيع (" + fm(gross) + " ج.م)." };
     return { type: type, value: raw, amount: r2(raw), err: "" };
   }
+  /* credit sales: a sale with a `paid` field was (partly) sold on credit; paid grows as collections are recorded.
+     A sale without `paid` (every older sale, and every cash sale) was paid in full. */
+  function salePaid(s) { return s.paid === undefined ? Number(s.total) || 0 : Number(s.paid) || 0; }
+  function saleDue(s) { return Math.max(0, r2((Number(s.total) || 0) - salePaid(s))); }
+  function payMode() { return document.querySelector('input[name="spay"]:checked').value; }
+  function salePay(total) {
+    var mode = payMode(), paid = total, err = "";
+    if (mode === "credit") paid = 0;
+    else if (mode === "part") {
+      var raw = $("salePaid").value, v = parseFloat(raw);
+      if (raw === "" || !(v > 0)) { paid = 0; err = "أدخل المبلغ المدفوع كاش (أكبر من صفر)، أو اختر «آجل»."; }
+      else if (v >= total - 1e-9) { paid = total; err = "المبلغ المدفوع يساوي الإجمالي أو يزيد عليه. اختر «كاش»، أو اكتب مبلغًا أقل."; }
+      else paid = r2(v);
+    }
+    return { mode: mode, paid: paid, due: r2(total - paid), err: err };
+  }
+  function syncPay(total) {
+    var mode = payMode(), pb = $("payBreak");
+    $("payPartF").hidden = mode !== "part";
+    $("payCustF").hidden = mode === "cash";
+    pb.textContent = ""; pb.hidden = true;
+    if (mode === "cash" || !(total > 0)) return;
+    var pay = salePay(total);
+    if (pay.err) return;
+    pb.appendChild(costLine("الإجمالي", fm(total), "sub"));
+    pb.appendChild(costLine("كاش الآن (يدخل الخزينة)", fm(pay.paid), "sub"));
+    pb.appendChild(costLine("آجل (على العميل)", fm(pay.due), "total"));
+    pb.hidden = false;
+  }
   function syncSale() {
     var name = $("saleProduct").value, p = prodByName(name);
     var pr = parseFloat($("salePrice").value) || 0, q = parseFloat($("saleQty").value) || 0;
     var gross = r2(pr * q), d = saleDiscount(gross), br = $("saleBreak");
     $("saleTotal").value = pr > 0 && q > 0 ? fm(r2(gross - d.amount)) : "";
+    syncPay(pr > 0 && q > 0 ? r2(gross - d.amount) : 0);
     br.textContent = "";
     if (gross > 0 && d.amount > 0) {
       br.appendChild(costLine("الإجمالي قبل الخصم", fm(gross), "sub"));
@@ -1618,6 +1686,8 @@ document.documentElement.lang = "ar";
     });
   });
   $("saleDisc").addEventListener("input", syncSale);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="spay"]'), function (r) { r.addEventListener("change", syncSale); });
+  $("salePaid").addEventListener("input", syncSale);
   $("saleProduct").addEventListener("input", function () {
     var p = prodByName($("saleProduct").value);
     if (p && Number(p.sellPrice) > 0 && !$("salePrice").value) $("salePrice").value = p.sellPrice;
@@ -1627,19 +1697,78 @@ document.documentElement.lang = "ar";
   function renderSales() {
     var dl = $("prodNames"); dl.textContent = "";
     PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
+    var cl = $("custNames"); cl.textContent = "";
+    K("contact").forEach(function (c) { cl.appendChild(h("option", { value: c.name })); });
+    renderDues();
     var list = K("sale").sort(newest);
     var tot = sumBy(list, function (s) { return s.total; }), profit = sumBy(list.filter(function (s) { return s.unitCost > 0; }), function (s) { return s.total - s.unitCost * s.qty; });
     var discTot = sumBy(list, function (s) { return s.discount; });
-    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (discTot > 0 ? " · خصومات: " + money(discTot) : "") + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
+    var dueTot = sumBy(list, saleDue);
+    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (discTot > 0 ? " · خصومات: " + money(discTot) : "") + (dueTot > 0 ? " · آجل غير محصّل: " + money(dueTot) : "") + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
     $("saleEmpty").hidden = !state.loaded || list.length > 0;
     if (!list.length) { $("saleTbl").textContent = ""; return; }
     tbl($("saleTbl"), [["التاريخ"], ["اسم المنتج"], ["سعر القطعة (ج.م)", "n"], ["عدد القطع", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (s) {
       var cell = h("div", null, h("div", { class: "party", text: s.product }));
       if (s.discount > 0) cell.appendChild(h("div", { class: "meta", text: "خصم " + money(s.discount) + (s.discType === "percent" ? " (" + qf(s.discValue) + "%)" : "") + " من " + money(s.gross) }));
       if (s.unitCost > 0) cell.appendChild(h("div", { class: "meta", text: "ربح تقديري " + money(s.total - s.unitCost * s.qty) }));
+      if (s.paid !== undefined) {
+        var dd = saleDue(s);
+        cell.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "آجل" }), h("span", { text: " " + (s.customer ? "العميل: " + s.customer + " · " : "") + "مدفوع " + money(salePaid(s)) + (dd > 0 ? " · متبقٍ " + money(dd) : " · سُدّد بالكامل") })));
+      }
       return [dateLabel(s.date), cell, fm(s.price), qf(s.qty), h("b", { text: fm(s.total) }), delBtn(s, "saleMsg")];
     }));
   }
+  /* ---------- credit sales: who owes what, and recording collections ---------- */
+  function renderDues() {
+    var all = K("sale").filter(function (s) { return s.paid !== undefined; });
+    var open = all.filter(function (s) { return saleDue(s) > 0; }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); });
+    var done = all.filter(function (s) { return saleDue(s) <= 0; }).sort(newest).slice(0, 10);
+    $("dueSum").textContent = open.length ? "المستحق لك عند العملاء: " + money(sumBy(open, saleDue)) + " (" + open.length + " عملية)" : "";
+    $("dueEmpty").hidden = !state.loaded || all.length > 0;
+    $("colForm").hidden = !open.length;
+    var sel = $("colSale"), cur = sel.value;
+    sel.textContent = "";
+    open.forEach(function (s) { sel.appendChild(h("option", { value: s.id, text: (s.customer || "بدون اسم") + " — " + s.product + " — " + dateLabel(s.date) + " (متبقٍ " + fm(saleDue(s)) + ")" })); });
+    if (open.some(function (s) { return s.id === cur; })) sel.value = cur;
+    if (open.length && state.colSel !== sel.value) {
+      state.colSel = sel.value;
+      var cs = open.filter(function (s) { return s.id === sel.value; })[0];
+      $("colAmt").value = cs ? saleDue(cs) : "";
+    }
+    if (!all.length) { $("dueTbl").textContent = ""; return; }
+    tbl($("dueTbl"), [["العميل / البيع"], ["المتبقي (ج.م)", "n"]], open.concat(done).map(function (s) {
+      var due = saleDue(s);
+      var cell = h("div", null,
+        h("div", { class: "party" }, h("span", { text: s.customer || "بدون اسم" }), due <= 0 ? h("span", { class: "tag", text: "سُدّد" }) : null),
+        h("div", { class: "meta", text: s.product + " × " + qf(s.qty) + " · " + dateLabel(s.date) }),
+        h("div", { class: "meta", text: "الإجمالي " + money(s.total) + " · مدفوع " + money(salePaid(s)) }));
+      E().filter(function (e) { return e.source === "collection" && e.refId === s.id; }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (e) {
+        cell.appendChild(h("div", { class: "cell-acts" }, h("span", { class: "meta", text: "تحصيل " + money(e.amount) + " · " + dateLabel(e.date) }), delBtn(e, "colMsg")));
+      });
+      var right = h("div", null, h("b", { text: fm(due) }));
+      if (due > 0) right.appendChild(h("div", { class: "cell-acts" }, h("button", { type: "button", class: "mini", text: "تحصيل", onclick: function () { sel.value = s.id; state.colSel = null; renderDues(); $("colAmt").focus(); } })));
+      return [cell, right];
+    }));
+  }
+  $("colSale").addEventListener("change", function () { state.colSel = null; renderDues(); });
+  $("colForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var s = KA("sale").filter(function (x) { return x.id === $("colSale").value; })[0], amt = parseFloat($("colAmt").value), date = $("colDate").value;
+    if (!s) { say("colMsg", "اختر البيع الآجل.", true); return; }
+    if (!date) { say("colMsg", "اختر التاريخ.", true); return; }
+    var due = saleDue(s);
+    if (!(amt > 0)) { say("colMsg", "أدخل المبلغ المحصّل (أكبر من صفر).", true); $("colAmt").focus(); return; }
+    if (amt > due + 1e-9) { say("colMsg", "المبلغ أكبر من المتبقي (" + fm(due) + " ج.م).", true); $("colAmt").focus(); return; }
+    amt = r2(amt);
+    try {
+      await patch(s, { paid: r2(salePaid(s) + amt) });
+      await treasuryEntry("income", amt, date, "تحصيل من " + (s.customer || "عميل"), "بيع " + s.product, "collection", s.id, actOf(s));
+      state.colSel = null; $("colAmt").value = "";
+      var left = r2(due - amt);
+      say("colMsg", "تم تحصيل " + money(amt) + " من «" + (s.customer || "عميل") + "» وأُضيف إلى الخزينة. " + (left > 0 ? "المتبقي عليه " + money(left) + "." : "سُدّد هذا البيع بالكامل."), false);
+      render();
+    } catch (err) { say("colMsg", errText(err) + " راجع الخزينة قبل إعادة المحاولة.", true); }
+  });
   $("saleForm").addEventListener("submit", async function (ev) {
     ev.preventDefault(); if (debounce(ev)) return;
     var name = $("saleProduct").value.trim(), price = parseFloat($("salePrice").value), qty = parseFloat($("saleQty").value), date = $("saleDate").value;
@@ -1650,18 +1779,26 @@ document.documentElement.lang = "ar";
     var p = prodByName(name), gross = r2(price * qty), disc = saleDiscount(gross);
     if (disc.err) { say("saleMsg", disc.err, true); $("saleDisc").focus(); return; }
     var total = r2(gross - disc.amount);
+    var pay = salePay(total), cust = $("saleCust").value.trim();
+    if (pay.err) { say("saleMsg", pay.err, true); $("salePaid").focus(); return; }
+    if (pay.due > 0 && !cust) { say("saleMsg", "اكتب اسم العميل لأن جزءًا من البيع آجل.", true); $("saleCust").focus(); return; }
     var swh = normWh($("saleWh").value), taken = p ? Math.min(whQty(p, swh), qty) : 0;
     try {
       if (p && taken > 0) await patch(p, addAt(p, swh, -taken));
       var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
       if (taken > 0 && swh !== MAIN) rec.wh = swh;
       if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
+      if (pay.due > 0) { rec.paid = pay.paid; rec.customer = cust; }
       var sid = await create(rec);
-      await treasuryEntry("income", total, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.amount > 0 ? " − خصم " + fm(disc.amount) : ""), "sale", sid);
+      if (pay.paid > 0) await treasuryEntry("income", pay.paid, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.amount > 0 ? " − خصم " + fm(disc.amount) : "") + (pay.due > 0 ? " · آجل " + fm(pay.due) : ""), "sale", sid);
       $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
       document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
+      document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = "";
       syncSale();
-      say("saleMsg", "تم البيع: أُضيف " + money(total) + " إلى الخزينة" + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "»." : "المخزون الجاهز.") : "."), false);
+      var head = pay.due > 0
+        ? (pay.paid > 0 ? "أُضيف " + money(pay.paid) + " كاش إلى الخزينة وبقي " + money(pay.due) + " آجلًا على «" + cust + "»" : "بيع آجل بقيمة " + money(total) + " على «" + cust + "» ولم يُضف شيء إلى الخزينة")
+        : "أُضيف " + money(total) + " إلى الخزينة";
+      say("saleMsg", "تم البيع: " + head + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "»." : "المخزون الجاهز.") : "."), false);
       $("saleProduct").focus();
     } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
@@ -1702,7 +1839,8 @@ document.documentElement.lang = "ar";
     var opexTotal = sumBy(opex, function (e) { return e.amount; });
     var wasteLoss = sumBy(KA("waste").filter(function (w) { return mine(w) && inPeriod(w.date); }), function (w) { return w.loss; });
     var gross = rev - cogs;
-    return { rev: rev, cogs: cogs, noCost: noCost, opex: opex, opexTotal: opexTotal, wasteLoss: wasteLoss, gross: gross, net: gross - opexTotal - wasteLoss, count: sales.length };
+    var dueTotal = sumBy(sales, saleDue);
+    return { rev: rev, dueTotal: dueTotal, cogs: cogs, noCost: noCost, opex: opex, opexTotal: opexTotal, wasteLoss: wasteLoss, gross: gross, net: gross - opexTotal - wasteLoss, count: sales.length };
   }
   function signed(n) { return (n < 0 ? "−" : "") + fm(Math.abs(n)); }
   function renderProfit() {
@@ -1745,6 +1883,7 @@ document.documentElement.lang = "ar";
       [h("b", { text: "صافي الربح" }), h("b", { class: P.net < 0 ? "neg" : "pos", text: signed(P.net) })]
     ]);
     var notes = ["تكلفة البضاعة المباعة = تكلفة القطعة وقت البيع × عدد القطع (من قسم الإنتاج)."];
+    if (P.dueTotal > 0) notes.push("منها " + money(P.dueTotal) + " مبيعات آجلة لم تُحصَّل بعد. الربح هنا يحسبها مبيعات، لكن الخزينة لا تحتسبها حتى يتم التحصيل.");
     if (P.noCost) notes.push("تنبيه: " + P.noCost + " عملية بيع بلا تكلفة لأن المنتج غير مسجّل في الإنتاج، فالربح فيها أعلى من الحقيقي.");
     if (many && state.pfAct !== "all") {
       var shOp = profitData("shared").opexTotal;
@@ -2202,8 +2341,21 @@ document.documentElement.lang = "ar";
     else renderSales();
   }
 
+  /* ---------- collapsible cards: tap a card's heading to fold it (remembered on this device) ---------- */
+  var folded = {};
+  try { folded = JSON.parse(lsGet("qt_folded") || "{}") || {}; } catch (e) { folded = {}; }
+  Array.prototype.forEach.call(document.querySelectorAll("section.card > h2"), function (hd) {
+    var card = hd.parentNode, key = hd.id || hd.textContent.trim();
+    hd.classList.add("fold"); hd.setAttribute("role", "button"); hd.setAttribute("tabindex", "0");
+    function apply() { card.classList.toggle("collapsed", !!folded[key]); hd.setAttribute("aria-expanded", String(!folded[key])); }
+    function toggle() { if (folded[key]) delete folded[key]; else folded[key] = 1; apply(); lsSet("qt_folded", JSON.stringify(folded)); }
+    hd.addEventListener("click", toggle);
+    hd.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+    apply();
+  });
+
   /* ---------- boot ---------- */
-  ["date", "purDate", "wDate", "saleDate", "fDate"].forEach(function (id) { $(id).value = todayISO(); });
+  ["date", "purDate", "wDate", "saleDate", "fDate", "colDate"].forEach(function (id) { $(id).value = todayISO(); });
   CCATS.forEach(function (c) { $("cCat").appendChild(h("option", { value: c, text: c })); });
   FCATS.forEach(function (c) { $("fCat").appendChild(h("option", { value: c, text: c })); $("vCatIn").appendChild(h("option", { value: c, text: c })); });
   UNITS.forEach(function (u) { $("purUnit").appendChild(h("option", { value: u, text: u })); });
