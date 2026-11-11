@@ -72,6 +72,9 @@ section.card.collapsed > h2.fold::after { transform: rotate(135deg) translate(-2
 section.card > h2.fold:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 4px; }
 section.card.collapsed > :not(h2) { display: none !important; }
 section.card.collapsed > h2.fold { margin-block-end: 0; }
+.sale-from { font-weight: 600; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--surface); }
+.sale-from.need { border: 2px solid #d9a400; }
+.msg.warn-line { color: var(--neg); font-weight: 600; }
 .brand { display: flex; flex-direction: column; min-width: 0; }
 .tagline { font-size: 14px; color: var(--muted); }
 .brand-logo { width: 60px; height: 60px; border-radius: 50%; flex: none; background: #000 center / cover no-repeat; box-shadow: 0 0 0 1.5px var(--line); }
@@ -450,6 +453,7 @@ header.top .mini { margin-inline-start: auto; }
           <datalist id="prodNames"></datalist>
           <div class="field" id="saleWhF" hidden><label for="saleWh">تُسحب القطع من مخزن</label><select id="saleWh"></select></div>
           <p class="hint" id="saleHint" aria-live="polite"></p>
+          <p class="msg warn-line" id="saleWarn" aria-live="polite"></p>
           <div class="two">
             <div class="field"><label for="salePrice">سعر القطعة (ج.م)</label><input id="salePrice" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
             <div class="field"><label for="saleQty">عدد القطع</label><input id="saleQty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></div>
@@ -475,6 +479,7 @@ header.top .mini { margin-inline-start: auto; }
           <div class="field" id="payCustF" hidden><label for="saleCust">اسم العميل (مطلوب في الآجل)</label><input id="saleCust" type="text" maxlength="60" list="custNames" placeholder="اسم من عليه المبلغ"></div>
           <datalist id="custNames"></datalist>
           <div class="cost" id="payBreak" hidden aria-live="polite"></div>
+          <p class="sale-from" id="saleFrom" hidden aria-live="polite"></p>
           <button type="submit" class="btn primary">سجّل البيع</button>
           <p id="saleMsg" class="msg" role="status"></p>
         </form>
@@ -1672,10 +1677,27 @@ document.documentElement.lang = "ar";
       br.appendChild(costLine("الصافي", fm(r2(gross - d.amount)), "total"));
       br.hidden = false;
     } else br.hidden = true;
-    var wh = normWh($("saleWh").value);
-    $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة" + (multiWh() ? " (في «" + whName(wh) + "»: " + qf(whQty(p, wh)) + ")" : "") + " · تكلفة القطعة " + money(prodCost(p).unit) : "";
+    var wh = salePicked();
+    $("saleHint").textContent = p ? "المتاح من المنتج الجاهز: " + qf(p.stock || 0) + " قطعة" + (multiWh() ? (wh ? " (في «" + whName(wh) + "»: " + qf(whQty(p, wh)) + ")" : " —" + otherWhText(p, "")) : "") + " · تكلفة القطعة " + money(prodCost(p).unit) : "";
+    syncSaleFrom();
+    state.shortOk = null;
   }
-  $("saleWh").addEventListener("change", syncSale);
+  /* the "sold from" line and the shortage warning (also refreshed when the page redraws) */
+  /* the warehouse chosen for a sale; "" when there are several warehouses and none was chosen yet (there is no default) */
+  function salePicked() { return multiWh() && whById($("saleWh").value) ? $("saleWh").value : (multiWh() ? "" : MAIN); }
+  function syncSaleFrom() {
+    var p = prodByName($("saleProduct").value), q = parseFloat($("saleQty").value) || 0, wh = salePicked(), from = $("saleFrom"), warn = "";
+    from.hidden = !multiWh();
+    from.classList.toggle("need", multiWh() && !wh);
+    from.textContent = !wh ? "اختر المخزن الذي ستُسحب منه القطع قبل تسجيل البيع." : "تُسحب القطع من: «" + whName(wh) + "»" + (p ? " (المتاح فيه " + qf(whQty(p, wh)) + ")" : "");
+    if (wh && multiWh() && p && q > 0 && whQty(p, wh) < q - 1e-9) warn = "تنبيه: في «" + whName(wh) + "» " + qf(whQty(p, wh)) + " قطعة فقط من " + qf(q) + " المطلوبة." + otherWhText(p, wh) + " لن يُخصم الباقي من مخزن آخر.";
+    $("saleWarn").textContent = warn;
+  }
+  function otherWhText(p, wh) {
+    var o = WHS().filter(function (w) { return w.id !== wh && whQty(p, w.id) > 1e-9; }).map(function (w) { return w.name + ": " + qf(whQty(p, w.id)); });
+    return o.length ? " المتوفر في: " + o.join("، ") + "." : "";
+  }
+  $("saleWh").addEventListener("change", function () { syncSale(); });
   Array.prototype.forEach.call(document.querySelectorAll('input[name="sdisc"]'), function (r) {
     r.addEventListener("change", function () {
       var t = document.querySelector('input[name="sdisc"]:checked').value;
@@ -1694,9 +1716,15 @@ document.documentElement.lang = "ar";
     syncSale();
   });
   ["salePrice", "saleQty"].forEach(function (id) { $(id).addEventListener("input", syncSale); });
+  /* the warehouse a sale was taken from (older sales only recorded it for branch warehouses) */
+  function saleWhLabel(s) {
+    if (s.wh) return whById(s.wh) ? whById(s.wh).name : (s.whName || "مخزن محذوف");
+    return multiWh() && Number(s.stockTaken) > 0 ? whName(MAIN) : "";
+  }
   function renderSales() {
     var dl = $("prodNames"); dl.textContent = "";
     PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
+    syncSaleFrom();
     var cl = $("custNames"); cl.textContent = "";
     K("contact").forEach(function (c) { cl.appendChild(h("option", { value: c.name })); });
     renderDues();
@@ -1711,6 +1739,8 @@ document.documentElement.lang = "ar";
       var cell = h("div", null, h("div", { class: "party", text: s.product }));
       if (s.discount > 0) cell.appendChild(h("div", { class: "meta", text: "خصم " + money(s.discount) + (s.discType === "percent" ? " (" + qf(s.discValue) + "%)" : "") + " من " + money(s.gross) }));
       if (s.unitCost > 0) cell.appendChild(h("div", { class: "meta", text: "ربح تقديري " + money(s.total - s.unitCost * s.qty) }));
+      var wl = saleWhLabel(s);
+      if (wl) cell.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "المخزن: " + wl })));
       if (s.paid !== undefined) {
         var dd = saleDue(s);
         cell.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "آجل" }), h("span", { text: " " + (s.customer ? "العميل: " + s.customer + " · " : "") + "مدفوع " + money(salePaid(s)) + (dd > 0 ? " · متبقٍ " + money(dd) : " · سُدّد بالكامل") })));
@@ -1782,11 +1812,21 @@ document.documentElement.lang = "ar";
     var pay = salePay(total), cust = $("saleCust").value.trim();
     if (pay.err) { say("saleMsg", pay.err, true); $("salePaid").focus(); return; }
     if (pay.due > 0 && !cust) { say("saleMsg", "اكتب اسم العميل لأن جزءًا من البيع آجل.", true); $("saleCust").focus(); return; }
-    var swh = normWh($("saleWh").value), taken = p ? Math.min(whQty(p, swh), qty) : 0;
+    if (multiWh() && !salePicked()) { say("saleMsg", "اختر المخزن الذي ستُسحب منه القطع أولًا." + (p ? otherWhText(p, "") : ""), true); $("saleWh").focus(); return; }
+    var swh = normWh($("saleWh").value), before = p ? whQty(p, swh) : 0, taken = p ? Math.min(before, qty) : 0;
+    if (p && multiWh() && taken < qty - 1e-9) {
+      var key = [p.id, swh, qty].join("|");
+      if (state.shortOk !== key) {
+        state.shortOk = key;
+        say("saleMsg", "المتاح من «" + p.name + "» في «" + whName(swh) + "» " + qf(taken) + " قطعة فقط من " + qf(qty) + "." + otherWhText(p, swh) + " لن يُخصم الباقي من مخزن آخر. غيّر المخزن أو الكمية، أو اضغط «سجّل البيع» مرة أخرى للمتابعة.", true);
+        return;
+      }
+    }
+    state.shortOk = null;
     try {
       if (p && taken > 0) await patch(p, addAt(p, swh, -taken));
       var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
-      if (taken > 0 && swh !== MAIN) rec.wh = swh;
+      if (multiWh()) { rec.wh = swh; rec.whName = whName(swh); }
       if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
       if (pay.due > 0) { rec.paid = pay.paid; rec.customer = cust; }
       var sid = await create(rec);
@@ -1794,11 +1834,12 @@ document.documentElement.lang = "ar";
       $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
       document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
       document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = "";
+      $("saleWh").value = "";   /* ask again for the next sale: no warehouse is ever pre-selected */
       syncSale();
       var head = pay.due > 0
         ? (pay.paid > 0 ? "أُضيف " + money(pay.paid) + " كاش إلى الخزينة وبقي " + money(pay.due) + " آجلًا على «" + cust + "»" : "بيع آجل بقيمة " + money(total) + " على «" + cust + "» ولم يُضف شيء إلى الخزينة")
         : "أُضيف " + money(total) + " إلى الخزينة";
-      say("saleMsg", "تم البيع: " + head + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "»." : "المخزون الجاهز.") : "."), false);
+      say("saleMsg", "تم البيع: " + head + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "» (المتبقي فيه " + qf(r3(before - taken)) + ")." : "المخزون الجاهز.") : (p && multiWh() ? " ولم تُخصم أي قطعة من «" + whName(swh) + "» لأنه لا يوجد منها فيه." : ".")), false);
       $("saleProduct").focus();
     } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
@@ -2260,14 +2301,21 @@ document.documentElement.lang = "ar";
     } catch (err) { state.migMsg = errText(err) + " يمكنك إعادة المحاولة، ولن يتكرر أي سجل."; }
     state.migrating = false; renderMig();
   }
+  /* The choice lists are rebuilt only when the warehouses themselves change. Rebuilding them on every refresh
+     could reset (or close) a choice the person was in the middle of making. */
   function renderWhSelects() {
-    var multi = multiWh();
+    var multi = multiWh(), sig = WHS().map(function (w) { return w.id + "|" + w.name; }).join("\n");
     [["purWh", "purWhF"], ["saleWh", "saleWhF"], ["wWh", "wWhF"]].forEach(function (x) {
       $(x[1]).hidden = !multi;
-      var sel = $(x[0]), cur = sel.value;
+      var sel = $(x[0]);
+      if (sel.dataset.sig === sig) return;
+      var cur = sel.value, isSale = x[0] === "saleWh";
       sel.textContent = "";
+      /* for sales there is no default warehouse: the person must choose one */
+      if (isSale) sel.appendChild(h("option", { value: "", text: "— اختر المخزن —" }));
       WHS().forEach(function (w) { sel.appendChild(h("option", { value: w.id, text: w.name })); });
-      sel.value = cur && whById(cur) ? cur : MAIN;
+      sel.value = cur && whById(cur) ? cur : (isSale ? "" : MAIN);
+      sel.dataset.sig = sig;
     });
   }
   /* ---------- activity bar ---------- */
