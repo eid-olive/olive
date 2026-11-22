@@ -66,6 +66,12 @@ header.top h1 { font-size: clamp(28px, 7vw, 40px); }
 .actrow .lab { font-weight: 600; }
 .actform { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
 .actform .field { flex: none; }
+.projlist { display: flex; flex-direction: column; gap: 12px; }
+.projcard { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 6px; background: var(--surface); }
+.projcard.gen { border-color: var(--accent); }
+.projhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.projhead h3 { margin: 0; font-size: 19px; }
+.tscope { margin-block-end: 4px; }
 section.card > h2.fold { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; min-height: 44px; }
 section.card > h2.fold::after { content: ""; flex: none; width: 11px; height: 11px; margin-inline-end: 6px; border: solid var(--muted); border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
 section.card.collapsed > h2.fold::after { transform: rotate(135deg) translate(-2px, -2px); }
@@ -116,6 +122,31 @@ input[readonly] { background: var(--accent-soft); font-weight: 600; }
 @media (max-width: 380px) { .two { grid-template-columns: 1fr; } }
 .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line); border-radius: 4px; overflow: hidden; }
 .seg.three { grid-template-columns: repeat(3, 1fr); }
+.seg.four { grid-template-columns: repeat(2, 1fr); }
+.bline { border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 10px; background: var(--bg); }
+#bLines { display: flex; flex-direction: column; gap: 12px; }
+#sellerBox, #stBody { display: flex; flex-direction: column; gap: 14px; }
+.chk { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+.chk input { width: 22px; height: 22px; accent-color: var(--accent); }
+.chk.off { color: var(--muted); cursor: default; }
+.comm { display: grid; gap: 4px; margin-block-start: 4px; }
+.msgbox { display: grid; gap: 10px; margin-block-start: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.msgbox textarea { font-family: inherit; font-size: 15px; direction: rtl; line-height: 1.7; }
+#seTbl, #stTbl, #bSavedTbl, #bSoldTbl { min-width: 0; }
+.colbtn { background: none; border: 0; font: inherit; font-weight: 700; cursor: pointer; padding: 6px 2px; color: inherit; white-space: nowrap; }
+.colbtn.on { color: var(--accent); text-decoration: underline; }
+#cuTbl { min-width: 780px; }
+#cuTbl tr.crow { cursor: pointer; }
+#cuTbl td.cdet { background: var(--bg); }
+.cdetail { display: grid; gap: 12px; padding: 8px 4px; position: sticky; right: 0; left: 0; box-sizing: border-box; }
+.fpanel { border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 10px; background: var(--bg); }
+.fpanel .flist { max-height: 220px; overflow: auto; display: grid; gap: 6px; }
+.fpanel label.fi { display: flex; gap: 8px; align-items: center; }
+.ddue { border-bottom: 1px solid var(--line); padding: 10px 0; display: grid; gap: 6px; }
+#unList { max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; }
+label.unrow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+label.unrow:last-child { border-bottom: 0; }
+
 .seg label { position: relative; text-align: center; cursor: pointer; }
 .seg input { position: absolute; opacity: 0; inset: 0; }
 .seg span { display: block; padding: 10px 8px; font-weight: 500; color: var(--fg); }
@@ -231,24 +262,60 @@ header.top .mini { margin-inline-start: auto; }
     <span id="saveState" class="save-state" role="status">جارٍ التحميل</span>
   </header>
 
-  <nav class="views" id="views" aria-label="أقسام المشروع"></nav>
-  <section class="actbar" id="actBar" hidden aria-label="النشاط التجاري">
+  <section class="actbar" id="actBar" hidden aria-label="المشروع">
     <div class="actrow">
-      <span class="lab">النشاط:</span>
-      <div class="tabs" id="actChips" role="group" aria-label="اختيار النشاط"></div>
+      <span class="lab" id="actLab">المشروع:</span>
+      <div class="tabs" id="actChips" role="group" aria-label="اختيار المشروع"></div>
       <div class="btns" id="actBtns"></div>
     </div>
     <form class="actform" id="actForm" autocomplete="off" hidden>
-      <div class="field"><label for="actName" id="actNameLab">اسم النشاط الجديد</label><input id="actName" type="text" maxlength="40" placeholder="مثال: عسل النحل"></div>
+      <div class="field"><label for="actName" id="actNameLab">اسم المشروع الجديد</label><input id="actName" type="text" maxlength="40" placeholder="مثال: عسل النحل"></div>
       <div class="btns"><button type="submit" class="btn primary" id="actSave">إضافة</button><button type="button" class="btn" id="actCancel">إلغاء</button></div>
     </form>
     <p class="msg" id="actMsg" role="status"></p>
     <p class="hint" id="actHint"></p>
   </section>
+  <nav class="views" id="views" aria-label="أقسام المشروع"></nav>
   <div id="migBanner"></div>
+
+  <!-- ======== المؤسسة ======== -->
+  <div class="view" id="v_org" hidden>
+    <section class="tiles" id="orgTiles" aria-label="ملخص المؤسسة"></section>
+    <section class="card" aria-labelledby="og1">
+      <h2 id="og1">الخزينة العامة والمشاريع</h2>
+      <div class="field" style="max-width: 280px"><label for="orgPeriod">فترة المبيعات والأرباح</label><select id="orgPeriod"></select></div>
+      <div class="two" id="orgRange" hidden>
+        <div class="field"><label for="orgFrom">من تاريخ</label><input id="orgFrom" type="date"></div>
+        <div class="field"><label for="orgTo">إلى تاريخ</label><input id="orgTo" type="date"></div>
+      </div>
+      <p class="msg" id="orgRangeMsg" role="status"></p>
+      <p class="sumline" id="orgLabel"></p>
+      <div class="projlist" id="orgList"></div>
+      <p class="hint">أرصدة الخزائن لا تتأثر بالفترة. أما المبيعات والأرباح فتخص الفترة المختارة. اضغط «فتح» لتعمل على المشروع.</p>
+    </section>
+    <section class="card" aria-labelledby="og2">
+      <h2 id="og2">تحويل أموال بين الخزائن</h2>
+      <form id="xfForm" autocomplete="off">
+        <div class="two">
+          <div class="field"><label for="xfFrom">من</label><select id="xfFrom"></select></div>
+          <div class="field"><label for="xfTo">إلى</label><select id="xfTo"></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="xfAmt">المبلغ (ج.م)</label><input id="xfAmt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0"></div>
+          <div class="field"><label for="xfDate">التاريخ</label><input id="xfDate" type="date"></div>
+        </div>
+        <div class="field"><label for="xfNote">ملاحظة (اختياري)</label><input id="xfNote" type="text" maxlength="120" placeholder="مثال: تمويل بداية المشروع"></div>
+        <button type="submit" class="btn primary" id="xfSave">حوّل المبلغ</button>
+        <p id="xfMsg" class="msg" role="status"></p>
+      </form>
+      <p class="hint">التحويل ينقل المال من خزينة إلى أخرى (مثل تمويل مشروع من الخزينة العامة، أو سحب أرباحه إليها). يظهر في خزينة الطرفين، ولا يُحسب ربحًا ولا مصروفًا. لحذفه احذفه من أي من الخزينتين فيُحذف الطرفان.</p>
+    </section>
+  </div>
 
   <!-- ======== الخزينة ======== -->
   <div class="view" id="v_treasury">
+    <div class="tabs tscope" id="tScope" role="group" aria-label="اختيار الخزينة"></div>
+    <p class="hint" id="tScopeHint"></p>
     <section class="tiles" id="tTiles" aria-label="ملخص الخزينة"></section>
     <div id="banner"></div>
     <div id="bkBanner"></div>
@@ -268,7 +335,6 @@ header.top .mini { margin-inline-start: auto; }
             <div class="field"><label for="date">التاريخ</label><input id="date" type="date"></div>
           </div>
           <div class="field"><label for="party">البيان</label><input id="party" type="text" maxlength="80" placeholder="مثال: رصيد افتتاحي"></div>
-          <div class="field" id="tActF" hidden><label for="tAct">هذا المصروف يخص نشاط</label><select id="tAct"></select></div>
           <div class="field"><label for="note">ملاحظة (اختياري)</label><input id="note" type="text" maxlength="120"></div>
           <button type="submit" class="btn primary" id="save">حفظ الحركة</button>
           <p id="msg" class="msg" role="status"></p>
@@ -287,7 +353,7 @@ header.top .mini { margin-inline-start: auto; }
           <button type="button" class="btn" id="importBtn">استيراد نسخة احتياطية</button>
           <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" hidden>
         </div>
-        <p class="hint">النسخة الاحتياطية تشمل الحسابات والمخزون والأنشطة وجهات الاتصال، ولا تشمل الصور والملفات.</p>
+        <p class="hint">النسخة الاحتياطية تشمل كل المشاريع (الحسابات والمخزون وجهات الاتصال)، ولا تشمل الصور والملفات.</p>
       </section>
     </div>
   </div>
@@ -356,6 +422,23 @@ header.top .mini { margin-inline-start: auto; }
       <h3 class="sub-h">آخر عمليات النقل</h3>
       <ul class="hist" id="mvHist"></ul>
       <p class="empty" id="mvEmpty" hidden>لا توجد عمليات نقل بعد.</p>
+    </section>
+    <section class="card" id="xmCard" aria-labelledby="sh5" hidden>
+      <h2 id="sh5">نقل خامة إلى مشروع آخر</h2>
+      <p class="hint">مفيد للخامات المشتركة مثل كرتون ورول التغليف. تُنقل الكمية من هذا المشروع إلى المشروع الذي تختاره بتكلفتها، وتصل إلى «المخزن الرئيسي» هناك. يدفع المشروع المستلم ثمن الخامة (الكمية × تكلفة الوحدة) من خزينته إلى خزينة المشروع المرسل، ويمكنك إلغاء ذلك بإزالة العلامة من المربع أدناه.</p>
+      <form id="xmForm" autocomplete="off">
+        <div class="field"><label for="xmItem">الخامة</label><select id="xmItem"></select></div>
+        <div class="field" id="xmWhF" hidden><label for="xmWh">من مخزن</label><select id="xmWh"></select></div>
+        <div class="field"><label for="xmTo">إلى مشروع</label><select id="xmTo"></select></div>
+        <p class="hint" id="xmHint" aria-live="polite"></p>
+        <div class="field"><label for="xmQty">الكمية</label><input id="xmQty" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+        <label class="check"><input type="checkbox" id="xmPay" checked><span>يدفع المشروع المستلم ثمن الخامة للمشروع المرسل (تنتقل الفلوس بين الخزينتين)</span></label>
+        <button type="submit" class="btn primary">انقل إلى المشروع</button>
+        <p id="xmMsg" class="msg" role="status"></p>
+      </form>
+      <h3 class="sub-h">آخر عمليات النقل بين المشاريع</h3>
+      <ul class="hist" id="xmHist"></ul>
+      <p class="empty" id="xmEmpty" hidden>لا توجد عمليات نقل بين المشاريع بعد.</p>
     </section>
     <section class="card" id="whCard" aria-labelledby="sh3">
       <h2 id="sh3">المخازن</h2>
@@ -459,15 +542,19 @@ header.top .mini { margin-inline-start: auto; }
             <div class="field"><label for="saleQty">عدد القطع</label><input id="saleQty" type="number" inputmode="numeric" min="1" step="1" placeholder="0"></div>
           </div>
           <div class="field"><span class="lab" id="discLab">خصم على هذا البيع (اختياري)</span>
-            <div class="seg three" role="radiogroup" aria-labelledby="discLab">
+            <div class="seg three" id="sdiscSeg" role="radiogroup" aria-labelledby="discLab">
               <label><input type="radio" name="sdisc" value="none" checked><span>بدون خصم</span></label>
               <label><input type="radio" name="sdisc" value="amount"><span>مبلغ (ج.م)</span></label>
               <label><input type="radio" name="sdisc" value="percent"><span>نسبة (%)</span></label>
+              <label id="sdiscSellerLab" hidden><input type="radio" name="sdisc" value="seller"><span>كود بائع</span></label>
             </div>
           </div>
           <div class="field" id="discField" hidden><label for="saleDisc" id="saleDiscLab">قيمة الخصم (ج.م)</label><input id="saleDisc" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+          <div id="sellerBox" hidden>
+            <div class="field"><label for="saleSeller">كود البائع</label><select id="saleSeller"></select></div>
+          </div>
           <div class="cost" id="saleBreak" hidden aria-live="polite"></div>
-          <div class="field"><label for="saleTotal">الإجمالي بعد الخصم (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
+          <div class="field"><label for="saleTotal" id="saleTotalLab">الإجمالي بعد الخصم (ج.م)</label><input id="saleTotal" type="text" readonly tabindex="-1"></div>
           <div class="field"><span class="lab" id="payLab">طريقة الدفع</span>
             <div class="seg three" role="radiogroup" aria-labelledby="payLab">
               <label><input type="radio" name="spay" value="cash" checked><span>كاش</span></label>
@@ -476,7 +563,11 @@ header.top .mini { margin-inline-start: auto; }
             </div>
           </div>
           <div class="field" id="payPartF" hidden><label for="salePaid">المدفوع كاش الآن (ج.م)</label><input id="salePaid" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
-          <div class="field" id="payCustF" hidden><label for="saleCust">اسم العميل (مطلوب في الآجل)</label><input id="saleCust" type="text" maxlength="60" list="custNames" placeholder="اسم من عليه المبلغ"></div>
+          <div class="field" id="payCustF"><label for="saleCust" id="saleCustLab">اسم العميل (اختياري في الكاش)</label><input id="saleCust" type="text" maxlength="60" list="custNames" placeholder="اسم من عليه المبلغ"></div>
+          <div class="two">
+            <div class="field"><label for="saleCustPhone">هاتف العميل (اختياري)</label><input id="saleCustPhone" type="tel" inputmode="tel" dir="ltr" maxlength="30"></div>
+            <div class="field"><label for="saleCustAddr">عنوان العميل (اختياري)</label><input id="saleCustAddr" type="text" maxlength="120"></div>
+          </div>
           <datalist id="custNames"></datalist>
           <div class="cost" id="payBreak" hidden aria-live="polite"></div>
           <p class="sale-from" id="saleFrom" hidden aria-live="polite"></p>
@@ -488,6 +579,7 @@ header.top .mini { margin-inline-start: auto; }
       <section class="card" aria-labelledby="sa2">
         <h2 id="sa2">سجل المبيعات</h2>
         <p class="sumline" id="saleSum"></p>
+        <div id="saleCopyBox"></div>
         <div class="tbl-wrap"><table id="saleTbl"></table></div>
         <p class="empty" id="saleEmpty" hidden>لا توجد مبيعات بعد. سجّل أول بيع من النموذج.</p>
       </section>
@@ -506,6 +598,47 @@ header.top .mini { margin-inline-start: auto; }
         <div class="tbl-wrap"><table id="dueTbl"></table></div>
         <p class="empty" id="dueEmpty" hidden>لا توجد مبالغ آجلة. اختر «آجل» أو «جزء وجزء» عند تسجيل بيع.</p>
       </section>
+      <section class="card" aria-labelledby="se1">
+        <h2 id="se1">بائعون بالعمولة (أكواد الخصم)</h2>
+        <p class="hint">سجّل هنا من يبيع لك بعمولة: اسمه وكوده ونسبة خصم العميل ونصيبه. عند البيع اختر «كود بائع» فيُسجَّل لك الباقي فقط، ويُحفظ نصيب البائع لتراجعه معه. تعديل النسب لا يغيّر المبيعات القديمة.</p>
+        <div><button type="button" class="btn primary" id="seAdd">＋ بائع جديد</button></div>
+        <form id="seForm" autocomplete="off" novalidate hidden>
+          <div class="two">
+            <div class="field"><label for="seName">اسم البائع</label><input id="seName" type="text" maxlength="60"></div>
+            <div class="field"><label for="seCode">الكود</label><input id="seCode" type="text" maxlength="20" dir="ltr" placeholder="مثال: Ali10"></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="seDisc">خصم العميل (%)</label><input id="seDisc" type="number" inputmode="decimal" min="0" max="99" step="any" placeholder="0"></div>
+            <div class="field"><label for="seShare">نصيب البائع (%)</label><input id="seShare" type="number" inputmode="decimal" min="0" max="99" step="any" placeholder="0"></div>
+          </div>
+          <div class="btns">
+            <button type="submit" class="btn primary" id="seSave">حفظ البائع</button>
+            <button type="button" class="btn" id="seCancel">إلغاء</button>
+          </div>
+          <p id="seFormMsg" class="msg" role="status"></p>
+        </form>
+        <p id="seMsg" class="msg" role="status"></p>
+        <div class="tbl-wrap"><table id="seTbl"></table></div>
+        <p class="empty" id="seEmpty" hidden>لا يوجد بائعون بالعمولة في هذا المشروع بعد. اضغط «＋ بائع جديد».</p>
+      </section>
+      <section class="card" aria-labelledby="st1">
+        <h2 id="st1">كشف حساب بائع</h2>
+        <p class="empty" id="stEmpty0" hidden>سجّل بائعًا بالعمولة أولًا ليظهر كشف حسابه هنا.</p>
+        <div id="stBody" hidden>
+          <div class="field"><label for="stSeller">البائع</label><select id="stSeller"></select></div>
+          <div class="field"><label for="stPeriod">الفترة</label><select id="stPeriod"></select></div>
+          <div class="two" id="stRange" hidden>
+            <div class="field"><label for="stFrom">من</label><input id="stFrom" type="date"></div>
+            <div class="field"><label for="stTo">إلى</label><input id="stTo" type="date"></div>
+          </div>
+          <p class="msg" id="stRangeMsg" role="status"></p>
+          <div id="stSum"></div>
+          <div class="tbl-wrap"><table id="stTbl"></table></div>
+          <p class="empty" id="stEmpty" hidden>لا توجد مبيعات بكود هذا البائع في هذه الفترة.</p>
+          <div><button type="button" class="btn" id="stCopy">نسخ الكشف كرسالة</button></div>
+          <div id="stPanel"></div>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -514,7 +647,6 @@ header.top .mini { margin-inline-start: auto; }
     <section class="tiles" id="pfTiles" aria-label="ملخص الربح"></section>
     <section class="card" aria-labelledby="pf1">
       <h2 id="pf1">قائمة الأرباح</h2>
-      <div class="field" id="pfActF" style="max-width: 280px" hidden><label for="pfAct">النشاط</label><select id="pfAct"></select></div>
       <div class="field" style="max-width: 280px"><label for="pfPeriod">الفترة</label><select id="pfPeriod"></select></div>
       <div class="two" id="pfRange" hidden>
         <div class="field"><label for="pfFrom">من تاريخ</label><input id="pfFrom" type="date"></div>
@@ -525,11 +657,6 @@ header.top .mini { margin-inline-start: auto; }
       <div class="tbl-wrap"><table id="pfTbl"></table></div>
       <p class="hint" id="pfNote"></p>
     </section>
-    <section class="card" id="pfByCard" aria-labelledby="pf3" hidden>
-      <h2 id="pf3">الربح حسب النشاط</h2>
-      <div class="tbl-wrap"><table id="pfByAct"></table></div>
-      <p class="hint">«مصروفات عامة» هي الصادرات التي اخترت لها «عام» عند تسجيلها في الخزينة، فلا تُحسب على نشاط بعينه.</p>
-    </section>
     <section class="card" aria-labelledby="pf2">
       <h2 id="pf2">المصروفات التشغيلية في الفترة</h2>
       <p class="hint">هي الحركات الصادرة التي سجّلتها يدويًا في الخزينة (مثل التوصيل). مشتريات الخامات لا تدخل هنا لأنها تتحول إلى تكلفة عند البيع.</p>
@@ -539,6 +666,139 @@ header.top .mini { margin-inline-start: auto; }
   </div>
 
   <!-- ======== جهات الاتصال ======== -->
+  <div class="view" id="v_bundles" hidden>
+    <section class="card" aria-labelledby="bd1">
+      <h2 id="bd1">بيع باقة (أكثر من منتج)</h2>
+      <p class="hint">اجمع عدة منتجات في بيع واحد، حتى لو كانت من مشاريع مختلفة. لو كتبت سعرًا يدويًا للباقة يختلف عن الأسعار المسجلة، يُوزَّع المبلغ على المنتجات بنفس النسبة المئوية لأسعارها (مثال: زيت 600 + عسل 300 بسعر 810 ← خصم 10% ← الزيت 540 والعسل 270). يدخل نصيب كل منتج خزينة مشروعه.</p>
+      <form id="bForm" autocomplete="off" novalidate>
+        <div class="field"><label for="bDate">التاريخ</label><input id="bDate" type="date"></div>
+        <div class="field"><label for="bPick">باقة محفوظة</label><select id="bPick"></select></div>
+        <div id="bLines"></div>
+        <div><button type="button" class="btn" id="bAddLine">＋ إضافة منتج</button></div>
+        <div class="field"><label for="bPrice">سعر الباقة يدويًا (اختياري)</label><input id="bPrice" type="number" inputmode="decimal" min="0" step="any" placeholder="اتركه فارغًا لاستخدام الأسعار المسجلة"></div>
+        <div class="cost" id="bBreak" hidden aria-live="polite"></div>
+        <div class="field"><span class="lab" id="bPayLab">طريقة الدفع</span>
+          <div class="seg three" role="radiogroup" aria-labelledby="bPayLab">
+            <label><input type="radio" name="bpay" value="cash" checked><span>كاش</span></label>
+            <label><input type="radio" name="bpay" value="credit"><span>آجل</span></label>
+            <label><input type="radio" name="bpay" value="part"><span>جزء وجزء</span></label>
+          </div>
+        </div>
+        <div class="field" id="bPartF" hidden><label for="bPaid">المدفوع كاش الآن (ج.م)</label><input id="bPaid" type="number" inputmode="decimal" min="0" step="any" placeholder="0"></div>
+        <div class="two">
+          <div class="field"><label for="bCust">اسم العميل (مطلوب في الآجل)</label><input id="bCust" type="text" maxlength="60" list="custNames" placeholder="اسم المشتري"></div>
+          <div class="field"><label for="bPhone">رقم العميل (اختياري)</label><input id="bPhone" type="tel" inputmode="tel" dir="ltr" maxlength="30"></div>
+        </div>
+        <div class="field"><label for="bAddr">عنوان العميل (اختياري)</label><input id="bAddr" type="text" maxlength="120"></div>
+        <div class="cost" id="bPayBreak" hidden aria-live="polite"></div>
+        <button type="submit" class="btn primary">سجّل بيع الباقة</button>
+        <p id="bMsg" class="msg" role="status"></p>
+      </form>
+      <div class="two">
+        <div class="field"><label for="bSaveName">حفظ هذه التركيبة كباقة باسم</label><input id="bSaveName" type="text" maxlength="60" placeholder="مثال: باقة هدية"></div>
+        <div class="field"><span class="lab">&nbsp;</span><button type="button" class="btn" id="bSave">حفظ الباقة</button></div>
+      </div>
+      <p id="bSaveMsg" class="msg" role="status"></p>
+    </section>
+    <section class="card" aria-labelledby="bd2">
+      <h2 id="bd2">الباقات المحفوظة</h2>
+      <div class="tbl-wrap"><table id="bSavedTbl"></table></div>
+      <p class="empty" id="bSavedEmpty" hidden>لا توجد باقات محفوظة بعد. ركّب باقة واضغط «حفظ الباقة».</p>
+    </section>
+    <section class="card" aria-labelledby="bd3">
+      <h2 id="bd3">الباقات المباعة</h2>
+      <p class="sumline" id="bSoldSum"></p>
+      <form id="bcForm" autocomplete="off" novalidate hidden>
+        <div class="field"><label for="bcSel">تحصيل مبلغ آجل من باقة</label><select id="bcSel"></select></div>
+        <div class="two">
+          <div class="field"><label for="bcAmt">المبلغ المحصّل (ج.م)</label><input id="bcAmt" type="number" inputmode="decimal" min="0" step="any"></div>
+          <div class="field"><label for="bcDate">التاريخ</label><input id="bcDate" type="date"></div>
+        </div>
+        <button type="submit" class="btn primary">سجّل التحصيل</button>
+        <p id="bcMsg" class="msg" role="status"></p>
+      </form>
+      <p id="bMsg2" class="msg" role="status"></p>
+      <div class="tbl-wrap"><table id="bSoldTbl"></table></div>
+      <p class="empty" id="bSoldEmpty" hidden>لا توجد باقات مباعة بعد.</p>
+    </section>
+  </div>
+
+  <div class="view" id="v_customers" hidden>
+    <section class="card" aria-labelledby="cu1">
+      <h2 id="cu1">تذكيرات العملاء</h2>
+      <p class="hint" id="cuHint"></p>
+      <div class="field"><label for="cuDays">التذكير بعد كم يومًا من آخر شراء</label><input id="cuDays" type="number" inputmode="numeric" min="1" max="365" step="1"></div>
+      <div class="field"><label for="cuTpl">الرسالة المستخدمة</label><select id="cuTpl"></select></div>
+      <p id="cuMsg" class="msg" role="status"></p>
+      <div id="cuPanel"></div>
+      <div id="cuDue"></div>
+    </section>
+    <section class="card" aria-labelledby="cu2">
+      <h2 id="cu2">الرسائل المحفوظة</h2>
+      <p class="hint">اكتب داخل الرسالة {الاسم} و{المنتج} و{التاريخ} و{الأيام} وسيضع التطبيق مكانها بيانات كل عميل. احفظ أكثر من رسالة واختر منها في الأعلى.</p>
+      <div><button type="button" class="btn primary" id="tpAdd">＋ رسالة جديدة</button></div>
+      <form id="tpForm" autocomplete="off" novalidate hidden>
+        <div class="field"><label for="tpName">اسم الرسالة</label><input id="tpName" type="text" maxlength="60" placeholder="مثال: تذكير بعد شهر"></div>
+        <div class="field"><label for="tpText">نص الرسالة</label><textarea id="tpText" rows="4" maxlength="600" placeholder="أهلًا {الاسم}، مرّ {الأيام} يومًا على شرائك {المنتج}…"></textarea></div>
+        <div class="btns">
+          <button type="submit" class="btn primary" id="tpSave">حفظ الرسالة</button>
+          <button type="button" class="btn" id="tpCancel">إلغاء</button>
+        </div>
+        <p id="tpFormMsg" class="msg" role="status"></p>
+      </form>
+      <p id="tpMsg" class="msg" role="status"></p>
+      <div id="tpList"></div>
+    </section>
+    <section class="card" aria-labelledby="cu3">
+      <h2 id="cu3">العملاء</h2>
+      <p class="hint">كل عميل في سطر. اضغط على السطر لترى كل مشترياته وتعدّل بياناته. اضغط السهم ▾ في رأس العمود للبحث والتصفية والترتيب. يُسجَّل العميل تلقائيًا من أي بيع تكتب فيه اسمه.</p>
+      <div class="field"><label for="cuSearch">بحث سريع</label><input id="cuSearch" type="search" placeholder="اكتب جزءًا من الاسم أو الهاتف أو العنوان"></div>
+      <div><button type="button" class="btn" id="cuAdd">＋ عميل جديد</button></div>
+      <form id="cuForm" autocomplete="off" novalidate hidden>
+        <div class="two">
+          <div class="field"><label for="cuName">الاسم</label><input id="cuName" type="text" maxlength="60"></div>
+          <div class="field"><label for="cuPhone">الهاتف</label><input id="cuPhone" type="tel" inputmode="tel" dir="ltr" maxlength="30"></div>
+        </div>
+        <div class="field"><label for="cuAddr">العنوان</label><input id="cuAddr" type="text" maxlength="120"></div>
+        <div class="field"><label for="cuNotes">ملاحظات</label><input id="cuNotes" type="text" maxlength="300"></div>
+        <div class="btns">
+          <button type="submit" class="btn primary">حفظ العميل</button>
+          <button type="button" class="btn" id="cuCancel">إلغاء</button>
+        </div>
+        <p id="cuFormMsg" class="msg" role="status"></p>
+      </form>
+      <p id="cuMsg2" class="msg" role="status"></p>
+      <div id="cuFilter"></div>
+      <p class="sumline" id="cuSum"></p>
+      <div class="tbl-wrap"><table id="cuTbl"></table></div>
+      <p class="empty" id="cuEmpty" hidden>لا يوجد عملاء بعد. اكتب اسم العميل عند البيع وسيظهر هنا، أو اضغط «＋ عميل جديد».</p>
+    </section>
+    <section class="card" aria-labelledby="cu4">
+      <h2 id="cu4">مبيعات قديمة بلا اسم عميل</h2>
+      <p class="hint">هذه مبيعات لم يُكتب فيها اسم عميل. لن يُحذف منها شيء ولن يتغير أي مبلغ أو مخزون. حدّد ما اشتراه عميل واحد، اكتب اسمه ورقمه، واضغط «ربط». فيظهر في جدول العملاء بكل مشترياته. مبيعات الباقة الواحدة تُربط معًا.</p>
+      <div><button type="button" class="btn" id="unToggle">عرض المبيعات بلا اسم</button></div>
+      <div id="unBox" hidden>
+        <div class="field"><label for="unSearch">بحث (اسم المنتج أو التاريخ)</label><input id="unSearch" type="search"></div>
+        <div class="btns">
+          <button type="button" class="mini" id="unAll">تحديد كل النتائج</button>
+          <button type="button" class="mini" id="unNone">إلغاء التحديد</button>
+        </div>
+        <p class="sumline" id="unSum"></p>
+        <div id="unList"></div>
+        <p class="empty" id="unEmpty" hidden></p>
+        <form id="unForm" autocomplete="off" novalidate>
+          <div class="two">
+            <div class="field"><label for="unName">اسم العميل</label><input id="unName" type="text" maxlength="60" list="custNames"></div>
+            <div class="field"><label for="unPhone">الهاتف</label><input id="unPhone" type="tel" inputmode="tel" dir="ltr" maxlength="30"></div>
+          </div>
+          <div class="field"><label for="unAddr">العنوان (اختياري)</label><input id="unAddr" type="text" maxlength="120"></div>
+          <div class="btns"><button type="submit" class="btn primary">ربط المحدد بهذا العميل</button></div>
+          <p id="unMsg" class="msg" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </div>
+
   <div class="view" id="v_contacts" hidden>
     <section class="card" id="cFormCard" aria-labelledby="cFormTitle" hidden>
       <h2 id="cFormTitle">جهة اتصال جديدة</h2>
@@ -638,12 +898,12 @@ document.documentElement.lang = "ar";
 (function () {
   "use strict";
   var HOSTED = !!window.__oliveHosted;
-  var VIEWS = [["treasury", "الخزينة"], ["purchases", "المشتريات"], ["stock", "المخزن"], ["production", "الإنتاج"], ["waste", "الهالك"], ["sales", "المبيعات"], ["profit", "صافي الربح"], ["contacts", "جهات الاتصال"]];
+  var VIEWS = [["org", "المؤسسة"], ["treasury", "الخزينة"], ["purchases", "المشتريات"], ["stock", "المخزن"], ["production", "الإنتاج"], ["waste", "الهالك"], ["sales", "المبيعات"], ["bundles", "الباقات"], ["customers", "العملاء"], ["profit", "صافي الربح"], ["contacts", "جهات الاتصال"]];
   if (HOSTED) VIEWS.push(["files", "الملفات والصور"]);
   var UNITS = ["كجم", "جرام", "لتر", "متر", "قطعة", "علبة", "لوح", "كرتونة"];
   var REASONS = ["تلف أثناء التخزين", "انتهاء صلاحية", "كسر", "عيب تصنيع", "فاقد أثناء التصنيع", "سوء نقل"];
   var now = new Date();
-  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null, swh: "all", fromWh: "main", toWh: "main", renWh: null, act: "main", actForm: null, newAct: null, pfAct: "all" };
+  var state = { docs: [], loaded: false, mode: "connecting", view: "treasury", filter: "all", confirmId: null, openMat: null, editProd: null, migrate: null, migrating: false, migMsg: "", migDone: 0, importPending: null, importing: false, importMsg: "", importDone: 0, cq: "", ccat: "all", editC: null, fq: "", fcat: "all", openF: null, vEdit: false, pending: null, swh: "all", fromWh: "main", toWh: "main", renWh: null, act: "main", actForm: null, newAct: null, tgen: false, viewTouched: false };
   var draft = [{ mat: "", qty: "" }];
   var col = null, dbRef = null, uidRef = null, downloads = null, confirmTimer = null;
 
@@ -701,12 +961,15 @@ document.documentElement.lang = "ar";
   var producing = false;
 
   /* ---------- data access ---------- */
-  /* ---------- activities ----------
-     One treasury, several lines of business. Items, purchases, batches, sales, waste and transfers
-     belong to an activity (field `act`; a record with no `act` belongs to the original activity "main").
-     K() returns only the CURRENT activity's records for those kinds; KA() returns every activity's. */
+  /* ---------- projects ----------
+     The organization has a general treasury and several projects. Everything a project owns (items, purchases,
+     batches, sales, waste, stock transfers, warehouses, files, sellers and treasury entries) carries the field `act`
+     (a record with no `act` belongs to the first project "main" = olive oil). Treasury entries with act "shared"
+     are the organization's GENERAL treasury. The stored kind is still called "activity" so old data and backups keep working.
+     Contacts are NOT project-scoped: one list for the whole organization (an old `act` on a contact is ignored).
+     K() returns only the CURRENT project's records; KA() returns every project's. */
   var MAINACT = "main", MAINACT_NAME = "زيت الزيتون";
-  var SCOPED = { material: 1, product: 1, purchase: 1, batch: 1, sale: 1, waste: 1, transfer: 1 };
+  var SCOPED = { material: 1, product: 1, purchase: 1, batch: 1, sale: 1, waste: 1, transfer: 1, warehouse: 1, file: 1, seller: 1 };
   try { var savedAct = localStorage.getItem("qt_act"); if (savedAct) state.act = savedAct; } catch (e) { /* storage blocked */ }
   function actOf(d) { return d.act || MAINACT; }
   function KA(kind) { return state.docs.filter(function (d) { return d.kind === kind; }); }
@@ -714,7 +977,16 @@ document.documentElement.lang = "ar";
     var all = KA(kind);
     return SCOPED[kind] ? all.filter(function (d) { return actOf(d) === state.act; }) : all;
   }
-  function E() { return state.docs.filter(function (d) { return !d.kind; }); }
+  /* treasury entries: EA = every entry; E = the current project's; TE = what the treasury page shows (project or general) */
+  function entryAct(e) { return e.act === "shared" ? "shared" : (e.act || MAINACT); }
+  function EA() { return state.docs.filter(function (d) { return !d.kind; }); }
+  function E() { return EA().filter(function (e) { return entryAct(e) === state.act; }); }
+  function TE() { return state.tgen ? EA().filter(function (e) { return entryAct(e) === "shared"; }) : E(); }
+  function balOf(scope) {
+    var b = 0;
+    EA().forEach(function (e) { if (entryAct(e) === scope && e.status !== "pending") b = r2(b + (e.type === "income" ? 1 : -1) * (Number(e.amount) || 0)); });
+    return b;
+  }
   function ACTS() { return [{ id: MAINACT, name: MAINACT_NAME }].concat(KA("activity").sort(byName)); }
   function actById(id) { return id === MAINACT ? ACTS()[0] : (KA("activity").filter(function (a) { return a.id === id; })[0] || null); }
   function actName(id) { var a = actById(id); return a ? a.name : MAINACT_NAME; }
@@ -785,7 +1057,7 @@ document.documentElement.lang = "ar";
 
   async function create(data) {
     data.createdAt = Date.now();
-    if (SCOPED[data.kind] && data.act === undefined && state.act !== MAINACT) data.act = state.act;
+    if (SCOPED[data.kind] && !("act" in data) && state.act !== MAINACT) data.act = state.act;
     if (col) {
       var ref = col.doc();
       for (var a = 0; a < 3; a++) {
@@ -821,7 +1093,7 @@ document.documentElement.lang = "ar";
 
   /* ---------- treasury ---------- */
   function treasury() {
-    var list = E().slice().sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); });
+    var list = TE().slice().sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); });
     var bal = 0, inn = 0, out = 0;
     var rows = list.map(function (e) {
       var a = Number(e.amount) || 0, pend = e.status === "pending";
@@ -832,10 +1104,10 @@ document.documentElement.lang = "ar";
     });
     return { rows: rows, bal: bal, inn: inn, out: out };
   }
-  /* act: for manual entries the chosen activity ("shared" = general expense); automatic entries follow the current activity */
+  /* act: where the entry goes. Left out = the current project's treasury; "shared" = the general treasury */
   function treasuryEntry(type, amount, date, party, note, source, refId, act) {
     var rec = { type: type, amount: r2(amount), date: date, party: party, note: note || "", source: source || "manual", refId: refId || "" };
-    var a = act !== undefined ? act : (rec.source !== "manual" ? state.act : MAINACT);
+    var a = act !== undefined ? act : state.act;
     if (a && a !== MAINACT) rec.act = a;
     return create(rec);
   }
@@ -913,6 +1185,19 @@ document.documentElement.lang = "ar";
   /* ---------- deletion with reversal ---------- */
   var DEL = {
     entry: async function (d) {
+      if (d.xp) {
+        var legs = EA().filter(function (x) { return x.xp === d.xp; });
+        for (var li = 0; li < legs.length; li++) await remove(legs[li]);
+        return "تم التراجع عن نقل المصروف: رجع كما كان في مشروعه الأول، وعادت الفلوس إلى خزينة المشروع الثاني.";
+      }
+      if ((d.source || "manual") === "manual" && d.type === "expense" && EA().some(function (x) { return x.source === "xrev" && x.refId === d.id; })) {
+        throw biz("هذا المصروف نُقل (كله أو جزء منه) إلى مشروع آخر. احذف سطر النقل أولًا، ثم احذف المصروف.");
+      }
+      if ((d.source === "transfer" || d.source === "xpay") && d.pair) {
+        var both = EA().filter(function (x) { return x.pair === d.pair; });
+        for (var bi = 0; bi < both.length; bi++) await remove(both[bi]);
+        return "تم حذف التحويل من الخزينتين.";
+      }
       if (d.source === "collection") {
         var sale = KA("sale").filter(function (x) { return x.id === d.refId; })[0];
         if (sale) await patch(sale, { paid: Math.max(0, r2(salePaid(sale) - (Number(d.amount) || 0))) });
@@ -927,6 +1212,7 @@ document.documentElement.lang = "ar";
     },
     product: function (d) { return remove(d); },
     contact: function (d) { return remove(d); },
+    seller: async function (d) { await remove(d); return "تم حذف البائع. مبيعاته القديمة بقيت كما هي."; },
     purchase: async function (p) {
       var m = p.matId ? matById(p.matId) : null, note = "";
       if (m) {
@@ -934,7 +1220,7 @@ document.documentElement.lang = "ar";
         if (tk.short > 1e-9) note = "تم الحذف. كان جزء من الكمية قد استُهلك أو تلف، فأصبح رصيد «" + m.name + "» في المخزن صفرًا.";
         await patch(m, tk.fields);
       }
-      var links = E().filter(function (e) { return e.refId === p.id; });
+      var links = EA().filter(function (e) { return e.refId === p.id; });
       for (var i = 0; i < links.length; i++) await remove(links[i]);
       await remove(p);
       return note;
@@ -956,11 +1242,12 @@ document.documentElement.lang = "ar";
       return note;
     },
     sale: async function (s) {
-      var p = s.productId ? prodById(s.productId) : null;
-      if (p && Number(s.stockTaken) > 0) await patch(p, addAt(p, s.wh, Number(s.stockTaken)));
-      var links = E().filter(function (e) { return e.refId === s.id; });
-      for (var i = 0; i < links.length; i++) await remove(links[i]);
-      await remove(s);
+      if (s.bundleId) {
+        var lines = KA("sale").filter(function (x) { return x.bundleId === s.bundleId; });
+        for (var bi = 0; bi < lines.length; bi++) await delSaleOne(lines[bi]);
+        return "تم حذف الباقة كاملة (" + lines.length + " منتجات) وأُرجعت الكميات إلى مخازن مشاريعها.";
+      }
+      await delSaleOne(s);
     },
     waste: async function (w) {
       var item = w.target === "material" ? matById(w.itemId) : prodById(w.itemId);
@@ -968,19 +1255,43 @@ document.documentElement.lang = "ar";
       await remove(w);
     },
     activity: async function (a) {
-      var inUse = state.docs.filter(function (d) { return d.act === a.id; }).length;
-      if (inUse) throw biz("لا يمكن حذف «" + a.name + "» لأن فيه " + inUse + " سجلًا (خامات أو مشتريات أو مبيعات…). احذف سجلاته أولًا.");
+      var inUse = state.docs.filter(function (d) { return d.act === a.id && d.kind !== "contact"; }).length;
+      if (inUse) throw biz("لا يمكن حذف مشروع «" + a.name + "» لأن فيه " + inUse + " سجلًا (خامات أو مشتريات أو مبيعات أو حركات خزينة أو ملفات…). احذف سجلاته أولًا.");
       await remove(a);
-      return "تم حذف النشاط.";
+      return "تم حذف المشروع.";
+    },
+    bundle: async function (b) { await remove(b); return "تم حذف الباقة المحفوظة."; },
+    msgtpl: async function (t) {
+      var set = crmSet();
+      if (set && set.tpl === t.id) await patch(set, { tpl: "" });
+      await remove(t);
+      return "تم حذف الرسالة المحفوظة.";
+    },
+    customer: async function (d) {
+      var c = d._virtual || custBook().filter(function (x) { return x.key === d.id; })[0], has = !!(c && c.sales.length);
+      if (d._virtual) await create({ kind: "customer", name: c.name, phone: c.phone || "", address: "", notes: "", deleted: true });
+      else if (has) await patch(d, { deleted: true });
+      else await remove(d);
+      return has ? "تم حذف العميل من القائمة. مبيعاته بقيت في سجلاتها كما هي." : "تم حذف العميل.";
     },
     warehouse: async function (w) {
-      var held = KA("material").concat(KA("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; });
+      var held = K("material").concat(K("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; });
       if (held.length) throw biz("لا يمكن حذف «" + w.name + "» لأن فيه كميات (" + held.slice(0, 3).map(function (it) { return it.name; }).join("، ") + (held.length > 3 ? "…" : "") + "). انقلها إلى مخزن آخر أولًا.");
       await remove(w);
     }
   };
+  /* deletes one sale line, gives its stock back (inside the product's own project) and removes its treasury lines */
+  async function delSaleOne(s) {
+    var p = s.productId ? prodById(s.productId) : null;
+    if (p && Number(s.stockTaken) > 0) await patch(p, withAct(actOf(s), function () { return addAt(p, s.wh, Number(s.stockTaken)); }));
+    var links = EA().filter(function (e) { return e.refId === s.id; });
+    for (var i = 0; i < links.length; i++) await remove(links[i]);
+    await remove(s);
+  }
+  function withAct(act, fn) { var old = state.act; state.act = act; try { return fn(); } finally { state.act = old; } }
   function askDelete(d, msgId) {
     var kind = d.kind || "entry";
+    if (kind === "sale" && d.bundleId && state.confirmId !== d.id) say(msgId, "هذا البيع جزء من باقة. حذفه يحذف الباقة كلها (كل منتجاتها من كل المشاريع). اضغط حذف مرة أخرى للتأكيد.", true);
     if (kind === "material") {
       var used = PRODS().filter(function (p) { return (p.recipe || []).some(function (r) { return r.mat === d.id; }); });
       if (used.length && state.confirmId !== d.id) say(msgId, "«" + d.name + "» من مكوّنات: " + used.map(function (p) { return p.name; }).join("، ") + ". سيُحذف منها أيضًا. اضغط حذف مرة أخرى للتأكيد.", true);
@@ -996,33 +1307,67 @@ document.documentElement.lang = "ar";
     render();
   }
 
+  /* ---------- moving an expense (equipment...) to another project ----------
+     The first project gets a reversal line (lowers its expenses, money comes back to its treasury) and the second
+     project gets the expense (raises its expenses, money leaves its treasury). Both lines share `xp`; deleting either undoes both. */
+  async function moveExpense(e, to, amt, date) {
+    var from = entryAct(e), xp = "p" + Date.now() + Math.random().toString(36).slice(2, 6), first = null, nm = e.party || "مصروف";
+    var recB = { type: "expense", amount: amt, date: date, party: nm + " (منقول من «" + actName(from) + "»)", note: e.note || "", source: "manual", refId: "", xp: xp };
+    var recA = { type: "income", amount: amt, date: date, party: "نقل «" + nm + "» إلى «" + actName(to) + "»", note: "", source: "xrev", refId: e.id, xp: xp };
+    if (e.category) recB.category = e.category;
+    if (to !== MAINACT) recB.act = to;
+    if (from !== MAINACT) recA.act = from;
+    first = await create(recB);
+    try { await create(recA); }
+    catch (err) { try { await remove({ id: first }); } catch (e2) { /* ignore */ } throw err; }
+  }
+  function xpPanel(e, left) {
+    var from = entryAct(e), sel = h("select"), amt = numInput(left), dt = h("input", { type: "date" }), msg = h("p", { class: "msg", role: "status" });
+    sel.appendChild(h("option", { value: "", text: "اختر المشروع" }));
+    ACTS().filter(function (a) { return a.id !== from; }).forEach(function (a) { sel.appendChild(h("option", { value: a.id, text: a.name })); });
+    dt.value = todayISO();
+    var go = h("button", { type: "button", class: "btn primary", text: "انقل المصروف" });
+    go.addEventListener("click", async function () {
+      var to = sel.value, a = parseFloat(amt.value), d = dt.value;
+      if (!to) { msg.className = "msg err"; msg.textContent = "اختر المشروع الذي سينتقل إليه المصروف."; return; }
+      if (!(a > 0)) { msg.className = "msg err"; msg.textContent = "أدخل مبلغًا أكبر من صفر."; return; }
+      if (a > left + 1e-9) { msg.className = "msg err"; msg.textContent = "المبلغ أكبر من المتبقي (" + fm(left) + " ج.م)."; return; }
+      if (!d) { msg.className = "msg err"; msg.textContent = "اختر التاريخ."; return; }
+      if (go.disabled) return;
+      go.disabled = true;
+      try {
+        await moveExpense(e, to, r2(a), d);
+        state.xpFor = null;
+        say("msg", "تم نقل " + money(a) + " من «" + (e.party || "المصروف") + "» إلى مشروع «" + actName(to) + "». نقص من مصروفات هذا المشروع وزاد في مصروفات «" + actName(to) + "»، وانتقلت الفلوس بين الخزينتين.", false);
+        renderTreasury();
+      } catch (err) { go.disabled = false; msg.className = "msg err"; msg.textContent = errText(err) + " لم يُنقل شيء."; }
+    });
+    return h("div", { class: "msgbox" },
+      h("p", { class: "hint", text: "ينقل المصروف (كله أو جزءًا منه) إلى مشروع آخر: يقل من مصروفات هذا المشروع ويزيد في مصروفات المشروع الآخر، وتنتقل الفلوس بين الخزينتين." }),
+      field("المشروع", sel), field("المبلغ المنقول (ج.م) — الحد الأقصى " + fm(left), amt), field("التاريخ", dt),
+      h("div", { class: "btns" }, go, h("button", { type: "button", class: "mini", text: "إلغاء", onclick: function () { state.xpFor = null; renderTreasury(); } })), msg);
+  }
+
   /* ---------- treasury view ---------- */
-  function entryActTag(e) {
-    if (!multiAct()) return "";
-    if (e.act === "shared") return "عام";
-    if (e.act) return actName(e.act);
-    return (e.source && e.source !== "manual") || e.type === "expense" ? MAINACT_NAME : "";
+  /* the treasury page shows one treasury at a time: the current project's, or the organization's general one */
+  function renderTScope() {
+    var box = $("tScope"); box.textContent = "";
+    [[false, "خزينة مشروع «" + actName(state.act) + "»"], [true, "الخزينة العامة"]].forEach(function (x) {
+      box.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.tgen === x[0]), text: x[1], onclick: function () { state.tgen = x[0]; state.filter = "all"; state.confirmId = null; render(); } }));
+    });
+    $("tScopeHint").textContent = state.tgen
+      ? "الخزينة العامة هي أموالك كمالك للمؤسسة، وليست تابعة لمشروع بعينه. لتمويل مشروع منها أو سحب أرباح مشروع إليها افتح «المؤسسة» واستخدم «تحويل أموال بين الخزائن»."
+      : "هذه خزينة مشروع «" + actName(state.act) + "» وحده: وارده وصادره ورصيده. المشتريات والمبيعات والتحصيل تُسجَّل فيها تلقائيًا.";
   }
-  function renderTAct() {
-    var sel = $("tAct"), type = document.querySelector('input[name="ttype"]:checked').value;
-    $("tActF").hidden = !(multiAct() && type === "expense");
-    var cur = sel.value;
-    sel.textContent = "";
-    ACTS().forEach(function (a) { sel.appendChild(h("option", { value: a.id, text: a.name })); });
-    sel.appendChild(h("option", { value: "shared", text: "عام (مشترك بين الأنشطة)" }));
-    if (!cur || sel.dataset.forAct !== state.act) { sel.value = state.act; sel.dataset.forAct = state.act; } else sel.value = cur;
-    if (sel.selectedIndex < 0) sel.value = MAINACT;
-  }
-  Array.prototype.forEach.call(document.querySelectorAll('input[name="ttype"]'), function (r) { r.addEventListener("change", renderTAct); });
   function renderTreasury() {
-    renderTAct();
+    renderTScope();
     var T = treasury(), t = $("tTiles");
     t.textContent = "";
     tileTo(t, "الرصيد المتبقي", (T.bal < 0 ? "−" : "") + money(Math.abs(T.bal)), T.bal < 0 ? "neg" : "pos", T.bal < 0 ? "الرصيد بالسالب. سجّل وارد أو رصيدًا افتتاحيًا." : "الوارد ناقص الصادر");
     tileTo(t, "إجمالي الوارد", money(T.inn), "pos");
     tileTo(t, "إجمالي الصادر", money(T.out), "neg");
     var b = $("banner"); b.textContent = "";
-    if (E().some(function (e) { return e.sample; })) {
+    if (TE().some(function (e) { return e.sample; })) {
       b.appendChild(h("div", { class: "banner" }, h("span", { text: "بعض الحركات الظاهرة أمثلة للتجربة وليست بياناتك." }), h("button", { type: "button", class: "mini", text: "احذف الأمثلة", onclick: removeSamples })));
     }
     var tabs = $("tabs"); tabs.textContent = "";
@@ -1033,33 +1378,40 @@ document.documentElement.lang = "ar";
     var empty = $("ledgerEmpty");
     if (!state.loaded) { empty.hidden = false; empty.textContent = "جارٍ تحميل الحركات…"; $("ledgerTbl").textContent = ""; return; }
     empty.hidden = rows.length > 0;
-    empty.textContent = E().length ? "لا توجد حركات بهذا التصنيف." : "لا توجد حركات بعد. ابدأ برصيد افتتاحي من النموذج.";
+    empty.textContent = TE().length ? "لا توجد حركات بهذا التصنيف." : "لا توجد حركات بعد. ابدأ برصيد افتتاحي من النموذج.";
     if (!rows.length) { $("ledgerTbl").textContent = ""; } else {
       tbl($("ledgerTbl"), [["التاريخ"], ["البيان"], ["وارد (ج.م)", "n"], ["صادر (ج.م)", "n"], ["الرصيد (ج.م)", "n"]], rows.map(function (r) {
         var e = r.e, inc = e.type === "income", pend = e.status === "pending";
-        var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : e.source === "collection" ? "تحصيل" : "";
-        var atag = entryActTag(e);
+        var src = e.source === "purchase" ? "مشتريات" : e.source === "sale" ? "مبيعات" : e.source === "collection" ? "تحصيل" : e.source === "transfer" ? "تحويل" : e.source === "xpay" ? "سداد خامة" : e.source === "xrev" ? "نقل مصروف" : "";
         var cell = h("div", null,
-          h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, atag ? h("span", { class: "tag", text: atag }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
+          h("div", { class: "party" }, h("span", { text: e.party || "بدون بيان" }), src ? h("span", { class: "tag", text: src }) : null, e.xp && !src ? h("span", { class: "tag", text: "منقول" }) : null, e.sample ? h("span", { class: "tag", text: "مثال" }) : null),
           [e.category, e.note].filter(Boolean).length ? h("div", { class: "meta", text: [e.category, e.note].filter(Boolean).join(" · ") }) : null);
         var acts = h("div", { class: "cell-acts" });
         if (pend) {
           acts.appendChild(h("span", { class: "pill pending", text: "معلّق" }));
           acts.appendChild(h("button", { type: "button", class: "mini", text: "سجّل أنه تم", onclick: function () { patch(e, { status: "paid" }).catch(function (err) { say("msg", errText(err), true); }); } }));
         }
-        if (src) acts.appendChild(h("span", { class: "meta", text: "يُحذف من صفحة " + (e.source === "collection" ? "المبيعات" : src) }));
+        if (src && e.source !== "transfer" && e.source !== "xpay" && e.source !== "xrev") acts.appendChild(h("span", { class: "meta", text: "يُحذف من صفحة " + (e.source === "collection" ? "المبيعات" : src) }));
         else acts.appendChild(delBtn(e, "msg"));
+        var xpBox = null;
+        if (multiAct() && !pend && e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات" && !e.xp && !e.sample && entryAct(e) !== "shared") {
+          var moved = sumBy(EA().filter(function (x) { return x.source === "xrev" && x.refId === e.id; }), function (x) { return x.amount; }), left = r2((Number(e.amount) || 0) - moved);
+          if (moved > 0) cell.appendChild(h("div", { class: "meta", text: "نُقل منه " + money(moved) + " إلى مشروع آخر" + (left > 0 ? " · المتبقي في هذا المشروع " + money(left) : "") }));
+          if (left > 0) acts.appendChild(h("button", { type: "button", class: "mini", text: "نقل لمشروع آخر", onclick: function () { state.xpFor = state.xpFor === e.id ? null : e.id; renderTreasury(); } }));
+          if (left > 0 && state.xpFor === e.id) xpBox = xpPanel(e, left);
+        }
         cell.appendChild(acts);
+        if (xpBox) cell.appendChild(xpBox);
         return [dateLabel(e.date), cell, inc ? fm(e.amount) : "", inc ? "" : fm(e.amount), r.bal == null ? "—" : h("span", { class: r.bal < 0 ? "neg" : "", text: (r.bal < 0 ? "−" : "") + fm(Math.abs(r.bal)) })];
       }));
     }
-    $("export").hidden = !(downloads && E().length);
+    $("export").hidden = !(downloads && TE().length);
     $("exportJson").hidden = !(downloads && state.docs.length);
     $("shareJson").hidden = !(downloads && state.docs.length && canShareFiles());
     renderBackupBanner();
   }
   async function removeSamples() {
-    var list = E().filter(function (e) { return e.sample; });
+    var list = TE().filter(function (e) { return e.sample; });
     try { for (var i = 0; i < list.length; i++) await remove(list[i]); } catch (err) { say("msg", errText(err), true); }
   }
   function csvCell(v) { return '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"'; }
@@ -1284,7 +1636,7 @@ document.documentElement.lang = "ar";
     if (!(state.renWh && ae && ae.tagName === "INPUT" && ul.contains(ae))) {
       ul.textContent = "";
       WHS().forEach(function (w) {
-        var held = KA("material").concat(KA("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; }).length;
+        var held = K("material").concat(K("product")).filter(function (it) { return whQty(it, w.id) > 1e-9; }).length;
         var li = h("li", { class: "item" }), head = h("div", { class: "item-head" });
         if (state.renWh === w.id) {
           var inp = h("input", { type: "text", maxlength: "40", value: w.name, "aria-label": "اسم المخزن" });
@@ -1364,6 +1716,112 @@ document.documentElement.lang = "ar";
     if (WHS().some(function (x) { return norm(x.name) === norm(n); })) { say("whMsg", "يوجد مخزن بهذا الاسم.", true); return; }
     try { await create({ kind: "warehouse", name: n }); $("whName").value = ""; say("whMsg", "تمت إضافة المخزن «" + n + "».", false); }
     catch (err) { say("whMsg", errText(err), true); }
+  });
+
+  /* ---------- moving materials between projects ---------- */
+  function xmItem() { var id = $("xmItem").value; return id ? matById(id) : null; }
+  function xmWhPicked() { return multiWh() ? $("xmWh").value : MAIN; }
+  function xmDest(it, to) {
+    if (!it || !to) return null;
+    return KA("material").filter(function (m) { return actOf(m) === to && norm(m.name) === norm(it.name); })[0] || null;
+  }
+  function xmName(id, stored) { return id === MAINACT || actById(id) ? actName(id) : (stored || "مشروع محذوف"); }
+  /* refill a list only when its content changed, so an open list is not closed by a re-render */
+  function fillList(sel, opts) {
+    var sig = opts.map(function (o) { return o[0] + "|" + o[1]; }).join("\n");
+    if (sel.dataset.sig === sig) return;
+    var cur = sel.value; sel.textContent = "";
+    opts.forEach(function (o) { sel.appendChild(h("option", { value: o[0], text: o[1] })); });
+    sel.value = opts.some(function (o) { return o[0] === cur; }) ? cur : "";
+    sel.dataset.sig = sig;
+  }
+  function syncXm() {
+    var it = xmItem(), to = $("xmTo").value, hint = $("xmHint");
+    if (!it) { hint.textContent = ""; return; }
+    var wh = xmWhPicked(), parts = [];
+    parts.push(multiWh() ? (wh ? "المتاح في «" + whName(wh) + "»: " + qf(whQty(it, wh)) + " " + it.unit : "اختر المخزن الذي تُؤخذ منه الكمية (المتاح كله " + qf(it.qty) + " " + it.unit + ")") : "المتاح: " + qf(it.qty) + " " + it.unit);
+    parts.push("تكلفة الوحدة " + money(it.unitCost));
+    if (to) {
+      var d = xmDest(it, to);
+      parts.push(!d ? "ستُنشأ خامة جديدة باسم «" + it.name + "» في «" + actName(to) + "»"
+        : d.unit !== it.unit ? "تنبيه: في «" + actName(to) + "» خامة بالاسم نفسه لكن بوحدة «" + d.unit + "» ولا يمكن الدمج"
+        : "في «" + actName(to) + "» يوجد منها " + qf(d.qty) + " " + d.unit + " وتُدمج الكمية بمتوسط التكلفة");
+    }
+    var q = parseFloat($("xmQty").value), c = Number(it.unitCost) || 0;
+    if (to && $("xmPay").checked && q > 0 && c > 0) parts.push("سيدفع «" + actName(to) + "» مبلغ " + money(r2(q * c)) + " لخزينة «" + actName(state.act) + "»");
+    hint.textContent = parts.join(" · ") + ".";
+  }
+  function renderXmove() {
+    var card = $("xmCard"); card.hidden = !multiAct();
+    if (!multiAct()) return;
+    fillList($("xmItem"), [["", "اختر الخامة"]].concat(MATS().filter(function (m) { return (Number(m.qty) || 0) > 1e-9; }).map(function (m) { return [m.id, m.name + " (" + qf(m.qty) + " " + m.unit + ")"]; })));
+    $("xmWhF").hidden = !multiWh();
+    fillList($("xmWh"), [["", "— اختر المخزن —"]].concat(WHS().map(function (w) { return [w.id, w.name]; })));
+    fillList($("xmTo"), [["", "اختر المشروع"]].concat(ACTS().filter(function (a) { return a.id !== state.act; }).map(function (a) { return [a.id, a.name]; })));
+    syncXm();
+    var list = KA("xmove").filter(function (x) { return x.fromAct === state.act || x.toAct === state.act; }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); }).slice(0, 15), hs = $("xmHist");
+    hs.textContent = "";
+    $("xmEmpty").hidden = list.length > 0;
+    list.forEach(function (x) {
+      hs.appendChild(h("li", null,
+        h("strong", { text: dateLabel(x.date) + " · " + (x.itemName || "خامة") + " × " + qf(x.qty) + " " + (x.unit || "") }),
+        h("span", { class: "hint", text: (x.toAct === state.act ? "وارد من «" + xmName(x.fromAct, x.fromName) + "»" : "صادر إلى «" + xmName(x.toAct, x.toName) + "»") + (x.whName ? " · من «" + x.whName + "»" : "") + (x.paid > 0 ? " · سُدّد " + money(x.paid) : "") })));
+    });
+  }
+  ["xmItem", "xmWh", "xmTo", "xmPay"].forEach(function (id) { $(id).addEventListener("change", syncXm); });
+  $("xmQty").addEventListener("input", syncXm);
+  /* two linked treasury lines: money leaves one treasury and enters another (deleting either one deletes both) */
+  async function moneyPair(from, to, amount, date, partyOut, partyIn, note, source) {
+    var pair = "x" + Date.now() + Math.random().toString(36).slice(2, 6), first = null;
+    var rec1 = { type: "expense", amount: r2(amount), date: date, party: partyOut, note: note || "", source: source, refId: "", pair: pair };
+    var rec2 = { type: "income", amount: r2(amount), date: date, party: partyIn, note: note || "", source: source, refId: "", pair: pair };
+    if (from !== MAINACT) rec1.act = from;
+    if (to !== MAINACT) rec2.act = to;
+    try { first = await create(rec1); await create(rec2); }
+    catch (err) { if (first) { try { await remove({ id: first }); } catch (e2) { /* ignore */ } } throw err; }
+  }
+  $("xmForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var it = xmItem(), to = $("xmTo").value, qty = parseFloat($("xmQty").value);
+    if (!it) { say("xmMsg", "اختر الخامة.", true); $("xmItem").focus(); return; }
+    if (multiWh() && !$("xmWh").value) { say("xmMsg", "اختر المخزن الذي تُؤخذ منه الكمية.", true); $("xmWh").focus(); return; }
+    if (!to || to === state.act || !actById(to) && to !== MAINACT) { say("xmMsg", "اختر المشروع الذي ستنتقل إليه الخامة.", true); $("xmTo").focus(); return; }
+    if (!(qty > 0)) { say("xmMsg", "أدخل كمية أكبر من صفر.", true); $("xmQty").focus(); return; }
+    var wh = xmWhPicked(), have = whQty(it, wh);
+    if (qty > have + 1e-9) { say("xmMsg", "الكمية أكبر من المتاح" + (multiWh() ? " في «" + whName(wh) + "»" : "") + " (" + qf(have) + " " + it.unit + ").", true); return; }
+    var dest = xmDest(it, to);
+    if (dest && dest.unit !== it.unit) { say("xmMsg", "في «" + actName(to) + "» خامة بالاسم نفسه لكن بوحدة «" + dest.unit + "». وحّد الوحدة أولًا ثم أعد المحاولة.", true); return; }
+    var cost = Number(it.unitCost) || 0, from = state.act, fromName = actName(from), toName = actName(to);
+    var take = takeFields(it, wh, r3(qty)), back = { qty: it.qty };
+    if ("locs" in take.fields) back.locs = Array.isArray(it.locs) ? it.locs : [];
+    try {
+      await patch(it, take.fields);
+      try {
+        if (dest) {
+          var dq = Number(dest.qty) || 0, nq = r3(dq + qty);
+          /* only the total changes: what the other project keeps in its own warehouses is left as it is, the rest is its main warehouse */
+          await patch(dest, { qty: nq, unitCost: r4(nq > 0 ? (dq * (Number(dest.unitCost) || 0) + qty * cost) / nq : cost) });
+        } else {
+          await create({ kind: "material", name: it.name, unit: it.unit, qty: r3(qty), unitCost: r4(cost), minQty: 0, act: to === MAINACT ? undefined : to });
+        }
+      } catch (err) {
+        try { await patch(it, back); } catch (e2) { /* the message below tells the person to check the balance */ }
+        throw err;
+      }
+    } catch (err) { say("xmMsg", errText(err) + " لم تُنقل الخامة.", true); return; }
+    var price = r2(qty * cost), paid = 0, payNote = "";
+    if ($("xmPay").checked && price > 0) {
+      try {
+        await moneyPair(to, from, price, todayISO(), "ثمن خامة «" + it.name + "» إلى «" + fromName + "»", "ثمن خامة «" + it.name + "» من «" + toName + "»", "نقل خامة بين المشاريع", "xpay");
+        paid = price;
+        payNote = " وسُدّد " + money(price) + " من خزينة «" + toName + "» إلى خزينة «" + fromName + "».";
+      } catch (err) { payNote = " لكن تعذّر تسجيل السداد بين الخزينتين، فسجّله من «تحويل أموال بين الخزائن» في «المؤسسة»."; }
+    }
+    try {
+      await create({ kind: "xmove", date: todayISO(), itemKind: "material", itemName: it.name, unit: it.unit, qty: r3(qty), unitCost: r4(cost), fromAct: from, toAct: to, fromName: fromName, toName: toName, whName: multiWh() ? whName(wh) : "", paid: paid });
+    } catch (err) { /* the stock already moved; only the history line is missing */ }
+    $("xmQty").value = "";
+    say("xmMsg", "تم نقل " + qf(qty) + " " + it.unit + " من «" + it.name + "» من مشروع «" + fromName + "» إلى مشروع «" + toName + "»." + payNote, !paid && payNote !== "" && $("xmPay").checked);
   });
 
   /* ---------- production view ---------- */
@@ -1627,6 +2085,11 @@ document.documentElement.lang = "ar";
     var type = document.querySelector('input[name="sdisc"]:checked').value, raw = parseFloat($("saleDisc").value);
     var none = { type: "", value: 0, amount: 0, err: "" };
     if (type === "none") return none;
+    if (type === "seller") {
+      var sl = sellerById($("saleSeller").value);
+      if (!sl) return { type: "seller", value: 0, amount: 0, comm: 0, seller: null, err: "اختر كود البائع، أو غيّر نوع الخصم." };
+      return { type: "seller", value: sl.disc, amount: r2(gross * sl.disc / 100), comm: r2(gross * sl.share / 100), seller: sl, err: "" };
+    }
     if (!(raw > 0)) return { type: type, value: 0, amount: 0, err: "أدخل قيمة الخصم، أو اختر «بدون خصم»." };
     if (type === "percent") {
       if (raw > 100) return { type: type, value: raw, amount: 0, err: "نسبة الخصم لا تزيد عن 100%." };
@@ -1635,6 +2098,10 @@ document.documentElement.lang = "ar";
     if (raw > gross + 1e-9) return { type: type, value: raw, amount: 0, err: "الخصم أكبر من إجمالي البيع (" + fm(gross) + " ج.م)." };
     return { type: type, value: raw, amount: r2(raw), err: "" };
   }
+  /* the amount that is really yours: price minus the customer's discount and the seller's commission (seller-code sales) */
+  function saleNet(gross, d) { return r2(gross - d.amount - (d.comm || 0)); }
+  function SELLERS() { return K("seller").sort(byName); }
+  function sellerById(id) { return K("seller").filter(function (x) { return x.id === id; })[0] || null; }
   /* credit sales: a sale with a `paid` field was (partly) sold on credit; paid grows as collections are recorded.
      A sale without `paid` (every older sale, and every cash sale) was paid in full. */
   function salePaid(s) { return s.paid === undefined ? Number(s.total) || 0 : Number(s.paid) || 0; }
@@ -1654,7 +2121,7 @@ document.documentElement.lang = "ar";
   function syncPay(total) {
     var mode = payMode(), pb = $("payBreak");
     $("payPartF").hidden = mode !== "part";
-    $("payCustF").hidden = mode === "cash";
+    $("saleCustLab").textContent = mode === "cash" ? "اسم العميل (اختياري في الكاش)" : "اسم العميل (مطلوب في الآجل)";
     pb.textContent = ""; pb.hidden = true;
     if (mode === "cash" || !(total > 0)) return;
     var pay = salePay(total);
@@ -1667,14 +2134,22 @@ document.documentElement.lang = "ar";
   function syncSale() {
     var name = $("saleProduct").value, p = prodByName(name);
     var pr = parseFloat($("salePrice").value) || 0, q = parseFloat($("saleQty").value) || 0;
-    var gross = r2(pr * q), d = saleDiscount(gross), br = $("saleBreak");
-    $("saleTotal").value = pr > 0 && q > 0 ? fm(r2(gross - d.amount)) : "";
-    syncPay(pr > 0 && q > 0 ? r2(gross - d.amount) : 0);
+    var gross = r2(pr * q), d = saleDiscount(gross), br = $("saleBreak"), net = saleNet(gross, d);
+    var okAmt = pr > 0 && q > 0 && !(d.type === "seller" && d.err);
+    $("saleTotal").value = okAmt ? fm(net) : "";
+    $("saleTotalLab").textContent = d.type === "seller" ? "نصيبك بعد الخصم والعمولة (ج.م)" : "الإجمالي بعد الخصم (ج.م)";
+    syncPay(okAmt ? net : 0);
     br.textContent = "";
-    if (gross > 0 && d.amount > 0) {
+    if (gross > 0 && d.type === "seller" && d.seller) {
+      br.appendChild(costLine("السعر الأصلي", fm(gross), "sub"));
+      br.appendChild(costLine("خصم العميل (" + qf(d.seller.disc) + "%)", "−" + fm(d.amount), "sub"));
+      br.appendChild(costLine("عمولة " + d.seller.name + " (" + qf(d.seller.share) + "%)", "−" + fm(d.comm), "sub"));
+      br.appendChild(costLine("نصيبك (يُسجَّل في حسابك)", fm(net), "total"));
+      br.hidden = false;
+    } else if (gross > 0 && d.amount > 0) {
       br.appendChild(costLine("الإجمالي قبل الخصم", fm(gross), "sub"));
       br.appendChild(costLine("الخصم" + (d.type === "percent" ? " (" + qf(d.value) + "%)" : ""), "−" + fm(d.amount), "sub"));
-      br.appendChild(costLine("الصافي", fm(r2(gross - d.amount)), "total"));
+      br.appendChild(costLine("الصافي", fm(net), "total"));
       br.hidden = false;
     } else br.hidden = true;
     var wh = salePicked();
@@ -1701,13 +2176,16 @@ document.documentElement.lang = "ar";
   Array.prototype.forEach.call(document.querySelectorAll('input[name="sdisc"]'), function (r) {
     r.addEventListener("change", function () {
       var t = document.querySelector('input[name="sdisc"]:checked').value;
-      $("discField").hidden = t === "none";
+      $("discField").hidden = t === "none" || t === "seller";
+      $("sellerBox").hidden = t !== "seller";
       $("saleDiscLab").textContent = t === "percent" ? "نسبة الخصم (%)" : "قيمة الخصم (ج.م)";
-      if (t === "none") $("saleDisc").value = "";
+      if (t === "none" || t === "seller") $("saleDisc").value = "";
+      if (t !== "seller") $("saleSeller").value = "";
       syncSale();
     });
   });
   $("saleDisc").addEventListener("input", syncSale);
+  $("saleSeller").addEventListener("change", syncSale);
   Array.prototype.forEach.call(document.querySelectorAll('input[name="spay"]'), function (r) { r.addEventListener("change", syncSale); });
   $("salePaid").addEventListener("input", syncSale);
   $("saleProduct").addEventListener("input", function () {
@@ -1725,14 +2203,20 @@ document.documentElement.lang = "ar";
     var dl = $("prodNames"); dl.textContent = "";
     PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
     syncSaleFrom();
-    var cl = $("custNames"); cl.textContent = "";
-    K("contact").forEach(function (c) { cl.appendChild(h("option", { value: c.name })); });
-    renderDues();
+    syncSellerUi();
+    fillCustNames();
+    renderDues(); renderSellers(); renderStmt();
     var list = K("sale").sort(newest);
+    var cbox = $("saleCopyBox"); cbox.textContent = "";
+    var csale = state.msgSale ? list.filter(function (x) { return x.id === state.msgSale && x.sellerId; })[0] : null;
+    if (csale) {
+      cbox.appendChild(h("div", { class: "party", text: "رسالة بيع «" + csale.product + "» بتاريخ " + longDate(csale.date) }));
+      cbox.appendChild(msgPanel(saleMessage(csale), state.msgNote, function () { state.msgSale = null; renderSales(); }));
+    }
     var tot = sumBy(list, function (s) { return s.total; }), profit = sumBy(list.filter(function (s) { return s.unitCost > 0; }), function (s) { return s.total - s.unitCost * s.qty; });
-    var discTot = sumBy(list, function (s) { return s.discount; });
+    var discTot = sumBy(list, function (s) { return s.discount; }), commTot = sumBy(list, function (s) { return s.commAmt; });
     var dueTot = sumBy(list, saleDue);
-    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (discTot > 0 ? " · خصومات: " + money(discTot) : "") + (dueTot > 0 ? " · آجل غير محصّل: " + money(dueTot) : "") + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
+    $("saleSum").textContent = list.length ? "إجمالي المبيعات: " + money(tot) + (discTot > 0 ? " · خصومات: " + money(discTot) : "") + (commTot > 0 ? " · عمولات البائعين: " + money(commTot) + " (لا تدخل حسابك)" : "") + (dueTot > 0 ? " · آجل غير محصّل: " + money(dueTot) : "") + (profit ? " · ربح تقديري: " + money(profit) : "") : "";
     $("saleEmpty").hidden = !state.loaded || list.length > 0;
     if (!list.length) { $("saleTbl").textContent = ""; return; }
     tbl($("saleTbl"), [["التاريخ"], ["اسم المنتج"], ["سعر القطعة (ج.م)", "n"], ["عدد القطع", "n"], ["الإجمالي (ج.م)", "n"], [""]], list.map(function (s) {
@@ -1745,9 +2229,200 @@ document.documentElement.lang = "ar";
         var dd = saleDue(s);
         cell.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "آجل" }), h("span", { text: " " + (s.customer ? "العميل: " + s.customer + " · " : "") + "مدفوع " + money(salePaid(s)) + (dd > 0 ? " · متبقٍ " + money(dd) : " · سُدّد بالكامل") })));
       }
+      if (s.bundleId) cell.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "باقة: " + (s.bundleName || "") })));
+      if (s.sellerId) cell.appendChild(commBlock(s));
       return [dateLabel(s.date), cell, fm(s.price), qf(s.qty), h("b", { text: fm(s.total) }), delBtn(s, "saleMsg")];
     }));
   }
+
+  /* ---------- commission sellers: discount codes, messages and statements ---------- */
+  function syncSellerUi() {
+    var list = SELLERS(), has = list.length > 0;
+    fillList($("saleSeller"), [["", "— اختر الكود —"]].concat(list.map(function (s) { return [s.id, s.code + " — " + s.name + " (خصم " + qf(s.disc) + "% · عمولة " + qf(s.share) + "%)"]; })));
+    $("sdiscSeg").className = "seg " + (has ? "four" : "three");
+    $("sdiscSellerLab").hidden = !has;
+    var cur = document.querySelector('input[name="sdisc"]:checked');
+    if (!has && cur && cur.value === "seller") { var none = document.querySelector('input[name="sdisc"][value="none"]'); none.checked = true; none.dispatchEvent(new Event("change")); }
+  }
+  function longDate(iso) {
+    var p = String(iso || "").split("-");
+    if (p.length !== 3) return "";
+    return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("ar-EG-u-nu-latn", { day: "numeric", month: "long", year: "numeric" });
+  }
+  /* copies text to the clipboard; resolves true/false (works from a tap, with a fallback for older phones) */
+  function copyText(text) {
+    var tried;
+    try { if (navigator.clipboard && navigator.clipboard.writeText) tried = navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; }); } catch (e) { tried = null; }
+    return Promise.resolve(tried).then(function (ok) {
+      if (ok) return true;
+      try {
+        var ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;opacity:0";
+        document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+        var done = document.execCommand("copy"); document.body.removeChild(ta); return !!done;
+      } catch (e) { return false; }
+    });
+  }
+  var COPY_OK = "تم نسخ الرسالة. الصقها في واتساب أو أي برنامج.", COPY_BAD = "تعذّر النسخ تلقائيًا. اضغط على النص مطولًا ثم اختر «نسخ».";
+  function msgPanel(text, note, onClose) {
+    var ta = h("textarea", { readonly: "", rows: String(Math.min(14, text.split("\n").length + 1)) }); ta.value = text;
+    var nt = h("p", { class: "msg" + (note === COPY_BAD ? " err" : ""), role: "status", text: note || "" });
+    var btns = h("div", { class: "btns" },
+      h("button", { type: "button", class: "btn primary", text: "نسخ", onclick: function () { copyText(text).then(function (ok) { nt.className = "msg" + (ok ? "" : " err"); nt.textContent = ok ? COPY_OK : COPY_BAD; if (!ok) { ta.focus(); ta.select(); } }); } }));
+    if (typeof navigator.share === "function") btns.appendChild(h("button", { type: "button", class: "btn", text: "مشاركة", onclick: function () { try { navigator.share({ text: text }).catch(function () {}); } catch (e) { /* not supported */ } } }));
+    btns.appendChild(h("button", { type: "button", class: "mini", text: "إغلاق", onclick: onClose }));
+    return h("div", { class: "msgbox" }, ta, btns, nt);
+  }
+  function saleMessage(s) {
+    var L = ["بيع بتاريخ " + longDate(s.date), "المنتج: " + s.product + (Number(s.qty) > 1 ? " × " + qf(s.qty) : "")];
+    var by = s.buyer || s.customer || "", ph = s.buyerPhone || "";
+    if (by || ph) L.push("المشتري: " + [by, ph].filter(Boolean).join(" ـ "));
+    L.push("السعر الأصلي: " + money(s.listTotal));
+    L.push("خصم العميل " + qf(s.discPct) + "%: " + money(s.discAmt));
+    L.push("عمولة " + (s.sellerName || ("كود " + s.code)) + " " + qf(s.commPct) + "%: " + money(s.commAmt));
+    return L.join("\n");
+  }
+  /* what is shown under a seller-code sale in the sales list */
+  function commBlock(s) {
+    var box = h("div", { class: "comm" });
+    box.appendChild(h("div", { class: "meta" }, h("span", { class: "tag", text: "بالعمولة ـ كود " + s.code }), h("span", { text: " " + (s.sellerName || "") })));
+    box.appendChild(h("div", { class: "meta", text: "السعر " + fm(s.listTotal) + " · خصم " + fm(s.discAmt) + " · عمولة " + fm(s.commAmt) }));
+    var wait = !s.commPaid && saleDue(s) > 0;
+    if (wait) box.appendChild(h("div", { class: "meta", text: "العمولة لم تُستحق بعد (البيع لم يُحصَّل بالكامل)" }));
+    var cb = h("input", { type: "checkbox" });
+    cb.checked = !!s.commPaid; cb.disabled = wait;
+    cb.addEventListener("change", async function () {
+      var want = cb.checked;
+      try { await patch(s, { commPaid: want }); }
+      catch (err) { cb.checked = !want; say("saleMsg", errText(err), true); }
+    });
+    box.appendChild(h("div", { class: "cell-acts" },
+      h("label", { class: "chk" + (wait ? " off" : "") }, cb, h("span", { text: "دُفعت العمولة" })),
+      h("button", { type: "button", class: "mini", text: "نسخ رسالة", onclick: function () {
+        state.msgSale = s.id; state.msgNote = "";
+        copyText(saleMessage(s)).then(function (ok) { state.msgNote = ok ? COPY_OK : COPY_BAD; renderSales(); });
+        renderSales();
+        $("saleCopyBox").scrollIntoView({ block: "center" });
+      } })));
+    return box;
+  }
+  function renderSellers() {
+    var list = SELLERS();
+    $("seForm").hidden = !state.seForm; $("seAdd").hidden = !!state.seForm;
+    $("seEmpty").hidden = !state.loaded || list.length > 0;
+    if (!list.length) { $("seTbl").textContent = ""; return; }
+    tbl($("seTbl"), [["البائع"], ["خصم العميل", "n"], ["نصيبه", "n"], [""]], list.map(function (s) {
+      var cell = h("div", null, h("div", { class: "party", text: s.name }), h("div", { class: "meta" }, "الكود: ", h("b", { dir: "ltr", text: s.code })));
+      var acts = h("div", { class: "cell-acts" }, h("button", { type: "button", class: "mini", text: "تعديل", onclick: function () { editSeller(s); } }), delBtn(s, "seMsg"));
+      return [cell, qf(s.disc) + "%", qf(s.share) + "%", acts];
+    }));
+  }
+  function resetSellerForm() {
+    ["seName", "seCode", "seDisc", "seShare"].forEach(function (i) { $(i).value = ""; });
+    state.editSe = null; $("seSave").textContent = "حفظ البائع"; say("seFormMsg", "", false);
+  }
+  function editSeller(s) {
+    resetSellerForm(); state.editSe = s.id;
+    $("seName").value = s.name || ""; $("seCode").value = s.code || ""; $("seDisc").value = s.disc; $("seShare").value = s.share;
+    $("seSave").textContent = "حفظ التعديل"; say("seMsg", "", false);
+    state.seForm = true; renderSellers();
+    $("seForm").scrollIntoView({ block: "center" }); $("seName").focus();
+  }
+  $("seAdd").addEventListener("click", function () { resetSellerForm(); say("seMsg", "", false); state.seForm = true; renderSellers(); $("seName").focus(); });
+  $("seCancel").addEventListener("click", function () { resetSellerForm(); state.seForm = false; renderSellers(); });
+  $("seForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("seName").value.trim(), code = $("seCode").value.trim(), disc = parseFloat($("seDisc").value), share = parseFloat($("seShare").value);
+    if (!name) { say("seFormMsg", "اكتب اسم البائع.", true); $("seName").focus(); return; }
+    if (!code) { say("seFormMsg", "اكتب كود البائع.", true); $("seCode").focus(); return; }
+    if (!(disc >= 0)) { say("seFormMsg", "أدخل نسبة خصم العميل (صفر أو أكثر).", true); $("seDisc").focus(); return; }
+    if (!(share >= 0)) { say("seFormMsg", "أدخل نسبة نصيب البائع (صفر أو أكثر).", true); $("seShare").focus(); return; }
+    if (disc + share >= 100) { say("seFormMsg", "مجموع الخصم والنصيب لازم يكون أقل من 100%.", true); $("seDisc").focus(); return; }
+    var editing = state.editSe;
+    if (K("seller").some(function (x) { return x.id !== editing && sn(x.code) === sn(code); })) { say("seFormMsg", "هذا الكود مسجّل لبائع آخر. اختر كودًا مختلفًا.", true); $("seCode").focus(); return; }
+    var data = { name: name, code: code, disc: r2(disc), share: r2(share) };
+    try {
+      if (editing) {
+        var cur = K("seller").filter(function (x) { return x.id === editing; })[0];
+        if (!cur) throw biz("هذا البائع لم يعد موجودًا.");
+        await patch(cur, data);
+      } else await create(Object.assign({ kind: "seller" }, data));
+      resetSellerForm(); state.seForm = false;
+      say("seMsg", editing ? "تم حفظ التعديل. المبيعات القديمة بقيت بنسبها." : "تمت إضافة البائع. يظهر الآن خيار «كود بائع» في نموذج البيع.", false);
+      renderSellers();
+    } catch (err) { say("seFormMsg", errText(err), true); }
+  });
+
+  /* seller statement: his sales and commissions over a period */
+  function stList() {
+    var seen = {}, out = [];
+    SELLERS().forEach(function (s) { seen[s.id] = 1; out.push({ id: s.id, name: s.name, code: s.code }); });
+    K("sale").forEach(function (s) { if (s.sellerId && !seen[s.sellerId]) { seen[s.sellerId] = 1; out.push({ id: s.sellerId, name: s.sellerName || "بائع محذوف", code: s.code || "", gone: true }); } });
+    return out;
+  }
+  function stRows(id) {
+    return K("sale").filter(function (s) { return s.sellerId === id && inPeriod(s.date); }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); });
+  }
+  /* paid: ticked; wait: sold on credit and not fully collected yet; owed: due now and not paid */
+  function commState(s) { return s.commPaid ? "paid" : (saleDue(s) > 0 ? "wait" : "owed"); }
+  function stTotals(rows) {
+    var amt = function (s) { return s.commAmt; };
+    var tot = sumBy(rows, amt), paid = sumBy(rows.filter(function (s) { return commState(s) === "paid"; }), amt), wait = sumBy(rows.filter(function (s) { return commState(s) === "wait"; }), amt);
+    return { tot: r2(tot), paid: r2(paid), wait: r2(wait), owed: r2(tot - paid - wait) };
+  }
+  var COMM_WORD = { paid: "دُفعت", wait: "لم تُستحق بعد", owed: "مستحقة" };
+  function stmtMessage(who, rows, T) {
+    var L = ["كشف حساب عمولات: " + who.name + (who.code ? " (كود " + who.code + ")" : ""), "الفترة: " + periodLabel(), ""];
+    rows.forEach(function (s, i) {
+      L.push((i + 1) + ") " + longDate(s.date) + " · " + s.product + (Number(s.qty) > 1 ? " × " + qf(s.qty) : "") + " · السعر " + fm(s.listTotal) + " · خصم " + fm(s.discAmt) + " · عمولة " + fm(s.commAmt) + " · " + COMM_WORD[commState(s)]);
+    });
+    L.push("", "إجمالي العمولات: " + money(T.tot), "المدفوع: " + money(T.paid), "المتبقي المستحق: " + money(T.owed));
+    if (T.wait > 0) L.push("لم تُستحق بعد (بيع آجل لم يُحصَّل): " + money(T.wait));
+    return L.join("\n");
+  }
+  function renderStmt() {
+    var list = stList(), has = list.length > 0;
+    $("stBody").hidden = !has; $("stEmpty0").hidden = !state.loaded || has;
+    if (!has) return;
+    fillList($("stSeller"), list.map(function (x) { return [x.id, x.name + (x.code ? " — " + x.code : "") + (x.gone ? " (محذوف)" : "")]; }));
+    if (!list.some(function (x) { return x.id === $("stSeller").value; })) $("stSeller").value = list[0].id;
+    state.stSeller = $("stSeller").value;
+    fillPeriod($("stPeriod"), $("stRange"), $("stFrom"), $("stTo"), "stRangeMsg");
+    var who = list.filter(function (x) { return x.id === state.stSeller; })[0], rows = rangeBad() ? [] : stRows(state.stSeller), T = stTotals(rows);
+    var sum = $("stSum"); sum.textContent = "";
+    if (rows.length) {
+      var lines = [["إجمالي العمولات", fm(T.tot), "sub"], ["دُفعت", fm(T.paid), "sub"]];
+      if (T.wait > 0) lines.push(["لم تُستحق بعد (آجل غير محصّل)", fm(T.wait), "sub"]);
+      lines.push(["المتبقي المستحق للدفع", fm(T.owed), "total"]);
+      orgLines(sum, lines);
+    }
+    $("stEmpty").hidden = rows.length > 0 || rangeBad(); $("stCopy").hidden = !rows.length;
+    if (!rows.length) $("stTbl").textContent = "";
+    else tbl($("stTbl"), [["البيع"], ["العمولة (ج.م)", "n"], ["الحالة"]], rows.map(function (s) {
+      var st = commState(s);
+      var cell = h("div", null, h("div", { class: "party", text: s.product + (Number(s.qty) > 1 ? " × " + qf(s.qty) : "") }),
+        h("div", { class: "meta", text: dateLabel(s.date) + " · السعر " + fm(s.listTotal) + " · خصم " + fm(s.discAmt) }));
+      return [cell, fm(s.commAmt), st === "wait" ? h("span", { class: "meta", text: COMM_WORD.wait }) : h("span", { class: "pill " + (st === "paid" ? "paid" : "pending"), text: COMM_WORD[st] })];
+    }));
+    var panel = $("stPanel"); panel.textContent = "";
+    if (state.stOpen && rows.length) panel.appendChild(msgPanel(stmtMessage(who, rows, T), state.stNote, function () { state.stOpen = false; renderStmt(); }));
+  }
+  $("stSeller").addEventListener("change", function () { state.stSeller = $("stSeller").value; state.stOpen = false; renderStmt(); });
+  $("stPeriod").addEventListener("change", function () {
+    state.period = $("stPeriod").value; state.stOpen = false;
+    if (state.period === "custom" && !state.pfFrom && !state.pfTo) { state.pfFrom = todayISO().slice(0, 8) + "01"; state.pfTo = todayISO(); }
+    renderStmt();
+  });
+  $("stFrom").addEventListener("change", function () { state.pfFrom = $("stFrom").value; state.stOpen = false; renderStmt(); });
+  $("stTo").addEventListener("change", function () { state.pfTo = $("stTo").value; state.stOpen = false; renderStmt(); });
+  $("stCopy").addEventListener("click", function () {
+    var list = stList(), who = list.filter(function (x) { return x.id === state.stSeller; })[0];
+    if (!who || rangeBad()) return;
+    var rows = stRows(who.id), text = stmtMessage(who, rows, stTotals(rows));
+    state.stOpen = true; state.stNote = "";
+    copyText(text).then(function (ok) { state.stNote = ok ? COPY_OK : COPY_BAD; renderStmt(); });
+    renderStmt();
+  });
+
   /* ---------- credit sales: who owes what, and recording collections ---------- */
   function renderDues() {
     var all = K("sale").filter(function (s) { return s.paid !== undefined; });
@@ -1769,10 +2444,10 @@ document.documentElement.lang = "ar";
     tbl($("dueTbl"), [["العميل / البيع"], ["المتبقي (ج.م)", "n"]], open.concat(done).map(function (s) {
       var due = saleDue(s);
       var cell = h("div", null,
-        h("div", { class: "party" }, h("span", { text: s.customer || "بدون اسم" }), due <= 0 ? h("span", { class: "tag", text: "سُدّد" }) : null),
+        h("div", { class: "party" }, h("span", { text: s.customer || "بدون اسم" }), due <= 0 ? h("span", { class: "tag", text: "سُدّد" }) : null, s.sellerId ? h("span", { class: "tag", text: "كود " + s.code }) : null, s.bundleId ? h("span", { class: "tag", text: "باقة" }) : null),
         h("div", { class: "meta", text: s.product + " × " + qf(s.qty) + " · " + dateLabel(s.date) }),
-        h("div", { class: "meta", text: "الإجمالي " + money(s.total) + " · مدفوع " + money(salePaid(s)) }));
-      E().filter(function (e) { return e.source === "collection" && e.refId === s.id; }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (e) {
+        h("div", { class: "meta", text: (s.sellerId ? "نصيبك " : "الإجمالي ") + money(s.total) + " · مدفوع " + money(salePaid(s)) }));
+      EA().filter(function (e) { return e.source === "collection" && e.refId === s.id; }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (e) {
         cell.appendChild(h("div", { class: "cell-acts" }, h("span", { class: "meta", text: "تحصيل " + money(e.amount) + " · " + dateLabel(e.date) }), delBtn(e, "colMsg")));
       });
       var right = h("div", null, h("b", { text: fm(due) }));
@@ -1807,9 +2482,9 @@ document.documentElement.lang = "ar";
     if (!(price >= 0) || !($("salePrice").value !== "")) { say("saleMsg", "أدخل سعر القطعة.", true); $("salePrice").focus(); return; }
     if (!(qty >= 1) || Math.floor(qty) !== qty) { say("saleMsg", "أدخل عدد قطع صحيحًا (1 أو أكثر).", true); $("saleQty").focus(); return; }
     var p = prodByName(name), gross = r2(price * qty), disc = saleDiscount(gross);
-    if (disc.err) { say("saleMsg", disc.err, true); $("saleDisc").focus(); return; }
-    var total = r2(gross - disc.amount);
-    var pay = salePay(total), cust = $("saleCust").value.trim();
+    if (disc.err) { say("saleMsg", disc.err, true); (disc.type === "seller" ? $("saleSeller") : $("saleDisc")).focus(); return; }
+    var total = saleNet(gross, disc);
+    var pay = salePay(total), cust = $("saleCust").value.trim(), cphone = toEn($("saleCustPhone").value).trim(), caddr = $("saleCustAddr").value.trim();
     if (pay.err) { say("saleMsg", pay.err, true); $("salePaid").focus(); return; }
     if (pay.due > 0 && !cust) { say("saleMsg", "اكتب اسم العميل لأن جزءًا من البيع آجل.", true); $("saleCust").focus(); return; }
     if (multiWh() && !salePicked()) { say("saleMsg", "اختر المخزن الذي ستُسحب منه القطع أولًا." + (p ? otherWhText(p, "") : ""), true); $("saleWh").focus(); return; }
@@ -1824,25 +2499,749 @@ document.documentElement.lang = "ar";
     }
     state.shortOk = null;
     try {
+      var cid = cust ? await ensureCustomer(cust, cphone, caddr) : "";
       if (p && taken > 0) await patch(p, addAt(p, swh, -taken));
       var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
       if (multiWh()) { rec.wh = swh; rec.whName = whName(swh); }
-      if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
+      if (disc.type === "seller") {
+        var sl = disc.seller;
+        rec.sellerId = sl.id; rec.sellerName = sl.name; rec.code = sl.code; rec.listTotal = gross;
+        rec.discPct = sl.disc; rec.discAmt = disc.amount; rec.commPct = sl.share; rec.commAmt = disc.comm; rec.commPaid = false;
+      } else if (disc.amount > 0) { rec.gross = gross; rec.discType = disc.type; rec.discValue = disc.value; rec.discount = disc.amount; }
       if (pay.due > 0) { rec.paid = pay.paid; rec.customer = cust; }
+      if (cust) { rec.buyer = cust; rec.customerId = cid; if (cphone) rec.buyerPhone = cphone; }
       var sid = await create(rec);
-      if (pay.paid > 0) await treasuryEntry("income", pay.paid, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.amount > 0 ? " − خصم " + fm(disc.amount) : "") + (pay.due > 0 ? " · آجل " + fm(pay.due) : ""), "sale", sid);
+      if (pay.paid > 0) await treasuryEntry("income", pay.paid, date, "بيع " + name, qf(qty) + " × " + fm(price) + (disc.type === "seller" ? " · كود " + disc.seller.code + " (خصم " + fm(disc.amount) + " وعمولة " + fm(disc.comm) + ")" : (disc.amount > 0 ? " − خصم " + fm(disc.amount) : "")) + (pay.due > 0 ? " · آجل " + fm(pay.due) : ""), "sale", sid);
       $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
       document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
-      document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = "";
+      $("sellerBox").hidden = true; $("saleSeller").value = "";
+      document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = ""; $("saleCustPhone").value = ""; $("saleCustAddr").value = "";
       $("saleWh").value = "";   /* ask again for the next sale: no warehouse is ever pre-selected */
       syncSale();
       var head = pay.due > 0
         ? (pay.paid > 0 ? "أُضيف " + money(pay.paid) + " كاش إلى الخزينة وبقي " + money(pay.due) + " آجلًا على «" + cust + "»" : "بيع آجل بقيمة " + money(total) + " على «" + cust + "» ولم يُضف شيء إلى الخزينة")
         : "أُضيف " + money(total) + " إلى الخزينة";
-      say("saleMsg", "تم البيع: " + head + (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "") + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "» (المتبقي فيه " + qf(r3(before - taken)) + ")." : "المخزون الجاهز.") : (p && multiWh() ? " ولم تُخصم أي قطعة من «" + whName(swh) + "» لأنه لا يوجد منها فيه." : ".")), false);
+      say("saleMsg", "تم البيع: " + head + (disc.type === "seller" ? " بعد خصم العميل وعمولة «" + disc.seller.code + "»" : (disc.amount > 0 ? " بعد خصم " + money(disc.amount) : "")) + (taken > 0 ? " وخُصمت " + qf(taken) + " قطعة من " + (multiWh() ? "«" + whName(swh) + "» (المتبقي فيه " + qf(r3(before - taken)) + ")." : "المخزون الجاهز.") : (p && multiWh() ? " ولم تُخصم أي قطعة من «" + whName(swh) + "» لأنه لا يوجد منها فيه." : ".")), false);
       $("saleProduct").focus();
     } catch (err) { say("saleMsg", errText(err) + " راجع الخزينة والمخزن قبل إعادة المحاولة.", true); }
   });
+
+
+  /* ---------- bundles: several products (maybe from different projects) sold together ----------
+     A bundle is stored as one ordinary sale per product, each in its own product's project (same `bundleId`).
+     The bundle price is split over the products in proportion to their registered selling prices. */
+  state.bl = [{ pid: "", qty: "1", wh: "" }, { pid: "", qty: "1", wh: "" }];
+  state.bOk = null; state.blSig = null; state.bcSel = null;
+  /* split `total` over `weights` (cents-exact: the biggest share absorbs the rounding) */
+  function allocate(weights, total) {
+    var S = weights.reduce(function (a, x) { return a + x; }, 0);
+    var out = weights.map(function (w) { return S > 0 ? r2(total * w / S) : 0; });
+    var diff = r2(total - out.reduce(function (a, x) { return a + x; }, 0));
+    if (Math.abs(diff) > 1e-9 && out.length) { var k = 0; weights.forEach(function (w, i) { if (w > weights[k]) k = i; }); out[k] = r2(out[k] + diff); }
+    return out;
+  }
+  function prodLabel(p) { return p.name + (multiAct() ? " — " + actName(actOf(p)) : ""); }
+  /* everything about one bundle line, read inside the product's own project (warehouses are per project) */
+  function bLineInfo(L) {
+    var p = L.pid ? prodById(L.pid) : null;
+    if (!p) return { p: null };
+    var act = actOf(p), q = parseFloat(L.qty) || 0, price = Number(p.sellPrice) || 0;
+    var info = withAct(act, function () {
+      var multi = multiWh(), wh = multi ? (whById(L.wh) ? L.wh : "") : MAIN;
+      return { multi: multi, whs: WHS(), wh: wh, whLabel: wh ? whName(wh) : "", have: wh ? whQty(p, wh) : 0, cost: r2(prodCost(p).unit) };
+    });
+    return Object.assign({ p: p, act: act, q: q, price: price, list: r2(price * q), total: Number(p.stock) || 0 }, info);
+  }
+  function bCalc() {
+    var infos = state.bl.map(bLineInfo), raw = $("bPrice").value, manual = parseFloat(raw), err = "";
+    var S = r2(sumBy(infos, function (i) { return i.p ? i.list : 0; })), T = S, isManual = false;
+    if (raw !== "") { if (manual > 0) { T = r2(manual); isManual = true; } else err = "سعر الباقة اليدوي لازم يكون أكبر من صفر، أو اتركه فارغًا لاستخدام الأسعار المسجلة."; }
+    return { infos: infos, S: S, T: T, manual: isManual, alloc: allocate(infos.map(function (i) { return i.p ? i.list : 0; }), T), err: err };
+  }
+  function bCheck(c) {
+    if (c.infos.length < 2) return { msg: "الباقة تحتاج منتجين على الأقل. اضغط «＋ إضافة منتج»." };
+    var ids = {};
+    for (var i = 0; i < c.infos.length; i++) {
+      var I = c.infos[i], tag = "المنتج رقم " + (i + 1);
+      if (!I.p) return { msg: tag + ": اختر المنتج." };
+      if (ids[I.p.id]) return { msg: "المنتج «" + I.p.name + "» مكرر. لا تكرره، زد كميته بدل ذلك." };
+      ids[I.p.id] = 1;
+      if (!(I.q >= 1) || Math.floor(I.q) !== I.q) return { msg: tag + " («" + I.p.name + "»): أدخل عدد قطع صحيحًا (1 أو أكثر)." };
+      if (!(I.price > 0)) return { msg: "«" + I.p.name + "» ليس له سعر بيع مسجل. اكتب سعره من صفحة «الإنتاج» أولًا، ثم ارجع هنا." };
+      if (I.multi && !I.wh) return { msg: tag + " («" + I.p.name + "»): اختر المخزن الذي ستُسحب منه القطع." };
+    }
+    if (c.err) return { msg: c.err };
+    if (!(c.T > 0)) return { msg: "إجمالي الباقة لازم يكون أكبر من صفر." };
+    return null;
+  }
+  function bPayInfo(total) {
+    var mode = document.querySelector('input[name="bpay"]:checked').value, paid = total, err = "";
+    if (mode === "credit") paid = 0;
+    else if (mode === "part") {
+      var raw = $("bPaid").value, v = parseFloat(raw);
+      if (raw === "" || !(v > 0)) { paid = 0; err = "أدخل المبلغ المدفوع كاش (أكبر من صفر)، أو اختر «آجل»."; }
+      else if (v >= total - 1e-9) { paid = total; err = "المبلغ المدفوع يساوي الإجمالي أو يزيد عليه. اختر «كاش»، أو اكتب مبلغًا أقل."; }
+      else paid = r2(v);
+    }
+    return { mode: mode, paid: paid, due: r2(total - paid), err: err };
+  }
+  function drawLines() {
+    var box = $("bLines"); box.textContent = "";
+    var prods = KA("product").sort(byName);
+    state.bl.forEach(function (L, i) {
+      var sel = h("select"), qty = numInput(L.qty, "1"), info = bLineInfo(L), wsel = null;
+      qty.min = "1";
+      sel.appendChild(h("option", { value: "", text: "— اختر المنتج —" }));
+      prods.forEach(function (p) { sel.appendChild(h("option", { value: p.id, text: prodLabel(p) + (Number(p.sellPrice) > 0 ? " — " + fm(p.sellPrice) + " ج.م" : " — بلا سعر") })); });
+      sel.value = prods.some(function (p) { return p.id === L.pid; }) ? L.pid : "";
+      if (info.p && info.multi) {
+        wsel = h("select"); wsel.appendChild(h("option", { value: "", text: "— اختر المخزن —" }));
+        info.whs.forEach(function (w) { wsel.appendChild(h("option", { value: w.id, text: w.name })); });
+        wsel.value = L.wh;
+        wsel.addEventListener("change", function () { L.wh = wsel.value; syncBundle(); });
+      }
+      sel.addEventListener("change", function () { L.pid = sel.value; L.wh = ""; drawLines(); syncBundle(); });
+      qty.addEventListener("input", function () { L.qty = qty.value; syncBundle(); });
+      L.hint = h("p", { class: "hint" });
+      box.appendChild(h("div", { class: "bline" },
+        field("المنتج رقم " + (i + 1), sel),
+        h("div", { class: wsel ? "two" : "" }, field("عدد القطع", qty), wsel ? field("المخزن", wsel) : null),
+        L.hint,
+        state.bl.length > 2 ? h("div", null, h("button", { type: "button", class: "mini danger", text: "إزالة هذا المنتج", onclick: function () { state.bl.splice(i, 1); drawLines(); syncBundle(); } })) : null));
+    });
+  }
+  function syncBundle() {
+    var c = bCalc(), br = $("bBreak"), pb = $("bPayBreak");
+    br.textContent = ""; pb.textContent = "";
+    c.infos.forEach(function (I, i) {
+      var L = state.bl[i]; if (!L.hint) return;
+      L.hint.textContent = !I.p ? "" : "سعر البيع المسجل " + fm(I.price) + " ج.م · " + (I.multi ? (I.wh ? "المتاح في «" + I.whLabel + "»: " + qf(I.have) + " قطعة (الكلي " + qf(I.total) + ")" : "اختر المخزن لتعرف المتاح (الكلي " + qf(I.total) + " قطعة)") : "المتاح " + qf(I.total) + " قطعة");
+    });
+    var shown = c.infos.map(function (I, i) { return i; }).filter(function (i) { return c.infos[i].p && c.infos[i].list > 0; });
+    shown.forEach(function (i) {
+      var I = c.infos[i];
+      br.appendChild(costLine(I.p.name + " × " + qf(I.q) + (multiAct() ? " (" + actName(I.act) + ")" : ""), fm(c.alloc[i]) + (c.manual ? "  ← من " + fm(I.list) : ""), "sub"));
+    });
+    if (c.manual && c.S > 0) {
+      var diff = r2(c.S - c.T);
+      br.appendChild(costLine("مجموع الأسعار المسجلة", fm(c.S), "sub"));
+      br.appendChild(costLine(diff >= 0 ? "خصم الباقة (" + qf(r2(diff / c.S * 100)) + "%)" : "زيادة على الأسعار (" + qf(r2(-diff / c.S * 100)) + "%)", (diff >= 0 ? "−" : "+") + fm(Math.abs(diff)), "sub"));
+    }
+    if (shown.length) br.appendChild(costLine("إجمالي الباقة", fm(c.T), "total"));
+    br.hidden = !shown.length;
+    var mode = document.querySelector('input[name="bpay"]:checked').value;
+    $("bPartF").hidden = mode !== "part";
+    pb.hidden = true;
+    if (mode !== "cash" && c.T > 0 && shown.length) {
+      var pay = bPayInfo(c.T);
+      if (!pay.err) {
+        pb.appendChild(costLine("الإجمالي", fm(c.T), "sub"));
+        pb.appendChild(costLine("كاش الآن (يدخل الخزائن)", fm(pay.paid), "sub"));
+        pb.appendChild(costLine("آجل (على العميل)", fm(pay.due), "total"));
+        pb.hidden = false;
+      }
+    }
+  }
+  function savedBundles() { return K("bundle").sort(byName); }
+  function bundleItemsText(b) {
+    return (b.items || []).map(function (it) { var p = prodById(it.pid); return (p ? p.name : "منتج محذوف") + " × " + qf(it.qty); }).join(" + ");
+  }
+  function renderBundles() {
+    var sig = KA("product").map(function (p) { return [p.id, p.name, p.sellPrice, actOf(p)].join("|"); }).join(",") + "#" + KA("warehouse").map(function (w) { return w.id + w.name + actOf(w); }).join(",") + "#" + KA("activity").map(function (a) { return a.id + a.name; }).join(",");
+    fillCustNames();
+    if (state.blSig !== sig) { state.blSig = sig; drawLines(); }
+    var saved = savedBundles();
+    fillList($("bPick"), [["", "تركيب باقة جديدة"]].concat(saved.map(function (b) { return [b.id, b.name + (b.price > 0 ? " — " + fm(b.price) + " ج.م" : "")]; })));
+    syncBundle();
+    $("bSavedEmpty").hidden = !state.loaded || saved.length > 0;
+    if (!saved.length) $("bSavedTbl").textContent = "";
+    else tbl($("bSavedTbl"), [["الباقة"], [""]], saved.map(function (b) {
+      var cell = h("div", null, h("div", { class: "party", text: b.name }), h("div", { class: "meta", text: bundleItemsText(b) }), h("div", { class: "meta", text: b.price > 0 ? "السعر: " + money(b.price) : "بالأسعار المسجلة" }));
+      return [cell, h("div", { class: "cell-acts" }, h("button", { type: "button", class: "mini", text: "استخدام", onclick: function () { useBundle(b); } }), delBtn(b, "bSaveMsg"))];
+    }));
+    renderSold();
+  }
+  function useBundle(b) {
+    state.bl = (b.items || []).map(function (it) { return { pid: prodById(it.pid) ? it.pid : "", qty: String(it.qty || 1), wh: "" }; });
+    while (state.bl.length < 2) state.bl.push({ pid: "", qty: "1", wh: "" });
+    $("bPrice").value = b.price > 0 ? b.price : ""; $("bSaveName").value = b.name; $("bPick").value = b.id;
+    drawLines(); syncBundle();
+    say("bMsg", "تم تحميل الباقة «" + b.name + "». اختر المخازن (إن وُجدت) ثم سجّل البيع.", false);
+    $("bForm").scrollIntoView({ block: "start" });
+  }
+  $("bPick").addEventListener("change", function () {
+    var b = savedBundles().filter(function (x) { return x.id === $("bPick").value; })[0];
+    if (b) useBundle(b);
+  });
+  $("bAddLine").addEventListener("click", function () { state.bl.push({ pid: "", qty: "1", wh: "" }); drawLines(); syncBundle(); });
+  $("bPrice").addEventListener("input", syncBundle);
+  $("bPaid").addEventListener("input", syncBundle);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="bpay"]'), function (r) { r.addEventListener("change", syncBundle); });
+  $("bSave").addEventListener("click", async function () {
+    var name = $("bSaveName").value.trim(), c = bCalc(), items = [];
+    if (!name) { say("bSaveMsg", "اكتب اسمًا للباقة أولًا.", true); $("bSaveName").focus(); return; }
+    c.infos.forEach(function (I, i) { if (I.p) items.push({ pid: I.p.id, qty: Math.max(1, Math.floor(I.q) || 1) }); });
+    if (items.length < 2) { say("bSaveMsg", "اختر منتجين على الأقل لحفظ الباقة.", true); return; }
+    if (c.err) { say("bSaveMsg", c.err, true); return; }
+    var data = { name: name, price: c.manual ? c.T : 0, items: items }, old = savedBundles().filter(function (b) { return norm(b.name) === norm(name); })[0];
+    try {
+      if (old) await patch(old, data); else await create(Object.assign({ kind: "bundle" }, data));
+      say("bSaveMsg", old ? "تم تحديث الباقة «" + name + "»." : "تم حفظ الباقة «" + name + "». تجدها في «باقة محفوظة» وفي القائمة أدناه.", false);
+    } catch (err) { say("bSaveMsg", errText(err), true); }
+  });
+  /* undo what a failed bundle sale already did (stock is put back to the exact earlier numbers) */
+  async function bRollback(done) {
+    for (var i = done.length - 1; i >= 0; i--) {
+      try {
+        if (done[i].prev) { var p = prodById(done[i].pid); if (p) await patch(p, done[i].prev); }
+        else await remove({ id: done[i].id });
+      } catch (e) { /* best effort */ }
+    }
+  }
+  $("bForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var date = $("bDate").value, c = bCalc();
+    if (!date) { say("bMsg", "اختر التاريخ.", true); return; }
+    var bad = bCheck(c);
+    if (bad) { say("bMsg", bad.msg, true); return; }
+    var pay = bPayInfo(c.T), cust = $("bCust").value.trim(), phone = toEn($("bPhone").value).trim(), baddr = $("bAddr").value.trim();
+    if (pay.err) { say("bMsg", pay.err, true); $("bPaid").focus(); return; }
+    if (pay.due > 0 && !cust) { say("bMsg", "اكتب اسم العميل لأن جزءًا من البيع آجل.", true); $("bCust").focus(); return; }
+    var lacks = c.infos.filter(function (I) { return I.have < I.q - 1e-9; });
+    if (lacks.length) {
+      var key = c.infos.map(function (I) { return [I.p.id, I.wh, I.q].join(":"); }).join("|");
+      if (state.bOk !== key) {
+        state.bOk = key;
+        say("bMsg", "المتاح أقل من المطلوب: " + lacks.map(function (I) { return "«" + I.p.name + "» " + qf(I.have) + " من " + qf(I.q); }).join("، ") + ". لن يُخصم أكثر من المتاح. اضغط «سجّل بيع الباقة» مرة أخرى للمتابعة، أو عدّل الكميات.", true);
+        return;
+      }
+    }
+    state.bOk = null;
+    var picked = savedBundles().filter(function (x) { return x.id === $("bPick").value; })[0];
+    var bid = "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), bname = picked ? picked.name : ($("bSaveName").value.trim() || "باقة");
+    var paidAlloc = pay.mode === "cash" ? c.alloc.slice() : (pay.mode === "credit" ? c.alloc.map(function () { return 0; }) : allocate(c.alloc, pay.paid).map(function (x, i) { return Math.min(x, c.alloc[i]); }));
+    var done = [], made = [];
+    try {
+      var bcid = cust ? await ensureCustomer(cust, phone, baddr) : "";
+      for (var i = 0; i < c.infos.length; i++) {
+        var I = c.infos[i], taken = Math.min(I.have, I.q), amt = c.alloc[i];
+        if (taken > 0) {
+          var f = withAct(I.act, function () { return addAt(I.p, I.wh, -taken); }), prev = {};
+          Object.keys(f).forEach(function (k) { prev[k] = k === "locs" ? (Array.isArray(I.p.locs) ? JSON.parse(JSON.stringify(I.p.locs)) : []) : I.p[k]; });
+          await patch(I.p, f);
+          done.push({ pid: I.p.id, prev: prev });
+        }
+        var rec = { kind: "sale", date: date, product: I.p.name, productId: I.p.id, price: r2(amt / I.q), qty: I.q, total: amt, stockTaken: taken, unitCost: I.cost, bundleId: bid, bundleName: bname, bundleTotal: c.T };
+        rec.act = I.act === MAINACT ? undefined : I.act;
+        if (I.multi) { rec.wh = I.wh; rec.whName = I.whLabel; }
+        if (amt < I.list - 0.004) { rec.gross = I.list; rec.discType = "bundle"; rec.discValue = r2((I.list - amt) / I.list * 100); rec.discount = r2(I.list - amt); }
+        if (cust) { rec.buyer = cust; rec.customerId = bcid; }
+        if (phone) rec.buyerPhone = phone;
+        if (pay.due > 0) { rec.paid = paidAlloc[i]; rec.customer = cust; }
+        var sid = await create(rec); done.push({ id: sid });
+        if (paidAlloc[i] > 0) { var eid = await treasuryEntry("income", paidAlloc[i], date, "بيع " + I.p.name, "باقة «" + bname + "» · " + qf(I.q) + " × " + fm(r2(amt / I.q)) + (pay.due > 0 ? " · آجل " + fm(r2(amt - paidAlloc[i])) : ""), "sale", sid, I.act); done.push({ id: eid }); }
+        made.push({ name: I.p.name, act: I.act, amt: amt, paid: paidAlloc[i] });
+      }
+    } catch (err) {
+      await bRollback(done);
+      say("bMsg", errText(err) + " تم التراجع عما سُجّل في هذه المحاولة، فراجع الخزائن والمخازن ثم أعد المحاولة.", true);
+      return;
+    }
+    state.bl = [{ pid: "", qty: "1", wh: "" }, { pid: "", qty: "1", wh: "" }];
+    $("bPrice").value = ""; $("bPaid").value = ""; $("bCust").value = ""; $("bPhone").value = ""; $("bAddr").value = ""; $("bSaveName").value = ""; $("bPick").value = "";
+    document.querySelector('input[name="bpay"][value="cash"]').checked = true;
+    drawLines(); syncBundle();
+    var parts = made.map(function (m) { return (multiAct() ? "«" + actName(m.act) + "» " : "") + m.name + " " + money(m.amt); }).join("، ");
+    say("bMsg", "تم بيع الباقة «" + bname + "» بإجمالي " + money(c.T) + ": " + parts + "." + (pay.due > 0 ? (pay.paid > 0 ? " دخل " + money(pay.paid) + " كاش ووُزّع على خزائن المشاريع، وبقي " + money(pay.due) + " آجلًا على «" + cust + "»." : " بيع آجل على «" + cust + "» ولم يدخل شيء في الخزائن.") : " دخل نصيب كل منتج في خزينة مشروعه."), false);
+  });
+
+  /* sold bundles: grouped from the sale lines that share a bundleId */
+  function soldBundles() {
+    var map = {}, order = [];
+    KA("sale").forEach(function (s) { if (!s.bundleId) return; if (!map[s.bundleId]) { map[s.bundleId] = []; order.push(s.bundleId); } map[s.bundleId].push(s); });
+    return order.map(function (id) {
+      var L = map[id], first = L[0];
+      return { id: id, lines: L, date: first.date, createdAt: first.createdAt, name: first.bundleName || "باقة", customer: first.customer || first.buyer || "", total: r2(sumBy(L, function (s) { return s.total; })), due: r2(sumBy(L, saleDue)), credit: L.some(function (s) { return s.paid !== undefined; }) };
+    }).sort(newest);
+  }
+  function renderSold() {
+    var all = soldBundles(), open = all.filter(function (g) { return g.due > 0; }).sort(function (a, b) { return (a.date || "").localeCompare(b.date || ""); });
+    $("bSoldSum").textContent = all.length ? "عدد الباقات المباعة: " + all.length + " · الإجمالي " + money(sumBy(all, function (g) { return g.total; })) + (open.length ? " · المستحق عند العملاء " + money(sumBy(open, function (g) { return g.due; })) : "") : "";
+    $("bSoldEmpty").hidden = !state.loaded || all.length > 0;
+    $("bcForm").hidden = !open.length;
+    var sel = $("bcSel"), cur = sel.value; sel.textContent = "";
+    open.forEach(function (g) { sel.appendChild(h("option", { value: g.id, text: (g.customer || "بدون اسم") + " — " + g.name + " — " + dateLabel(g.date) + " (متبقٍ " + fm(g.due) + ")" })); });
+    if (open.some(function (g) { return g.id === cur; })) sel.value = cur;
+    if (open.length && state.bcSel !== sel.value) { state.bcSel = sel.value; var og = open.filter(function (g) { return g.id === sel.value; })[0]; $("bcAmt").value = og ? og.due : ""; }
+    if (!all.length) { $("bSoldTbl").textContent = ""; return; }
+    tbl($("bSoldTbl"), [["الباقة"], ["الإجمالي (ج.م)", "n"]], all.slice(0, 60).map(function (g) {
+      var cell = h("div", null,
+        h("div", { class: "party" }, h("span", { text: g.name }), g.credit ? h("span", { class: "tag", text: g.due > 0 ? "آجل" : "سُدّد" }) : null),
+        h("div", { class: "meta", text: dateLabel(g.date) + (g.customer ? " · العميل: " + g.customer : "") }));
+      g.lines.forEach(function (s) { cell.appendChild(h("div", { class: "meta", text: (multiAct() ? actName(actOf(s)) + ": " : "") + s.product + " × " + qf(s.qty) + " = " + money(s.total) + (s.discount > 0 ? " (بعد خصم " + money(s.discount) + ")" : "") })); });
+      if (g.due > 0) cell.appendChild(h("div", { class: "meta", text: "متبقٍ على العميل " + money(g.due) }));
+      var right = h("div", null, h("b", { text: fm(g.total) }), h("div", { class: "cell-acts" },
+        g.due > 0 ? h("button", { type: "button", class: "mini", text: "تحصيل", onclick: function () { $("bcSel").value = g.id; state.bcSel = null; renderSold(); $("bcAmt").focus(); } }) : null,
+        delBtn(g.lines[0], "bMsg2")));
+      return [cell, right];
+    }));
+  }
+  $("bcSel").addEventListener("change", function () { state.bcSel = null; renderSold(); });
+  $("bcForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var g = soldBundles().filter(function (x) { return x.id === $("bcSel").value; })[0], amt = parseFloat($("bcAmt").value), date = $("bcDate").value;
+    if (!g) { say("bcMsg", "اختر الباقة الآجلة.", true); return; }
+    if (!date) { say("bcMsg", "اختر التاريخ.", true); return; }
+    if (!(amt > 0)) { say("bcMsg", "أدخل المبلغ المحصّل (أكبر من صفر).", true); $("bcAmt").focus(); return; }
+    if (amt > g.due + 1e-9) { say("bcMsg", "المبلغ أكبر من المتبقي (" + fm(g.due) + " ج.م).", true); $("bcAmt").focus(); return; }
+    amt = r2(amt);
+    var dues = g.lines.map(saleDue), part = allocate(dues, amt).map(function (x, i) { return Math.min(x, dues[i]); });
+    var left = r2(amt - part.reduce(function (a, x) { return a + x; }, 0));
+    for (var k = 0; k < part.length && left > 1e-9; k++) { var room = r2(dues[k] - part[k]), add = Math.min(room, left); if (add > 0) { part[k] = r2(part[k] + add); left = r2(left - add); } }
+    var n = 0;
+    try {
+      for (var i = 0; i < g.lines.length; i++) {
+        if (!(part[i] > 0)) continue;
+        var s = g.lines[i];
+        await patch(s, { paid: r2(salePaid(s) + part[i]) });
+        await treasuryEntry("income", part[i], date, "تحصيل من " + (g.customer || "عميل"), "باقة «" + g.name + "» — " + s.product, "collection", s.id, actOf(s));
+        n++;
+      }
+      state.bcSel = null; $("bcAmt").value = "";
+      var rest = r2(g.due - amt);
+      say("bcMsg", "تم تحصيل " + money(amt) + " من «" + (g.customer || "عميل") + "» ووُزّع على خزائن المشاريع بنسبة المتبقي على كل منتج. " + (rest > 0 ? "المتبقي عليه " + money(rest) + "." : "سُدّدت الباقة بالكامل."), false);
+      render();
+    } catch (err) { say("bcMsg", errText(err) + " سُجّل " + n + " من " + g.lines.length + " منتجات؛ راجع الخزائن قبل إعادة المحاولة.", true); }
+  });
+
+
+  /* ---------- customers: one row per customer (purchases come from the sales), reminders, saved messages ----------
+     Customer records are organization-wide (kind "customer"; sales keep `customerId` + `buyer`).
+     A buyer found only in old sales (credit `customer`, seller `buyer`) appears as an unsaved customer until edited.
+     Deleting a customer who has purchases only hides him (`deleted`); his sales stay untouched. */
+  var DEFAULT_TPL = "أهلًا {الاسم}، مرّ {الأيام} يومًا على شرائك {المنتج}. نتمنى أن ينال إعجابك، وإن احتجت لإعادة الطلب نحن في الخدمة.";
+  var CU_COLS = [
+    { id: "name", label: "الاسم", kind: "text" }, { id: "phone", label: "الهاتف", kind: "text" }, { id: "addr", label: "العنوان", kind: "text" },
+    { id: "product", label: "المنتج", kind: "text" }, { id: "date", label: "تاريخ الشراء", kind: "date" }, { id: "count", label: "المشتريات", kind: "num" }, { id: "notes", label: "ملاحظات", kind: "text" }
+  ];
+  state.cu = { open: null, fopen: null, filters: {}, sort: { col: "date", dir: "desc" }, q: "", form: false, tpForm: false, tpEdit: null, msgFor: null, note: "" };
+  function uniqList(a) { var seen = {}, out = []; a.forEach(function (x) { if (!seen[x]) { seen[x] = 1; out.push(x); } }); return out; }
+  function digits(t) { return toEn(String(t || "")).replace(/\D/g, ""); }
+  /* WhatsApp wants the international number without + or leading zeros (Egypt by default) */
+  function waNumber(phone) { var d = digits(phone); if (!d) return ""; if (d.indexOf("00") === 0) return d.slice(2); if (d.charAt(0) === "0") return "20" + d.slice(1); return d; }
+  function daysBetween(a, b) {
+    var A = String(a).split("-"), B = String(b).split("-");
+    return Math.round((Date.UTC(+B[0], +B[1] - 1, +B[2]) - Date.UTC(+A[0], +A[1] - 1, +A[2])) / 86400000);
+  }
+  function crmSet() { return K("crmset")[0] || null; }
+  function remindDays() { var s = crmSet(), d = s ? Math.floor(Number(s.days)) : 27; return d >= 1 ? d : 27; }
+  async function setCrm(fields) {
+    var set = crmSet();
+    if (set) await patch(set, fields); else await create(Object.assign({ kind: "crmset", days: 27, tpl: "" }, fields));
+  }
+  function custBook() {
+    var byId = {}, byName = {}, virt = {}, out = [];
+    K("customer").forEach(function (c) {
+      var r = { doc: c, key: c.id, name: c.name || "", phone: c.phone || "", address: c.address || "", notes: c.notes || "", gone: !!c.deleted, sales: [] };
+      byId[c.id] = r; byName[norm(c.name)] = r; out.push(r);
+    });
+    KA("sale").forEach(function (s) {
+      var nm = s.buyer || s.customer || "", r = s.customerId ? byId[s.customerId] : null;
+      if (!r && nm) {
+        var k = norm(nm); r = byName[k] || virt[k];
+        if (!r) { r = virt[k] = { doc: null, key: "v:" + k, name: nm, phone: "", address: "", notes: "", gone: false, sales: [] }; out.push(r); }
+      }
+      if (r) r.sales.push(s);
+    });
+    out.forEach(function (c) {
+      c.sales.sort(function (a, b) { return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); });
+      c.count = c.sales.length; c.last = c.count ? (c.sales[0].date || "") : "";
+      c.lastProducts = uniqList(c.sales.filter(function (s) { return s.date === c.last; }).map(function (s) { return s.product; })).join("، ");
+      var tags = [];
+      c.sales.forEach(function (s) { if (s.code) tags.push("بكود " + s.code); if (s.bundleId) tags.push("باقة"); if (s.paid !== undefined && saleDue(s) > 0) tags.push("عليه آجل"); });
+      c.tags = uniqList(tags);
+      if (!c.phone) { var sp = c.sales.filter(function (s) { return s.buyerPhone; })[0]; if (sp) c.phone = sp.buyerPhone; }
+    });
+    return out.filter(function (c) { return !c.gone; });
+  }
+  function fillCustNames() {
+    var cl = $("custNames"); cl.textContent = "";
+    var seen = {};
+    custBook().map(function (c) { return c.name; }).concat(K("contact").map(function (c) { return c.name; })).forEach(function (n) {
+      var k = norm(n); if (!k || seen[k]) return; seen[k] = 1; cl.appendChild(h("option", { value: n }));
+    });
+  }
+  /* finds the customer (by phone, then by name) or creates him; returns the record id. Used by every sale form. */
+  async function ensureCustomer(name, phone, addr, notes) {
+    var all = K("customer"), nk = norm(name), pd = digits(phone);
+    var hit = (pd && all.filter(function (c) { return digits(c.phone) === pd; })[0]) || all.filter(function (c) { return norm(c.name) === nk; })[0] || null;
+    if (hit) {
+      var up = {};
+      if (hit.deleted) up.deleted = false;
+      if (phone && !hit.phone) up.phone = phone;
+      if (addr && !hit.address) up.address = addr;
+      if (notes && !hit.notes) up.notes = notes;
+      if (Object.keys(up).length) await patch(hit, up);
+      return hit.id;
+    }
+    return await create({ kind: "customer", name: name, phone: phone || "", address: addr || "", notes: notes || "" });
+  }
+  async function linkUnlinked(id, sales) {
+    for (var i = 0; i < sales.length; i++) if (sales[i].customerId !== id) await patch(sales[i], { customerId: id });
+  }
+  function autoFillCust(nameId, phoneId, addrId) {
+    $(nameId).addEventListener("change", function () {
+      var k = norm($(nameId).value); if (!k) return;
+      var c = custBook().filter(function (x) { return norm(x.name) === k; })[0];
+      if (!c) return;
+      if (!$(phoneId).value && c.phone) $(phoneId).value = c.phone;
+      if (!$(addrId).value && c.address) $(addrId).value = c.address;
+    });
+  }
+  autoFillCust("saleCust", "saleCustPhone", "saleCustAddr");
+  autoFillCust("bCust", "bPhone", "bAddr");
+
+  /* reminders */
+  function dueList() {
+    var N = remindDays(), t = todayISO();
+    return custBook().filter(function (c) { return c.last && daysBetween(c.last, t) >= N && !(c.doc && c.doc.remindedFor === c.last); }).sort(function (a, b) { return a.last.localeCompare(b.last); });
+  }
+  function dueBadge() { var n = dueList().length; return n ? " (" + n + ")" : ""; }
+  function tplList() { return K("msgtpl").sort(byName); }
+  function msgFor(c) {
+    var set = crmSet(), t = set && set.tpl ? tplList().filter(function (x) { return x.id === set.tpl; })[0] : null, text = t ? t.text : DEFAULT_TPL;
+    return text.replace(/\{الاسم\}/g, c.name).replace(/\{المنتج\}/g, c.lastProducts || "").replace(/\{التاريخ\}/g, c.last ? longDate(c.last) : "").replace(/\{الأيام\}/g, c.last ? String(daysBetween(c.last, todayISO())) : "");
+  }
+  function openWa(c) {
+    var num = waNumber(c.phone);
+    if (!num) { say("cuMsg", "لا يوجد رقم هاتف لـ«" + c.name + "». افتح بياناته من جدول العملاء وأضف الرقم.", true); return; }
+    var url = "https://wa.me/" + num + "?text=" + encodeURIComponent(msgFor(c));
+    try { window.open(url, "_blank"); } catch (e) { location.href = url; }
+  }
+  function copyMsgFor(c) {
+    state.cu.msgFor = c.key; state.cu.note = "";
+    copyText(msgFor(c)).then(function (ok) { state.cu.note = ok ? COPY_OK : COPY_BAD; renderCustomers(); });
+    renderCustomers();
+    $("cuPanel").scrollIntoView({ block: "center" });
+  }
+  async function markSent(c) {
+    try {
+      if (c.doc) await patch(c.doc, { remindedFor: c.last });
+      else { var id = await create({ kind: "customer", name: c.name, phone: c.phone || "", address: "", notes: "", remindedFor: c.last }); await linkUnlinked(id, c.sales); }
+      say("cuMsg", "تم تسجيل أنك راسلت «" + c.name + "». لن يظهر في التذكيرات حتى يشتري مرة أخرى.", false);
+    } catch (err) { say("cuMsg", errText(err), true); }
+  }
+  function dueRow(c) {
+    var days = daysBetween(c.last, todayISO());
+    return h("div", { class: "ddue" },
+      h("div", { class: "party", text: c.name }),
+      h("div", { class: "meta", text: "آخر شراء " + dateLabel(c.last) + " (مرّ " + days + " يومًا) — " + c.lastProducts + " · " + (c.phone ? c.phone : "لا يوجد رقم") }),
+      h("div", { class: "btns" },
+        h("button", { type: "button", class: "btn primary", text: "واتساب", onclick: function () { openWa(c); } }),
+        h("button", { type: "button", class: "btn", text: "نسخ الرسالة", onclick: function () { copyMsgFor(c); } }),
+        h("button", { type: "button", class: "mini", text: "تم الإرسال", onclick: function () { markSent(c); } })));
+  }
+  function renderCuTop() {
+    var set = crmSet(), N = remindDays(), due = dueList(), tpls = tplList();
+    if (document.activeElement !== $("cuDays")) $("cuDays").value = N;
+    fillList($("cuTpl"), [["", "الرسالة الافتراضية"]].concat(tpls.map(function (t) { return [t.id, t.name]; })));
+    var want = set && set.tpl && tpls.some(function (t) { return t.id === set.tpl; }) ? set.tpl : "";
+    if ($("cuTpl").value !== want) $("cuTpl").value = want;
+    $("cuHint").textContent = due.length ? "عندك " + due.length + " عميل مرّ على آخر شراء لهم " + N + " يومًا أو أكثر. راسلهم ثم اضغط «تم الإرسال»." : "لا توجد تذكيرات الآن. يظهر العميل هنا بعد " + N + " يومًا من آخر شراء.";
+    var box = $("cuDue"); box.textContent = "";
+    due.forEach(function (c) { box.appendChild(dueRow(c)); });
+    var panel = $("cuPanel"); panel.textContent = "";
+    var pc = state.cu.msgFor ? custBook().filter(function (x) { return x.key === state.cu.msgFor; })[0] : null;
+    if (pc) {
+      panel.appendChild(h("div", { class: "party", text: "رسالة «" + pc.name + "»" }));
+      panel.appendChild(msgPanel(msgFor(pc), state.cu.note, function () { state.cu.msgFor = null; renderCustomers(); }));
+    }
+  }
+  $("cuDays").addEventListener("change", async function () {
+    var d = Math.floor(parseFloat($("cuDays").value));
+    if (!(d >= 1 && d <= 365)) { say("cuMsg", "اكتب عدد أيام من 1 إلى 365.", true); $("cuDays").value = remindDays(); return; }
+    try { await setCrm({ days: d }); say("cuMsg", "تم حفظ المدة: " + d + " يومًا.", false); } catch (err) { say("cuMsg", errText(err), true); }
+  });
+  $("cuTpl").addEventListener("change", async function () {
+    try { await setCrm({ tpl: $("cuTpl").value }); say("cuMsg", "تم اختيار الرسالة.", false); } catch (err) { say("cuMsg", errText(err), true); }
+  });
+
+  /* saved messages */
+  function renderTpls() {
+    var box = $("tpList"); box.textContent = "";
+    $("tpForm").hidden = !state.cu.tpForm; $("tpAdd").hidden = !!state.cu.tpForm;
+    box.appendChild(h("div", { class: "ddue" }, h("div", { class: "party", text: "الرسالة الافتراضية" }), h("div", { class: "meta", text: DEFAULT_TPL })));
+    tplList().forEach(function (t) {
+      box.appendChild(h("div", { class: "ddue" }, h("div", { class: "party", text: t.name }), h("div", { class: "meta", text: t.text }),
+        h("div", { class: "cell-acts" }, h("button", { type: "button", class: "mini", text: "تعديل", onclick: function () { editTpl(t); } }), delBtn(t, "tpMsg"))));
+    });
+  }
+  function resetTplForm() { $("tpName").value = ""; $("tpText").value = ""; state.cu.tpEdit = null; $("tpSave").textContent = "حفظ الرسالة"; say("tpFormMsg", "", false); }
+  function editTpl(t) { resetTplForm(); state.cu.tpEdit = t.id; $("tpName").value = t.name; $("tpText").value = t.text; $("tpSave").textContent = "حفظ التعديل"; state.cu.tpForm = true; renderTpls(); $("tpForm").scrollIntoView({ block: "center" }); }
+  $("tpAdd").addEventListener("click", function () { resetTplForm(); say("tpMsg", "", false); state.cu.tpForm = true; renderTpls(); $("tpName").focus(); });
+  $("tpCancel").addEventListener("click", function () { resetTplForm(); state.cu.tpForm = false; renderTpls(); });
+  $("tpForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("tpName").value.trim(), text = $("tpText").value.trim(), editing = state.cu.tpEdit;
+    if (!name) { say("tpFormMsg", "اكتب اسمًا للرسالة.", true); $("tpName").focus(); return; }
+    if (!text) { say("tpFormMsg", "اكتب نص الرسالة.", true); $("tpText").focus(); return; }
+    if (tplList().some(function (x) { return x.id !== editing && norm(x.name) === norm(name); })) { say("tpFormMsg", "يوجد رسالة بنفس الاسم. اختر اسمًا مختلفًا.", true); return; }
+    try {
+      if (editing) { var cur = tplList().filter(function (x) { return x.id === editing; })[0]; if (!cur) throw biz("هذه الرسالة لم تعد موجودة."); await patch(cur, { name: name, text: text }); }
+      else await create({ kind: "msgtpl", name: name, text: text });
+      resetTplForm(); state.cu.tpForm = false;
+      say("tpMsg", editing ? "تم حفظ التعديل." : "تم حفظ الرسالة. اخترها من «الرسالة المستخدمة» في الأعلى.", false);
+      renderTpls();
+    } catch (err) { say("tpFormMsg", errText(err), true); }
+  });
+
+  /* the table: one row per customer, a tap opens his purchases; header arrows filter and sort like a spreadsheet */
+  function valsOf(c, col) {
+    var v;
+    if (col === "name") v = [c.name]; else if (col === "phone") v = [c.phone || "—"]; else if (col === "addr") v = [c.address || "—"];
+    else if (col === "product") v = uniqList(c.sales.map(function (s) { return s.product; }));
+    else if (col === "date") v = uniqList(c.sales.map(function (s) { return s.date; }));
+    else if (col === "count") v = [String(c.count)];
+    else v = c.tags.concat(c.notes ? [c.notes] : []);
+    return v.length ? v : ["—"];
+  }
+  function sortKey(c, col) {
+    if (col === "name") return c.name; if (col === "phone") return c.phone; if (col === "addr") return c.address;
+    if (col === "product") return c.lastProducts; if (col === "date") return c.last; if (col === "count") return c.count;
+    return c.notes + " " + c.tags.join(" ");
+  }
+  function cellNode(c, col) {
+    if (col === "name") return h("b", { text: (state.cu.open === c.key ? "▾ " : "▸ ") + c.name });
+    if (col === "phone") return c.phone || "—";
+    if (col === "addr") return c.address || "—";
+    if (col === "product") return c.lastProducts || "—";
+    if (col === "date") return c.last ? dateLabel(c.last) : "—";
+    if (col === "count") return String(c.count);
+    var n = h("div", null); c.tags.forEach(function (t) { n.appendChild(h("span", { class: "tag", text: t })); n.appendChild(document.createTextNode(" ")); });
+    if (c.notes) n.appendChild(h("span", { text: c.notes }));
+    if (!c.tags.length && !c.notes) n.appendChild(document.createTextNode("—"));
+    return n;
+  }
+  function passes(c) {
+    var q = norm(state.cu.q);
+    if (q && ![c.name, c.phone, c.address].some(function (x) { return norm(x).indexOf(q) >= 0; })) return false;
+    for (var col in state.cu.filters) {
+      var sel = state.cu.filters[col];
+      if (!valsOf(c, col).some(function (v) { return sel[v]; })) return false;
+    }
+    return true;
+  }
+  function custPurchases(c) {
+    var box = h("div", null);
+    if (!c.sales.length) { box.appendChild(h("p", { class: "meta", text: "لا توجد مشتريات مسجلة لهذا العميل بعد." })); return box; }
+    box.appendChild(h("div", { class: "party", text: "كل المشتريات (" + c.sales.length + ")" }));
+    c.sales.forEach(function (s) {
+      var extra = [];
+      if (s.code) extra.push("بكود خصم «" + s.code + "»");
+      if (s.bundleId) extra.push("ضمن باقة «" + (s.bundleName || "") + "»");
+      if (s.paid !== undefined) extra.push(saleDue(s) > 0 ? "آجل، متبقٍ " + money(saleDue(s)) : "آجل وسُدّد");
+      if (multiAct()) extra.push(actName(actOf(s)));
+      box.appendChild(h("div", { class: "meta", text: dateLabel(s.date) + " · " + s.product + " × " + qf(s.qty) + " · " + money(s.total) + (extra.length ? " · " + extra.join(" · ") : "") }));
+    });
+    return box;
+  }
+  function custDetail(c) {
+    var nm = h("input", { type: "text", maxlength: "60" }), ph = h("input", { type: "tel", inputmode: "tel", dir: "ltr", maxlength: "30" }), ad = h("input", { type: "text", maxlength: "120" }), nt = h("input", { type: "text", maxlength: "300" });
+    var msg = h("p", { class: "msg", role: "status" });
+    nm.value = c.name; ph.value = c.phone; ad.value = c.address; nt.value = c.notes;
+    var save = h("button", { type: "button", class: "btn primary", text: "حفظ بيانات العميل" });
+    save.addEventListener("click", async function () {
+      var name = nm.value.trim(), phone = toEn(ph.value).trim(), addr = ad.value.trim(), notes = nt.value.trim();
+      function bad(t) { msg.className = "msg err"; msg.textContent = t; }
+      if (!name) { bad("اكتب اسم العميل."); return; }
+      if (K("customer").some(function (x) { return !x.deleted && (!c.doc || x.id !== c.doc.id) && norm(x.name) === norm(name); })) { bad("هذا الاسم مسجّل لعميل آخر."); return; }
+      if (save.disabled) return;
+      save.disabled = true;
+      try {
+        var data = { name: name, phone: phone, address: addr, notes: notes };
+        if (c.doc) { await linkUnlinked(c.doc.id, c.sales); await patch(c.doc, data); }
+        else { var id = await create(Object.assign({ kind: "customer" }, data)); await linkUnlinked(id, c.sales); state.cu.open = null; }
+        say("cuMsg2", "تم حفظ بيانات «" + name + "».", false);
+        renderCustomers();
+      } catch (err) { save.disabled = false; bad(errText(err)); }
+    });
+    return h("div", { class: "cdetail" },
+      h("div", { class: "two" }, field("الاسم", nm), field("الهاتف", ph)),
+      field("العنوان", ad), field("ملاحظات", nt),
+      h("div", { class: "btns" }, save), msg,
+      custPurchases(c),
+      h("div", { class: "btns" },
+        h("button", { type: "button", class: "btn", text: "رسالة واتساب", onclick: function () { openWa(c); } }),
+        h("button", { type: "button", class: "btn", text: "نسخ رسالة", onclick: function () { copyMsgFor(c); } }),
+        delBtn(c.doc || { id: c.key, kind: "customer", _virtual: c }, "cuMsg2")));
+  }
+  function renderCustTable() {
+    var book = custBook(), st = state.cu;
+    var rows = book.filter(passes), sc = st.sort, kind = CU_COLS.filter(function (x) { return x.id === sc.col; })[0].kind;
+    rows.sort(function (a, b) {
+      var A = sortKey(a, sc.col), B = sortKey(b, sc.col), r = kind === "num" ? (A - B) : String(A).localeCompare(String(B), "ar");
+      return sc.dir === "asc" ? r : -r;
+    });
+    var nf = Object.keys(st.filters).length;
+    $("cuSum").textContent = book.length ? "عدد العملاء: " + book.length + (rows.length !== book.length ? " · المعروض بعد التصفية: " + rows.length : "") + (nf ? " (تصفية مفعّلة على " + nf + " أعمدة)" : "") : "";
+    $("cuEmpty").hidden = !state.loaded || book.length > 0;
+    var tb = $("cuTbl"); tb.textContent = "";
+    if (!book.length) return;
+    var head = h("tr", null);
+    CU_COLS.forEach(function (col) {
+      var on = !!st.filters[col.id], arrow = sc.col === col.id ? (sc.dir === "asc" ? " ↑" : " ↓") : "";
+      head.appendChild(h("th", null, h("button", { type: "button", class: "colbtn" + (on || st.fopen === col.id ? " on" : ""), "aria-label": "تصفية وترتيب " + col.label, text: col.label + arrow + " ▾", onclick: function () { st.fopen = st.fopen === col.id ? null : col.id; renderCustTable(); drawFilter(); if (st.fopen) $("cuFilter").scrollIntoView({ block: "nearest" }); } })));
+    });
+    tb.appendChild(h("thead", null, head));
+    var body = h("tbody", null), opened = null;
+    rows.forEach(function (c) {
+      var tr = h("tr", { class: "crow", onclick: function () { st.open = st.open === c.key ? null : c.key; renderCustTable(); } });
+      CU_COLS.forEach(function (col) { var td = h("td", null); var n = cellNode(c, col.id); if (typeof n === "string") td.textContent = n; else td.appendChild(n); tr.appendChild(td); });
+      body.appendChild(tr);
+      if (st.open === c.key) { var td = h("td", { class: "cdet", colspan: String(CU_COLS.length) }), dv = custDetail(c); td.appendChild(dv); body.appendChild(h("tr", null, td)); opened = dv; }
+    });
+    tb.appendChild(body);
+    /* the detail stays as wide as the screen (the table itself scrolls sideways on a phone) */
+    if (opened) opened.style.width = Math.max(240, tb.parentNode.clientWidth - 16) + "px";
+    if (!rows.length) $("cuSum").textContent += " — لا يوجد عميل مطابق.";
+  }
+  /* the filter panel for one column (built once when opened, so typing in its search box is never interrupted) */
+  function drawFilter() {
+    var box = $("cuFilter"), st = state.cu, col = st.fopen;
+    if (!col) { box.textContent = ""; box.dataset.col = ""; return; }
+    if (box.dataset.col === col) return;
+    box.dataset.col = col; box.textContent = "";
+    var def = CU_COLS.filter(function (x) { return x.id === col; })[0];
+    var vals = uniqList(custBook().reduce(function (a, c) { return a.concat(valsOf(c, col)); }, []));
+    vals.sort(function (a, b) { return def.kind === "num" ? (Number(a) - Number(b)) : String(a).localeCompare(String(b), "ar"); });
+    var cur = st.filters[col], checks = [];
+    var asc = h("button", { type: "button", class: "btn", text: def.kind === "text" ? "ترتيب من أ إلى ي ↑" : "ترتيب من الأصغر إلى الأكبر ↑", onclick: function () { st.sort = { col: col, dir: "asc" }; renderCustTable(); } });
+    var desc = h("button", { type: "button", class: "btn", text: def.kind === "text" ? "ترتيب من ي إلى أ ↓" : "ترتيب من الأكبر إلى الأصغر ↓", onclick: function () { st.sort = { col: col, dir: "desc" }; renderCustTable(); } });
+    var q = h("input", { type: "search", placeholder: "ابحث داخل القائمة" });
+    var list = h("div", { class: "flist" });
+    function apply() {
+      var sel = {}, all = true;
+      checks.forEach(function (x) { if (x.cb.checked) sel[x.v] = true; else all = false; });
+      if (all) delete st.filters[col]; else st.filters[col] = sel;
+      renderCustTable();
+    }
+    vals.forEach(function (v) {
+      var cb = h("input", { type: "checkbox" }); cb.checked = !cur || !!cur[v];
+      cb.addEventListener("change", apply);
+      var lab = h("label", { class: "fi" }, cb, h("span", { text: def.id === "date" && v !== "—" ? dateLabel(v) : v }));
+      checks.push({ v: v, cb: cb, lab: lab }); list.appendChild(lab);
+    });
+    q.addEventListener("input", function () { var k = norm(q.value); checks.forEach(function (x) { x.lab.hidden = k && norm(x.lab.textContent).indexOf(k) < 0; }); });
+    function setAll(on) { checks.forEach(function (x) { if (!x.lab.hidden) x.cb.checked = on; }); apply(); }
+    box.appendChild(h("div", { class: "fpanel" },
+      h("div", { class: "party", text: "تصفية وترتيب: " + def.label }),
+      h("div", { class: "btns" }, asc, desc), q,
+      h("div", { class: "btns" }, h("button", { type: "button", class: "mini", text: "تحديد الكل", onclick: function () { setAll(true); } }), h("button", { type: "button", class: "mini", text: "إلغاء تحديد الكل", onclick: function () { setAll(false); } }),
+        h("button", { type: "button", class: "mini", text: "مسح التصفية", onclick: function () { delete st.filters[col]; checks.forEach(function (x) { x.cb.checked = true; }); renderCustTable(); } }),
+        h("button", { type: "button", class: "mini", text: "إغلاق", onclick: function () { st.fopen = null; renderCustTable(); drawFilter(); } })),
+      list));
+  }
+  $("cuSearch").addEventListener("input", function () { state.cu.q = $("cuSearch").value; renderCustTable(); });
+  $("cuAdd").addEventListener("click", function () { state.cu.form = true; say("cuMsg2", "", false); renderCustForm(); $("cuName").focus(); });
+  $("cuCancel").addEventListener("click", function () { ["cuName", "cuPhone", "cuAddr", "cuNotes"].forEach(function (i) { $(i).value = ""; }); say("cuFormMsg", "", false); state.cu.form = false; renderCustForm(); });
+  function renderCustForm() { $("cuForm").hidden = !state.cu.form; $("cuAdd").hidden = !!state.cu.form; }
+  $("cuForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var name = $("cuName").value.trim(), phone = toEn($("cuPhone").value).trim(), addr = $("cuAddr").value.trim(), notes = $("cuNotes").value.trim();
+    if (!name) { say("cuFormMsg", "اكتب اسم العميل.", true); $("cuName").focus(); return; }
+    if (custBook().some(function (c) { return norm(c.name) === norm(name); })) { say("cuFormMsg", "هذا العميل موجود بالفعل في القائمة.", true); return; }
+    var same = digits(phone) ? custBook().filter(function (c) { return digits(c.phone) === digits(phone); })[0] : null;
+    if (same) { say("cuFormMsg", "هذا الرقم مسجّل للعميل «" + same.name + "».", true); return; }
+    try {
+      await ensureCustomer(name, phone, addr, notes);
+      ["cuName", "cuPhone", "cuAddr", "cuNotes"].forEach(function (i) { $(i).value = ""; }); state.cu.form = false;
+      say("cuFormMsg", "", false); say("cuMsg2", "تمت إضافة العميل «" + name + "».", false);
+      renderCustomers();
+    } catch (err) { say("cuFormMsg", errText(err), true); }
+  });
+
+  /* old sales without any customer name: the person selects them, types the customer once, and only the name,
+     phone and link are added to those sales (amounts, stock, dates and treasuries are never touched) */
+  state.cu.un = false; state.cu.unSel = {}; state.cu.unQ = ""; state.cu.unLimit = 40;
+  function unnamedUnits() {
+    var groups = {}, out = [];
+    KA("sale").forEach(function (s) {
+      if (s.buyer || s.customer || s.customerId) return;
+      var key = s.bundleId ? "b:" + s.bundleId : "s:" + s.id, g = groups[key];
+      if (!g) { g = groups[key] = { key: key, sales: [] }; out.push(g); }
+      g.sales.push(s);
+    });
+    out.forEach(function (g) {
+      g.sales.sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+      g.date = g.sales[0].date || ""; g.created = g.sales[0].createdAt || 0;
+      g.total = r2(g.sales.reduce(function (a, s) { return a + (Number(s.total) || 0); }, 0));
+      g.text = g.sales.map(function (s) { return s.product + " × " + qf(s.qty); }).join(" + ");
+    });
+    out.sort(function (a, b) { return b.date.localeCompare(a.date) || b.created - a.created; });
+    return out;
+  }
+  function renderUnSum() { var n = Object.keys(state.cu.unSel).length; $("unSum").textContent = n ? "المحدد: " + n + (n === 1 ? " عملية بيع" : " عمليات بيع") : "لم تحدد شيئًا بعد. ضع علامة ✓ على ما اشتراه العميل."; }
+  function renderUnnamed() {
+    var st = state.cu, all = unnamedUnits();
+    $("unToggle").textContent = (st.un ? "إخفاء" : "عرض") + " المبيعات بلا اسم (" + all.length + ")";
+    $("unBox").hidden = !st.un;
+    if (!st.un) return;
+    var live = {}; all.forEach(function (g) { live[g.key] = true; });
+    Object.keys(st.unSel).forEach(function (k) { if (!live[k]) delete st.unSel[k]; });
+    var q = norm(st.unQ), shown = all.filter(function (g) { return !q || norm(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0; });
+    var list = $("unList"); list.textContent = "";
+    shown.slice(0, st.unLimit).forEach(function (g) {
+      var cb = h("input", { type: "checkbox" }); cb.checked = !!st.unSel[g.key];
+      cb.addEventListener("change", function () { if (cb.checked) st.unSel[g.key] = true; else delete st.unSel[g.key]; renderUnSum(); });
+      var extra = [];
+      if (g.sales[0].bundleId) extra.push("باقة" + (g.sales[0].bundleName ? " «" + g.sales[0].bundleName + "»" : ""));
+      if (multiAct()) extra.push(uniqList(g.sales.map(function (s) { return actName(actOf(s)); })).join("، "));
+      list.appendChild(h("label", { class: "unrow" }, cb, h("span", { text: dateLabel(g.date) + " · " + g.text + " · " + money(g.total) + (extra.length ? " · " + extra.join(" · ") : "") })));
+    });
+    if (shown.length > st.unLimit) list.appendChild(h("button", { type: "button", class: "btn", text: "عرض المزيد (" + (shown.length - st.unLimit) + ")", onclick: function () { st.unLimit += 40; renderUnnamed(); } }));
+    $("unList").hidden = !shown.length;
+    $("unEmpty").hidden = shown.length > 0;
+    $("unEmpty").textContent = all.length ? "لا توجد مبيعات مطابقة للبحث." : "كل المبيعات لها أسماء عملاء.";
+    renderUnSum();
+  }
+  $("unToggle").addEventListener("click", function () { state.cu.un = !state.cu.un; renderUnnamed(); });
+  $("unSearch").addEventListener("input", function () { state.cu.unQ = $("unSearch").value; state.cu.unLimit = 40; renderUnnamed(); });
+  $("unAll").addEventListener("click", function () {
+    var q = norm(state.cu.unQ);
+    unnamedUnits().forEach(function (g) { if (!q || norm(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0) state.cu.unSel[g.key] = true; });
+    renderUnnamed();
+  });
+  $("unNone").addEventListener("click", function () { state.cu.unSel = {}; renderUnnamed(); });
+  autoFillCust("unName", "unPhone", "unAddr");
+  $("unForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var st = state.cu, name = $("unName").value.trim(), phone = toEn($("unPhone").value).trim(), addr = $("unAddr").value.trim();
+    var units = unnamedUnits().filter(function (g) { return st.unSel[g.key]; });
+    if (!units.length) { say("unMsg", "حدّد عملية بيع واحدة على الأقل من القائمة.", true); return; }
+    if (!name) { say("unMsg", "اكتب اسم العميل.", true); $("unName").focus(); return; }
+    var done = 0, total = units.reduce(function (a, g) { return a + g.sales.length; }, 0), had = K("customer").map(function (c) { return c.id; }), cid = "";
+    try {
+      cid = await ensureCustomer(name, phone, addr);
+      var rec = K("customer").filter(function (x) { return x.id === cid; })[0], nm = rec ? rec.name : name;
+      for (var i = 0; i < units.length; i++) {
+        for (var j = 0; j < units[i].sales.length; j++) {
+          var f = { buyer: nm, customerId: cid }; if (phone) f.buyerPhone = phone;
+          await patch(units[i].sales[j], f); done++;
+        }
+        delete st.unSel[units[i].key];
+      }
+      ["unName", "unPhone", "unAddr"].forEach(function (i2) { $(i2).value = ""; });
+      say("unMsg", "تم ربط " + done + (done === 1 ? " عملية بيع" : " عمليات بيع") + " بالعميل «" + nm + "». لم يتغير أي مبلغ ولا مخزون.", false);
+      renderCustomers();
+    } catch (err) {
+      /* nothing was linked and the customer was created just now: do not leave an empty record behind */
+      if (!done && cid && had.indexOf(cid) < 0) { try { await remove({ id: cid }); } catch (e2) { /* stays as an empty customer */ } }
+      say("unMsg", (done ? "تم ربط " + done + " من " + total + " ثم حدث خطأ: " : "") + errText(err), true); renderUnnamed();
+    }
+  });
+  function renderCustomers() {
+    fillCustNames(); renderCuTop(); renderTpls(); renderCustForm(); renderCustTable(); drawFilter(); renderUnnamed();
+  }
 
   /* ---------- net profit view ---------- */
   state.period = "all"; state.pfFrom = ""; state.pfTo = "";
@@ -1871,46 +3270,43 @@ document.documentElement.lang = "ar";
     var rev = sumBy(sales, function (s) { return s.total; });
     var cogs = sumBy(sales, function (s) { return (Number(s.unitCost) || 0) * (Number(s.qty) || 0); });
     var noCost = sales.filter(function (s) { return !(Number(s.unitCost) > 0); }).length;
-    var opex = E().filter(function (e) {
-      if (!(e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات" && e.status !== "pending" && inPeriod(e.date))) return false;
+    var opex = EA().filter(function (e) {
+      var isExp = e.type === "expense" && (e.source || "manual") === "manual" && e.category !== "خامات", isRev = e.type === "income" && e.source === "xrev";
+      if (!((isExp || isRev) && e.status !== "pending" && inPeriod(e.date))) return false;
       if (sel === "all") return true;
       if (sel === "shared") return e.act === "shared";
       return e.act !== "shared" && actOf(e) === sel;
     }).sort(newest);
-    var opexTotal = sumBy(opex, function (e) { return e.amount; });
+    var opexTotal = sumBy(opex, function (e) { return e.source === "xrev" ? -(Number(e.amount) || 0) : e.amount; });
     var wasteLoss = sumBy(KA("waste").filter(function (w) { return mine(w) && inPeriod(w.date); }), function (w) { return w.loss; });
     var gross = rev - cogs;
     var dueTotal = sumBy(sales, saleDue);
     return { rev: rev, dueTotal: dueTotal, cogs: cogs, noCost: noCost, opex: opex, opexTotal: opexTotal, wasteLoss: wasteLoss, gross: gross, net: gross - opexTotal - wasteLoss, count: sales.length };
   }
   function signed(n) { return (n < 0 ? "−" : "") + fm(Math.abs(n)); }
-  function renderProfit() {
-    var sel = $("pfPeriod"), months = {};
-    KA("sale").concat(KA("waste"), E()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
-    var many = multiAct(), asel = $("pfAct");
-    if (state.pfAct !== "all" && !actById(state.pfAct)) state.pfAct = "all";
-    if (!many) state.pfAct = "all";
-    $("pfActF").hidden = !many;
-    asel.textContent = "";
-    asel.appendChild(h("option", { value: "all", text: "كل الأنشطة (الإجمالي)" }));
-    ACTS().forEach(function (a) { asel.appendChild(h("option", { value: a.id, text: a.name })); });
-    asel.value = state.pfAct;
+  /* fills a period list + its custom date range (shared by the profit page and the organization page) */
+  function fillPeriod(selEl, rangeEl, fromEl, toEl, msgId) {
+    var months = {};
+    K("sale").concat(K("waste"), E()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
+    if (selEl.id === "orgPeriod") KA("sale").concat(KA("waste"), EA()).forEach(function (x) { if (x.date) months[String(x.date).slice(0, 7)] = 1; });
     months[todayISO().slice(0, 7)] = 1;
-    sel.textContent = "";
-    sel.appendChild(h("option", { value: "all", text: "كل الفترة" }));
-    sel.appendChild(h("option", { value: "custom", text: "فترة مخصصة (من تاريخ إلى تاريخ)" }));
+    selEl.textContent = "";
+    selEl.appendChild(h("option", { value: "all", text: "كل الفترة" }));
+    selEl.appendChild(h("option", { value: "custom", text: "فترة مخصصة (من تاريخ إلى تاريخ)" }));
     Object.keys(months).sort().reverse().forEach(function (m) {
-      sel.appendChild(h("option", { value: m, text: new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" }) }));
+      selEl.appendChild(h("option", { value: m, text: new Date(+m.slice(0, 4), +m.slice(5, 7) - 1, 1).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" }) }));
     });
-    sel.value = state.period;
-    if (sel.selectedIndex < 0) { sel.value = "all"; state.period = "all"; }
-    var isCustom = state.period === "custom";
-    $("pfRange").hidden = !isCustom;
-    if (document.activeElement !== $("pfFrom")) $("pfFrom").value = state.pfFrom;
-    if (document.activeElement !== $("pfTo")) $("pfTo").value = state.pfTo;
-    say("pfRangeMsg", rangeBad() ? "تاريخ البداية بعد تاريخ النهاية. صحّح التواريخ." : "", true);
-    $("pfLabel").textContent = rangeBad() ? "" : "الفترة المعروضة: " + periodLabel() + (many ? " · النشاط: " + (state.pfAct === "all" ? "كل الأنشطة" : actName(state.pfAct)) : "");
-    var P = profitData(state.pfAct), t = $("pfTiles");
+    selEl.value = state.period;
+    if (selEl.selectedIndex < 0) { selEl.value = "all"; state.period = "all"; }
+    rangeEl.hidden = state.period !== "custom";
+    if (document.activeElement !== fromEl) fromEl.value = state.pfFrom;
+    if (document.activeElement !== toEl) toEl.value = state.pfTo;
+    say(msgId, rangeBad() ? "تاريخ البداية بعد تاريخ النهاية. صحّح التواريخ." : "", true);
+  }
+  function renderProfit() {
+    fillPeriod($("pfPeriod"), $("pfRange"), $("pfFrom"), $("pfTo"), "pfRangeMsg");
+    $("pfLabel").textContent = rangeBad() ? "" : "المشروع: " + actName(state.act) + " · الفترة المعروضة: " + periodLabel();
+    var P = profitData(state.act), t = $("pfTiles");
     t.textContent = "";
     tileTo(t, "صافي الربح", (P.net < 0 ? "−" : "") + money(Math.abs(P.net)), P.net < 0 ? "neg" : "pos", P.rev > 0 ? "هامش " + (P.net / P.rev * 100).toFixed(1) + "% من المبيعات" : "لا توجد مبيعات في الفترة");
     tileTo(t, "إجمالي المبيعات", money(P.rev), "", P.count + " عملية بيع");
@@ -1923,31 +3319,14 @@ document.documentElement.lang = "ar";
       ["ناقص: خسائر الهالك", fm(P.wasteLoss)],
       [h("b", { text: "صافي الربح" }), h("b", { class: P.net < 0 ? "neg" : "pos", text: signed(P.net) })]
     ]);
-    var notes = ["تكلفة البضاعة المباعة = تكلفة القطعة وقت البيع × عدد القطع (من قسم الإنتاج)."];
+    var notes = ["تكلفة البضاعة المباعة = تكلفة القطعة وقت البيع × عدد القطع (من قسم الإنتاج).", "هذه أرباح مشروع «" + actName(state.act) + "» وحده. أرباح كل المشاريع معًا في صفحة «المؤسسة»."];
     if (P.dueTotal > 0) notes.push("منها " + money(P.dueTotal) + " مبيعات آجلة لم تُحصَّل بعد. الربح هنا يحسبها مبيعات، لكن الخزينة لا تحتسبها حتى يتم التحصيل.");
     if (P.noCost) notes.push("تنبيه: " + P.noCost + " عملية بيع بلا تكلفة لأن المنتج غير مسجّل في الإنتاج، فالربح فيها أعلى من الحقيقي.");
-    if (many && state.pfAct !== "all") {
-      var shOp = profitData("shared").opexTotal;
-      if (shOp > 0) notes.push("لم تُحسب هنا مصروفات عامة مشتركة بقيمة " + money(shOp) + " في هذه الفترة. تظهر في «كل الأنشطة».");
-    }
     $("pfNote").textContent = notes.join(" ");
     $("pfOpexEmpty").hidden = P.opex.length > 0;
-    function actTag(e) { return e.act === "shared" ? "عام" : actName(actOf(e)); }
     if (!P.opex.length) $("pfOpex").textContent = "";
-    else if (many) tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["النشاط"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", actTag(e), fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", "", h("b", { text: fm(P.opexTotal) })]]));
-    else tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", h("b", { text: fm(P.opexTotal) })]]));
-    var byCard = $("pfByCard");
-    byCard.hidden = !(many && state.pfAct === "all");
-    if (!byCard.hidden) {
-      var defs = ACTS().map(function (a) { return { name: a.name, P: profitData(a.id) }; });
-      var sh = profitData("shared");
-      if (sh.opexTotal > 0) defs.push({ name: "مصروفات عامة", P: sh });
-      var rowsBy = defs.map(function (x) { return [x.name, fm(x.P.rev), fm(x.P.opexTotal + x.P.wasteLoss), h("span", { class: x.P.net < 0 ? "neg" : "pos", text: signed(x.P.net) })]; });
-      rowsBy.push([h("b", { text: "الإجمالي" }), h("b", { text: fm(P.rev) }), h("b", { text: fm(P.opexTotal + P.wasteLoss) }), h("b", { class: P.net < 0 ? "neg" : "pos", text: signed(P.net) })]);
-      tbl($("pfByAct"), [["النشاط"], ["المبيعات", "n"], ["مصروفات وهالك", "n"], ["الصافي", "n"]], rowsBy);
-    }
+    else tbl($("pfOpex"), [["التاريخ"], ["البيان"], ["المبلغ (ج.م)", "n"]], P.opex.map(function (e) { return [dateLabel(e.date), e.party || "بدون بيان", (e.source === "xrev" ? "−" : "") + fm(e.amount)]; }).concat([[h("b", { text: "الإجمالي" }), "", h("b", { text: fm(P.opexTotal) })]]));
   }
-  $("pfAct").addEventListener("change", function () { state.pfAct = $("pfAct").value; renderProfit(); });
   $("pfPeriod").addEventListener("change", function () {
     state.period = $("pfPeriod").value;
     if (state.period === "custom" && !state.pfFrom && !state.pfTo) { state.pfFrom = todayISO().slice(0, 8) + "01"; state.pfTo = todayISO(); }
@@ -1955,6 +3334,82 @@ document.documentElement.lang = "ar";
   });
   $("pfFrom").addEventListener("change", function () { state.pfFrom = $("pfFrom").value; renderProfit(); });
   $("pfTo").addEventListener("change", function () { state.pfTo = $("pfTo").value; renderProfit(); });
+
+
+  /* ---------- organization page: general treasury, projects, transfers ---------- */
+  function orgLines(box, lines) { var c = h("div", { class: "cost" }); lines.forEach(function (l) { c.appendChild(costLine(l[0], l[1], l[2])); }); box.appendChild(c); }
+  function renderOrg() {
+    fillPeriod($("orgPeriod"), $("orgRange"), $("orgFrom"), $("orgTo"), "orgRangeMsg");
+    $("orgLabel").textContent = rangeBad() ? "" : "الفترة المعروضة: " + periodLabel();
+    var gen = balOf("shared"), tot = gen, A = profitData("all"), sh = profitData("shared");
+    ACTS().forEach(function (a) { tot = r2(tot + balOf(a.id)); });
+    var t = $("orgTiles"); t.textContent = "";
+    tileTo(t, "إجمالي أموال المؤسسة", (tot < 0 ? "−" : "") + money(Math.abs(tot)), tot < 0 ? "neg" : "pos", "الخزينة العامة + خزائن المشاريع");
+    tileTo(t, "إجمالي المبيعات", money(A.rev), "", ACTS().length + (ACTS().length === 1 ? " مشروع" : " مشاريع") + " · " + A.count + " عملية بيع");
+    tileTo(t, "صافي ربح المؤسسة", (A.net < 0 ? "−" : "") + money(Math.abs(A.net)), A.net < 0 ? "neg" : "pos", "كل المشاريع ناقص المصروفات العامة");
+    var list = $("orgList"); list.textContent = "";
+    var gc = h("div", { class: "projcard gen" });
+    gc.appendChild(h("div", { class: "projhead" }, h("h3", { text: "الخزينة العامة" }),
+      h("button", { type: "button", class: "mini", text: "فتح الخزينة العامة", onclick: function () { state.tgen = true; state.view = "treasury"; render(); } })));
+    orgLines(gc, [["رصيد الخزينة العامة", (gen < 0 ? "−" : "") + money(Math.abs(gen)), "total"], ["مصروفات عامة في الفترة", money(sh.opexTotal), "sub"]]);
+    list.appendChild(gc);
+    ACTS().forEach(function (a) {
+      var P = profitData(a.id), bal = balOf(a.id);
+      var c = h("div", { class: "projcard" });
+      c.appendChild(h("div", { class: "projhead" }, h("h3", { text: a.name }),
+        h("button", { type: "button", class: "mini", text: "فتح المشروع", onclick: function () { switchAct(a.id); state.view = "treasury"; render(); } })));
+      orgLines(c, [
+        ["رصيد خزينة المشروع", (bal < 0 ? "−" : "") + money(Math.abs(bal)), "total"],
+        ["المبيعات", money(P.rev), "sub"],
+        ["مصروفات وهالك", money(P.opexTotal + P.wasteLoss), "sub"],
+        ["صافي الربح", signed(P.net) + " ج.م", "total"]
+      ].concat(P.dueTotal > 0 ? [["آجل لم يُحصَّل", money(P.dueTotal), "sub"]] : []));
+      list.appendChild(c);
+    });
+    renderXfSelects();
+  }
+  function xfOptions() { return [{ id: "shared", name: "الخزينة العامة" }].concat(ACTS().map(function (a) { return { id: a.id, name: "خزينة مشروع «" + a.name + "»" }; })); }
+  function renderXfSelects() {
+    var opts = xfOptions(), sig = opts.map(function (o) { return o.id + "|" + o.name; }).join("\n");
+    ["xfFrom", "xfTo"].forEach(function (id, i) {
+      var sel = $(id);
+      if (sel.dataset.sig === sig) return;
+      var cur = sel.value;
+      sel.textContent = "";
+      opts.forEach(function (o) { sel.appendChild(h("option", { value: o.id, text: o.name })); });
+      sel.value = cur && opts.some(function (o) { return o.id === cur; }) ? cur : (i === 0 ? "shared" : (opts[1] ? opts[1].id : "shared"));
+      sel.dataset.sig = sig;
+    });
+  }
+  function xfName(id) { var o = xfOptions().filter(function (x) { return x.id === id; })[0]; return o ? o.name : "خزينة"; }
+  $("orgPeriod").addEventListener("change", function () {
+    state.period = $("orgPeriod").value;
+    if (state.period === "custom" && !state.pfFrom && !state.pfTo) { state.pfFrom = todayISO().slice(0, 8) + "01"; state.pfTo = todayISO(); }
+    render();
+  });
+  $("orgFrom").addEventListener("change", function () { state.pfFrom = $("orgFrom").value; render(); });
+  $("orgTo").addEventListener("change", function () { state.pfTo = $("orgTo").value; render(); });
+  $("xfForm").addEventListener("submit", async function (ev) {
+    ev.preventDefault(); if (debounce(ev)) return;
+    var from = $("xfFrom").value, to = $("xfTo").value, amount = parseFloat($("xfAmt").value), date = $("xfDate").value, note = $("xfNote").value.trim();
+    if (!from || !to || from === to) { say("xfMsg", "اختر خزينتين مختلفتين.", true); return; }
+    if (!(amount > 0)) { say("xfMsg", "أدخل مبلغًا أكبر من صفر.", true); $("xfAmt").focus(); return; }
+    if (!date) { say("xfMsg", "اختر التاريخ.", true); $("xfDate").focus(); return; }
+    var pair = "x" + Date.now() + Math.random().toString(36).slice(2, 6), first = null;
+    try {
+      var rec1 = { type: "expense", amount: r2(amount), date: date, party: "تحويل إلى " + xfName(to), note: note, source: "transfer", refId: "", pair: pair };
+      var rec2 = { type: "income", amount: r2(amount), date: date, party: "تحويل من " + xfName(from), note: note, source: "transfer", refId: "", pair: pair };
+      if (from !== MAINACT) rec1.act = from;
+      if (to !== MAINACT) rec2.act = to;
+      first = await create(rec1);
+      await create(rec2);
+      $("xfAmt").value = ""; $("xfNote").value = "";
+      say("xfMsg", "تم تحويل " + money(amount) + " من " + xfName(from) + " إلى " + xfName(to) + ".", false);
+    } catch (err) {
+      if (first) { try { await remove({ id: first }); } catch (e2) { /* ignore */ } }
+      say("xfMsg", errText(err) + " لم يُحوَّل شيء.", true);
+    }
+  });
 
   /* ---------- treasury form ---------- */
   $("form").addEventListener("submit", async function (ev) {
@@ -1965,7 +3420,7 @@ document.documentElement.lang = "ar";
     if (!party) { say("msg", "اكتب البيان.", true); $("party").focus(); return; }
     var type = document.querySelector('input[name="ttype"]:checked').value;
     try {
-      await treasuryEntry(type, amount, date, party, $("note").value.trim(), "manual", "", type === "expense" && multiAct() ? $("tAct").value : MAINACT);
+      await treasuryEntry(type, amount, date, party, $("note").value.trim(), "manual", "", state.tgen ? "shared" : undefined);
       $("amount").value = ""; $("party").value = ""; $("note").value = "";
       say("msg", "تم حفظ الحركة.", false);
       $("amount").focus();
@@ -2146,7 +3601,7 @@ document.documentElement.lang = "ar";
     try {
       await col.doc(iid).set({ kind: "fileimg", parent: mref.id, data: p.full, createdAt: Date.now() });
       try {
-        await mref.set({ kind: "file", title: title, cat: cat, date: date, note: $("fNote").value.trim(), thumb: p.thumb, imgId: iid, w: p.w, h: p.h, bytes: p.bytes, createdAt: Date.now() });
+        await mref.set({ kind: "file", act: state.act !== MAINACT ? state.act : undefined, title: title, cat: cat, date: date, note: $("fNote").value.trim(), thumb: p.thumb, imgId: iid, w: p.w, h: p.h, bytes: p.bytes, createdAt: Date.now() });
       } catch (e2) { try { await col.doc(iid).delete(); } catch (e3) { /* ignore */ } throw e2; }
       $("fTitle").value = ""; $("fNote").value = ""; clearPending();
       say("fMsg", "تم حفظ الصورة.", false);
@@ -2263,7 +3718,7 @@ document.documentElement.lang = "ar";
   function renderViews() {
     var nav = $("views"); nav.textContent = "";
     VIEWS.forEach(function (v) {
-      var b = h("button", { type: "button", text: v[1], onclick: function () { state.view = v[0]; render(); } });
+      var b = h("button", { type: "button", text: v[1] + (v[0] === "customers" ? dueBadge() : ""), onclick: function () { state.view = v[0]; state.viewTouched = true; say("actMsg", "", false); render(); } });
       if (state.view === v[0]) b.setAttribute("aria-current", "page");
       nav.appendChild(b);
     });
@@ -2318,11 +3773,10 @@ document.documentElement.lang = "ar";
       sel.dataset.sig = sig;
     });
   }
-  /* ---------- activity bar ---------- */
-  var ACT_VIEWS = { purchases: 1, stock: 1, production: 1, waste: 1, sales: 1 };
+  /* ---------- project bar ---------- */
   function openActForm(mode) {
     state.actForm = mode;
-    $("actNameLab").textContent = mode === "rename" ? "الاسم الجديد للنشاط" : "اسم النشاط الجديد";
+    $("actNameLab").textContent = mode === "rename" ? "الاسم الجديد للمشروع" : "اسم المشروع الجديد";
     $("actSave").textContent = mode === "rename" ? "حفظ الاسم" : "إضافة";
     $("actName").value = mode === "rename" ? actName(state.act) : "";
     say("actMsg", "", false);
@@ -2330,42 +3784,47 @@ document.documentElement.lang = "ar";
     $("actName").focus();
   }
   function switchAct(id) {
-    state.act = id; state.actForm = null; state.openMat = null; state.confirmId = null;
-    say("actMsg", "", false);
+    state.act = id; state.actForm = null; state.openMat = null; state.confirmId = null; state.tgen = false; state.filter = "all";
+    state.swh = "all"; state.fromWh = MAIN; state.toWh = MAIN; state.renWh = null; state.editC = null; state.openF = null;
+    state.xpFor = null; state.seForm = null; state.editSe = null; state.msgSale = null; state.stSeller = null; state.stOpen = false;
+    ["saleProduct", "salePrice", "saleQty", "saleCust", "salePaid", "amount", "party", "note", "xmQty", "saleCustPhone", "saleCustAddr", "bAddr"].forEach(function (x) { if ($(x)) $(x).value = ""; });
+    Array.prototype.forEach.call(document.querySelectorAll("#appRoot .msg"), function (m) { m.textContent = ""; });   /* old confirmations belong to the other project */
     resetProdForm();
-    render();
   }
   function renderActBar() {
-    var bar = $("actBar");
-    bar.hidden = !ACT_VIEWS[state.view];
-    if (bar.hidden) return;
+    var bar = $("actBar"), inOrg = state.view === "org";
+    bar.hidden = false;
+    $("actLab").textContent = inOrg ? "المشاريع:" : "المشروع:";
     var chips = $("actChips"); chips.textContent = "";
     ACTS().forEach(function (a) {
-      chips.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(state.act === a.id), text: a.name, onclick: function () { switchAct(a.id); } }));
+      chips.appendChild(h("button", { type: "button", class: "tab", "aria-pressed": String(!inOrg && state.act === a.id), text: a.name, onclick: function () { switchAct(a.id); if (inOrg) state.view = "treasury"; render(); } }));
     });
     var btns = $("actBtns"); btns.textContent = "";
-    btns.appendChild(h("button", { type: "button", class: "mini", text: "＋ نشاط جديد", onclick: function () { openActForm("add"); } }));
+    btns.appendChild(h("button", { type: "button", class: "mini", text: "＋ مشروع جديد", onclick: function () { openActForm("add"); } }));
     var cur = actById(state.act);
-    if (state.act !== MAINACT && cur) {
+    if (!inOrg && state.act !== MAINACT && cur) {
       btns.appendChild(h("button", { type: "button", class: "mini", text: "تغيير الاسم", onclick: function () { openActForm("rename"); } }));
       btns.appendChild(delBtn(cur, "actMsg"));
     }
     $("actForm").hidden = !state.actForm;
-    $("actHint").textContent = multiAct()
-      ? "أنت تعمل الآن على نشاط «" + actName(state.act) + "». الخامات والمشتريات والإنتاج والمبيعات والهالك منفصلة لكل نشاط، أما الخزينة ورأس المال فواحدة للجميع."
-      : "لإضافة نشاط جديد مثل عسل النحل اضغط «＋ نشاط جديد». الخزينة ورأس المال تبقى واحدة.";
+    $("actHint").textContent = inOrg
+      ? "صفحة المؤسسة تجمع الخزينة العامة وكل المشاريع. اضغط اسم مشروع أو «فتح المشروع» لتعمل عليه."
+      : (multiAct()
+        ? "كل ما في الصفحات التالية يخص مشروع «" + actName(state.act) + "» وحده. لرؤية كل المشاريع افتح «المؤسسة»."
+        : "لإضافة مشروع جديد مثل عسل النحل اضغط «＋ مشروع جديد». لكل مشروع خزينته ومخزونه وأرباحه وجهات اتصاله وملفاته منفصلة.");
   }
   $("actForm").addEventListener("submit", async function (ev) {
     ev.preventDefault(); if (debounce(ev)) return;
     var n = $("actName").value.trim(), renaming = state.actForm === "rename";
-    if (!n) { say("actMsg", "اكتب اسم النشاط.", true); $("actName").focus(); return; }
-    if (ACTS().some(function (a) { return norm(a.name) === norm(n) && !(renaming && a.id === state.act); })) { say("actMsg", "يوجد نشاط بهذا الاسم.", true); return; }
+    if (!n) { say("actMsg", "اكتب اسم المشروع.", true); $("actName").focus(); return; }
+    if (ACTS().some(function (a) { return norm(a.name) === norm(n) && !(renaming && a.id === state.act); })) { say("actMsg", "يوجد مشروع بهذا الاسم.", true); return; }
     try {
       if (renaming) { await patch(actById(state.act), { name: n }); say("actMsg", "تم تغيير الاسم.", false); }
       else {
         var id = await create({ kind: "activity", name: n });
-        state.newAct = id; state.act = id; resetProdForm();
-        say("actMsg", "تمت إضافة النشاط «" + n + "» وأنت تعمل عليه الآن.", false);
+        state.newAct = id; switchAct(id);
+        if (state.view === "org") state.view = "treasury";
+        say("actMsg", "تمت إضافة مشروع «" + n + "» وأنت تعمل عليه الآن. ابدأ بتحويل رأس ماله من «المؤسسة» أو بتسجيل رصيد افتتاحي في خزينته.", false);
       }
       state.actForm = null; $("actName").value = "";
       render();
@@ -2380,12 +3839,15 @@ document.documentElement.lang = "ar";
     VIEWS.forEach(function (v) { $("v_" + v[0]).hidden = state.view !== v[0]; });
     if (state.view === "treasury") renderTreasury();
     else if (state.view === "purchases") renderPurchases();
-    else if (state.view === "stock") renderStock();
+    else if (state.view === "stock") { renderStock(); renderXmove(); }
     else if (state.view === "production") renderProduction();
     else if (state.view === "waste") renderWaste();
     else if (state.view === "profit") renderProfit();
+    else if (state.view === "bundles") renderBundles();
+    else if (state.view === "customers") renderCustomers();
     else if (state.view === "contacts") renderContacts();
     else if (state.view === "files") renderFiles();
+    else if (state.view === "org") renderOrg();
     else renderSales();
   }
 
@@ -2403,7 +3865,7 @@ document.documentElement.lang = "ar";
   });
 
   /* ---------- boot ---------- */
-  ["date", "purDate", "wDate", "saleDate", "fDate", "colDate"].forEach(function (id) { $(id).value = todayISO(); });
+  ["date", "purDate", "wDate", "saleDate", "fDate", "colDate", "xfDate", "bDate", "bcDate"].forEach(function (id) { $(id).value = todayISO(); });
   CCATS.forEach(function (c) { $("cCat").appendChild(h("option", { value: c, text: c })); });
   FCATS.forEach(function (c) { $("fCat").appendChild(h("option", { value: c, text: c })); $("vCatIn").appendChild(h("option", { value: c, text: c })); });
   UNITS.forEach(function (u) { $("purUnit").appendChild(h("option", { value: u, text: u })); });
@@ -2419,6 +3881,7 @@ document.documentElement.lang = "ar";
     col = db.collection("olive");
     col.onSnapshot(function (snap) {
       state.docs = snap.docs.map(function (d) { return Object.assign({}, d.data() || {}, { id: d.id }); });
+      if (!state.loaded && !state.viewTouched && multiAct()) state.view = "org";
       state.loaded = true; state.mode = "saved"; render();
     }, function () { state.mode = "error"; state.loaded = true; render(); });
     if (uid) {
