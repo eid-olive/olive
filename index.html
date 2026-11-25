@@ -146,6 +146,15 @@ input[readonly] { background: var(--accent-soft); font-weight: 600; }
 #unList { max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; }
 label.unrow { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
 label.unrow:last-child { border-bottom: 0; }
+.cbwrap { position: relative; }
+.cblist { position: absolute; left: 0; right: 0; top: 100%; z-index: 40; max-height: 210px; overflow-y: auto; background: var(--surface); border: 1.5px solid var(--accent); border-radius: 4px; margin-top: 2px; box-shadow: 0 8px 20px rgba(0, 0, 0, .22); overscroll-behavior: contain; }
+.cbitem { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 46px; padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.cbitem:last-child { border-bottom: 0; }
+.cbitem:hover, .cbitem:active { background: var(--accent-soft); }
+.cbitem small { color: var(--muted); direction: ltr; white-space: nowrap; }
+.cbhint { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cbhint .ok { color: var(--pos); font-weight: 600; }
+.cbhint .new { color: var(--warn); }
 
 .seg label { position: relative; text-align: center; cursor: pointer; }
 .seg input { position: absolute; opacity: 0; inset: 0; }
@@ -942,6 +951,12 @@ document.documentElement.lang = "ar";
   function byName(a, b) { return (a.name || "").localeCompare(b.name || "", "ar"); }
   function newest(a, b) { return (b.date || "").localeCompare(a.date || "") || (b.createdAt || 0) - (a.createdAt || 0); }
   function norm(s) { return String(s || "").trim().toLowerCase(); }
+  /* matching key for names: ignores hamza forms (أ إ آ), ة/ه, ى/ي, diacritics, extra spaces and Arabic digits */
+  function ckey(s) {
+    return String(s == null ? "" : s).replace(/[٠-٩]/g, function (c) { return String(c.charCodeAt(0) - 1632); })
+      .replace(/[\u064B-\u065F\u0670\u0640]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي")
+      .replace(/\s+/g, " ").trim().toLowerCase();
+  }
   function say(id, text, bad) { var m = $(id); m.textContent = text; m.className = "msg" + (bad ? " err" : ""); }
   function errText(e) {
     if (e && e.msg) return e.msg;
@@ -995,8 +1010,8 @@ document.documentElement.lang = "ar";
   function PRODS() { return K("product").sort(byName); }
   function matById(id) { return KA("material").filter(function (d) { return d.id === id; })[0] || null; }
   function prodById(id) { return KA("product").filter(function (d) { return d.id === id; })[0] || null; }
-  function matByName(n) { var k = norm(n); return k ? (MATS().filter(function (m) { return norm(m.name) === k; })[0] || null) : null; }
-  function prodByName(n) { var k = norm(n); return k ? (PRODS().filter(function (p) { return norm(p.name) === k; })[0] || null) : null; }
+  function matByName(n) { var k = ckey(n); return k ? (MATS().filter(function (m) { return ckey(m.name) === k; })[0] || null) : null; }
+  function prodByName(n) { var k = ckey(n); return k ? (PRODS().filter(function (p) { return ckey(p.name) === k; })[0] || null) : null; }
 
   /* ---------- warehouses ----------
      Each material/product keeps its overall quantity (qty / stock) exactly as before.
@@ -1500,7 +1515,7 @@ document.documentElement.lang = "ar";
   }
   function renderPurchases() {
     var dl = $("matNames"); dl.textContent = "";
-    MATS().forEach(function (m) { dl.appendChild(h("option", { value: m.name })); });
+    MATS().forEach(function (m) { dl.appendChild(h("option", { value: m.name, "data-sub": m.unit || "" })); });
     var list = K("purchase").sort(newest);
     $("purSum").textContent = list.length ? "إجمالي المشتريات: " + money(sumBy(list, function (p) { return p.total; })) : "";
     $("purEmpty").hidden = !state.loaded || list.length > 0;
@@ -2201,17 +2216,18 @@ document.documentElement.lang = "ar";
   }
   function renderSales() {
     var dl = $("prodNames"); dl.textContent = "";
-    PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name })); });
+    PRODS().forEach(function (p) { dl.appendChild(h("option", { value: p.name, "data-sub": Number(p.sellPrice) > 0 ? fm(p.sellPrice) + " ج.م" : "" })); });
     syncSaleFrom();
     syncSellerUi();
-    fillCustNames();
+    fillCustNames(); refreshHints();
     renderDues(); renderSellers(); renderStmt();
     var list = K("sale").sort(newest);
     var cbox = $("saleCopyBox"); cbox.textContent = "";
     var csale = state.msgSale ? list.filter(function (x) { return x.id === state.msgSale && x.sellerId; })[0] : null;
     if (csale) {
-      cbox.appendChild(h("div", { class: "party", text: "رسالة بيع «" + csale.product + "» بتاريخ " + longDate(csale.date) }));
-      cbox.appendChild(msgPanel(saleMessage(csale), state.msgNote, function () { state.msgSale = null; renderSales(); }));
+      var mk = state.msgKind === "received" ? "received" : "order";
+      cbox.appendChild(h("div", { class: "party", text: (mk === "received" ? "رسالة الاستلام" : "رسالة الطلب") + " ـ «" + csale.product + "» بتاريخ " + longDate(csale.date) }));
+      cbox.appendChild(msgPanel(saleMessage(csale, mk), state.msgNote, function () { state.msgSale = null; renderSales(); }));
     }
     var tot = sumBy(list, function (s) { return s.total; }), profit = sumBy(list.filter(function (s) { return s.unitCost > 0; }), function (s) { return s.total - s.unitCost * s.qty; });
     var discTot = sumBy(list, function (s) { return s.discount; }), commTot = sumBy(list, function (s) { return s.commAmt; });
@@ -2272,10 +2288,19 @@ document.documentElement.lang = "ar";
     btns.appendChild(h("button", { type: "button", class: "mini", text: "إغلاق", onclick: onClose }));
     return h("div", { class: "msgbox" }, ta, btns, nt);
   }
-  function saleMessage(s) {
-    var L = ["بيع بتاريخ " + longDate(s.date), "المنتج: " + s.product + (Number(s.qty) > 1 ? " × " + qf(s.qty) : "")];
-    var by = s.buyer || s.customer || "", ph = s.buyerPhone || "";
-    if (by || ph) L.push("المشتري: " + [by, ph].filter(Boolean).join(" ـ "));
+  /* two messages for the code owner: «ordered» when the customer orders, «received» once he has the product */
+  function saleMessage(s, kind) {
+    var by = s.buyer || s.customer || "", ph = s.buyerPhone || "", prod = s.product + (Number(s.qty) > 1 ? " × " + qf(s.qty) : "");
+    var who = by ? "الزبون (" + by + ") " : "الزبون ", L = [];
+    if (kind === "received") {
+      L.push(who + "استلم المنتج (" + prod + ")");
+      L.push("تاريخ الطلب: " + longDate(s.date));
+      L.push("تاريخ الاستلام: " + longDate(s.receivedAt || todayISO()));
+    } else {
+      L.push(who + "طلب المنتج (" + prod + ")");
+      L.push("بتاريخ " + longDate(s.date));
+    }
+    if (ph) L.push("هاتف الزبون: " + ph);
     L.push("السعر الأصلي: " + money(s.listTotal));
     L.push("خصم العميل " + qf(s.discPct) + "%: " + money(s.discAmt));
     L.push("عمولة " + (s.sellerName || ("كود " + s.code)) + " " + qf(s.commPct) + "%: " + money(s.commAmt));
@@ -2295,14 +2320,26 @@ document.documentElement.lang = "ar";
       try { await patch(s, { commPaid: want }); }
       catch (err) { cb.checked = !want; say("saleMsg", errText(err), true); }
     });
+    var rc = h("input", { type: "checkbox" });
+    rc.checked = !!s.received;
+    rc.addEventListener("change", async function () {
+      var want = rc.checked;
+      try { await patch(s, want ? { received: true, receivedAt: todayISO() } : { received: false, receivedAt: "" }); }
+      catch (err) { rc.checked = !want; say("saleMsg", errText(err), true); }
+    });
+    if (s.received) box.appendChild(h("div", { class: "meta", text: "✓ تم الاستلام" + (s.receivedAt ? " بتاريخ " + dateLabel(s.receivedAt) : "") }));
+    function openMsg(kind) {
+      state.msgSale = s.id; state.msgKind = kind; state.msgNote = "";
+      copyText(saleMessage(s, kind)).then(function (ok) { state.msgNote = ok ? COPY_OK : COPY_BAD; renderSales(); });
+      renderSales();
+      $("saleCopyBox").scrollIntoView({ block: "center" });
+    }
     box.appendChild(h("div", { class: "cell-acts" },
       h("label", { class: "chk" + (wait ? " off" : "") }, cb, h("span", { text: "دُفعت العمولة" })),
-      h("button", { type: "button", class: "mini", text: "نسخ رسالة", onclick: function () {
-        state.msgSale = s.id; state.msgNote = "";
-        copyText(saleMessage(s)).then(function (ok) { state.msgNote = ok ? COPY_OK : COPY_BAD; renderSales(); });
-        renderSales();
-        $("saleCopyBox").scrollIntoView({ block: "center" });
-      } })));
+      h("label", { class: "chk" }, rc, h("span", { text: "تم الاستلام" }))));
+    box.appendChild(h("div", { class: "cell-acts" },
+      h("button", { type: "button", class: "mini", text: "رسالة الطلب", onclick: function () { openMsg("order"); } }),
+      h("button", { type: "button", class: "mini", text: "رسالة الاستلام", onclick: function () { openMsg("received"); } })));
     return box;
   }
   function renderSellers() {
@@ -2500,6 +2537,7 @@ document.documentElement.lang = "ar";
     state.shortOk = null;
     try {
       var cid = cust ? await ensureCustomer(cust, cphone, caddr) : "";
+      if (cid) cust = canonName(cid, cust);
       if (p && taken > 0) await patch(p, addAt(p, swh, -taken));
       var rec = { kind: "sale", date: date, product: name, productId: p ? p.id : "", price: r2(price), qty: qty, total: total, stockTaken: taken, unitCost: p ? r2(prodCost(p).unit) : 0 };
       if (multiWh()) { rec.wh = swh; rec.whName = whName(swh); }
@@ -2515,7 +2553,7 @@ document.documentElement.lang = "ar";
       $("saleProduct").value = ""; $("salePrice").value = ""; $("saleQty").value = "";
       document.querySelector('input[name="sdisc"][value="none"]').checked = true; $("saleDisc").value = ""; $("discField").hidden = true; $("saleDiscLab").textContent = "قيمة الخصم (ج.م)";
       $("sellerBox").hidden = true; $("saleSeller").value = "";
-      document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = ""; $("saleCustPhone").value = ""; $("saleCustAddr").value = "";
+      document.querySelector('input[name="spay"][value="cash"]').checked = true; $("salePaid").value = ""; $("saleCust").value = ""; $("saleCustPhone").value = ""; $("saleCustAddr").value = ""; refreshHints();
       $("saleWh").value = "";   /* ask again for the next sale: no warehouse is ever pre-selected */
       syncSale();
       var head = pay.due > 0
@@ -2648,7 +2686,7 @@ document.documentElement.lang = "ar";
   }
   function renderBundles() {
     var sig = KA("product").map(function (p) { return [p.id, p.name, p.sellPrice, actOf(p)].join("|"); }).join(",") + "#" + KA("warehouse").map(function (w) { return w.id + w.name + actOf(w); }).join(",") + "#" + KA("activity").map(function (a) { return a.id + a.name; }).join(",");
-    fillCustNames();
+    fillCustNames(); refreshHints();
     if (state.blSig !== sig) { state.blSig = sig; drawLines(); }
     var saved = savedBundles();
     fillList($("bPick"), [["", "تركيب باقة جديدة"]].concat(saved.map(function (b) { return [b.id, b.name + (b.price > 0 ? " — " + fm(b.price) + " ج.م" : "")]; })));
@@ -2723,6 +2761,7 @@ document.documentElement.lang = "ar";
     var done = [], made = [];
     try {
       var bcid = cust ? await ensureCustomer(cust, phone, baddr) : "";
+      if (bcid) cust = canonName(bcid, cust);
       for (var i = 0; i < c.infos.length; i++) {
         var I = c.infos[i], taken = Math.min(I.have, I.q), amt = c.alloc[i];
         if (taken > 0) {
@@ -2748,7 +2787,7 @@ document.documentElement.lang = "ar";
       return;
     }
     state.bl = [{ pid: "", qty: "1", wh: "" }, { pid: "", qty: "1", wh: "" }];
-    $("bPrice").value = ""; $("bPaid").value = ""; $("bCust").value = ""; $("bPhone").value = ""; $("bAddr").value = ""; $("bSaveName").value = ""; $("bPick").value = "";
+    $("bPrice").value = ""; $("bPaid").value = ""; $("bCust").value = ""; $("bPhone").value = ""; $("bAddr").value = ""; refreshHints(); $("bSaveName").value = ""; $("bPick").value = "";
     document.querySelector('input[name="bpay"][value="cash"]').checked = true;
     drawLines(); syncBundle();
     var parts = made.map(function (m) { return (multiAct() ? "«" + actName(m.act) + "» " : "") + m.name + " " + money(m.amt); }).join("، ");
@@ -2843,12 +2882,12 @@ document.documentElement.lang = "ar";
     var byId = {}, byName = {}, virt = {}, out = [];
     K("customer").forEach(function (c) {
       var r = { doc: c, key: c.id, name: c.name || "", phone: c.phone || "", address: c.address || "", notes: c.notes || "", gone: !!c.deleted, sales: [] };
-      byId[c.id] = r; byName[norm(c.name)] = r; out.push(r);
+      byId[c.id] = r; byName[ckey(c.name)] = r; out.push(r);
     });
     KA("sale").forEach(function (s) {
       var nm = s.buyer || s.customer || "", r = s.customerId ? byId[s.customerId] : null;
       if (!r && nm) {
-        var k = norm(nm); r = byName[k] || virt[k];
+        var k = ckey(nm); r = byName[k] || virt[k];
         if (!r) { r = virt[k] = { doc: null, key: "v:" + k, name: nm, phone: "", address: "", notes: "", gone: false, sales: [] }; out.push(r); }
       }
       if (r) r.sales.push(s);
@@ -2868,13 +2907,13 @@ document.documentElement.lang = "ar";
     var cl = $("custNames"); cl.textContent = "";
     var seen = {};
     custBook().map(function (c) { return c.name; }).concat(K("contact").map(function (c) { return c.name; })).forEach(function (n) {
-      var k = norm(n); if (!k || seen[k]) return; seen[k] = 1; cl.appendChild(h("option", { value: n }));
+      var k = ckey(n); if (!k || seen[k]) return; seen[k] = 1; cl.appendChild(h("option", { value: n }));
     });
   }
   /* finds the customer (by phone, then by name) or creates him; returns the record id. Used by every sale form. */
   async function ensureCustomer(name, phone, addr, notes) {
-    var all = K("customer"), nk = norm(name), pd = digits(phone);
-    var hit = (pd && all.filter(function (c) { return digits(c.phone) === pd; })[0]) || all.filter(function (c) { return norm(c.name) === nk; })[0] || null;
+    var all = K("customer"), nk = ckey(name), pd = digits(phone);
+    var hit = (pd && all.filter(function (c) { return digits(c.phone) === pd; })[0]) || all.filter(function (c) { return ckey(c.name) === nk; })[0] || null;
     if (hit) {
       var up = {};
       if (hit.deleted) up.deleted = false;
@@ -2886,13 +2925,15 @@ document.documentElement.lang = "ar";
     }
     return await create({ kind: "customer", name: name, phone: phone || "", address: addr || "", notes: notes || "" });
   }
+  /* the saved spelling of a customer: sales always carry it, whatever variant was typed */
+  function canonName(id, fallback) { var d = K("customer").filter(function (x) { return x.id === id; })[0]; return d && d.name ? d.name : fallback; }
   async function linkUnlinked(id, sales) {
     for (var i = 0; i < sales.length; i++) if (sales[i].customerId !== id) await patch(sales[i], { customerId: id });
   }
   function autoFillCust(nameId, phoneId, addrId) {
     $(nameId).addEventListener("change", function () {
-      var k = norm($(nameId).value); if (!k) return;
-      var c = custBook().filter(function (x) { return norm(x.name) === k; })[0];
+      var k = ckey($(nameId).value); if (!k) return;
+      var c = custBook().filter(function (x) { return ckey(x.name) === k; })[0];
       if (!c) return;
       if (!$(phoneId).value && c.phone) $(phoneId).value = c.phone;
       if (!$(addrId).value && c.address) $(addrId).value = c.address;
@@ -2985,7 +3026,7 @@ document.documentElement.lang = "ar";
     var name = $("tpName").value.trim(), text = $("tpText").value.trim(), editing = state.cu.tpEdit;
     if (!name) { say("tpFormMsg", "اكتب اسمًا للرسالة.", true); $("tpName").focus(); return; }
     if (!text) { say("tpFormMsg", "اكتب نص الرسالة.", true); $("tpText").focus(); return; }
-    if (tplList().some(function (x) { return x.id !== editing && norm(x.name) === norm(name); })) { say("tpFormMsg", "يوجد رسالة بنفس الاسم. اختر اسمًا مختلفًا.", true); return; }
+    if (tplList().some(function (x) { return x.id !== editing && ckey(x.name) === ckey(name); })) { say("tpFormMsg", "يوجد رسالة بنفس الاسم. اختر اسمًا مختلفًا.", true); return; }
     try {
       if (editing) { var cur = tplList().filter(function (x) { return x.id === editing; })[0]; if (!cur) throw biz("هذه الرسالة لم تعد موجودة."); await patch(cur, { name: name, text: text }); }
       else await create({ kind: "msgtpl", name: name, text: text });
@@ -3023,8 +3064,8 @@ document.documentElement.lang = "ar";
     return n;
   }
   function passes(c) {
-    var q = norm(state.cu.q);
-    if (q && ![c.name, c.phone, c.address].some(function (x) { return norm(x).indexOf(q) >= 0; })) return false;
+    var q = ckey(state.cu.q);
+    if (q && ![c.name, c.phone, c.address].some(function (x) { return ckey(x).indexOf(q) >= 0; })) return false;
     for (var col in state.cu.filters) {
       var sel = state.cu.filters[col];
       if (!valsOf(c, col).some(function (v) { return sel[v]; })) return false;
@@ -3054,7 +3095,7 @@ document.documentElement.lang = "ar";
       var name = nm.value.trim(), phone = toEn(ph.value).trim(), addr = ad.value.trim(), notes = nt.value.trim();
       function bad(t) { msg.className = "msg err"; msg.textContent = t; }
       if (!name) { bad("اكتب اسم العميل."); return; }
-      if (K("customer").some(function (x) { return !x.deleted && (!c.doc || x.id !== c.doc.id) && norm(x.name) === norm(name); })) { bad("هذا الاسم مسجّل لعميل آخر."); return; }
+      if (K("customer").some(function (x) { return !x.deleted && (!c.doc || x.id !== c.doc.id) && ckey(x.name) === ckey(name); })) { bad("هذا الاسم مسجّل لعميل آخر."); return; }
       if (save.disabled) return;
       save.disabled = true;
       try {
@@ -3131,7 +3172,7 @@ document.documentElement.lang = "ar";
       var lab = h("label", { class: "fi" }, cb, h("span", { text: def.id === "date" && v !== "—" ? dateLabel(v) : v }));
       checks.push({ v: v, cb: cb, lab: lab }); list.appendChild(lab);
     });
-    q.addEventListener("input", function () { var k = norm(q.value); checks.forEach(function (x) { x.lab.hidden = k && norm(x.lab.textContent).indexOf(k) < 0; }); });
+    q.addEventListener("input", function () { var k = ckey(q.value); checks.forEach(function (x) { x.lab.hidden = k && ckey(x.lab.textContent).indexOf(k) < 0; }); });
     function setAll(on) { checks.forEach(function (x) { if (!x.lab.hidden) x.cb.checked = on; }); apply(); }
     box.appendChild(h("div", { class: "fpanel" },
       h("div", { class: "party", text: "تصفية وترتيب: " + def.label }),
@@ -3149,7 +3190,7 @@ document.documentElement.lang = "ar";
     ev.preventDefault(); if (debounce(ev)) return;
     var name = $("cuName").value.trim(), phone = toEn($("cuPhone").value).trim(), addr = $("cuAddr").value.trim(), notes = $("cuNotes").value.trim();
     if (!name) { say("cuFormMsg", "اكتب اسم العميل.", true); $("cuName").focus(); return; }
-    if (custBook().some(function (c) { return norm(c.name) === norm(name); })) { say("cuFormMsg", "هذا العميل موجود بالفعل في القائمة.", true); return; }
+    if (custBook().some(function (c) { return ckey(c.name) === ckey(name); })) { say("cuFormMsg", "هذا العميل موجود بالفعل في القائمة.", true); return; }
     var same = digits(phone) ? custBook().filter(function (c) { return digits(c.phone) === digits(phone); })[0] : null;
     if (same) { say("cuFormMsg", "هذا الرقم مسجّل للعميل «" + same.name + "».", true); return; }
     try {
@@ -3188,7 +3229,7 @@ document.documentElement.lang = "ar";
     if (!st.un) return;
     var live = {}; all.forEach(function (g) { live[g.key] = true; });
     Object.keys(st.unSel).forEach(function (k) { if (!live[k]) delete st.unSel[k]; });
-    var q = norm(st.unQ), shown = all.filter(function (g) { return !q || norm(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0; });
+    var q = ckey(st.unQ), shown = all.filter(function (g) { return !q || ckey(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0; });
     var list = $("unList"); list.textContent = "";
     shown.slice(0, st.unLimit).forEach(function (g) {
       var cb = h("input", { type: "checkbox" }); cb.checked = !!st.unSel[g.key];
@@ -3207,8 +3248,8 @@ document.documentElement.lang = "ar";
   $("unToggle").addEventListener("click", function () { state.cu.un = !state.cu.un; renderUnnamed(); });
   $("unSearch").addEventListener("input", function () { state.cu.unQ = $("unSearch").value; state.cu.unLimit = 40; renderUnnamed(); });
   $("unAll").addEventListener("click", function () {
-    var q = norm(state.cu.unQ);
-    unnamedUnits().forEach(function (g) { if (!q || norm(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0) state.cu.unSel[g.key] = true; });
+    var q = ckey(state.cu.unQ);
+    unnamedUnits().forEach(function (g) { if (!q || ckey(g.text + " " + dateLabel(g.date)).indexOf(q) >= 0) state.cu.unSel[g.key] = true; });
     renderUnnamed();
   });
   $("unNone").addEventListener("click", function () { state.cu.unSel = {}; renderUnnamed(); });
@@ -3240,8 +3281,104 @@ document.documentElement.lang = "ar";
     }
   });
   function renderCustomers() {
-    fillCustNames(); renderCuTop(); renderTpls(); renderCustForm(); renderCustTable(); drawFilter(); renderUnnamed();
+    fillCustNames(); renderCuTop(); renderTpls(); renderCustForm(); renderCustTable(); drawFilter(); renderUnnamed(); refreshHints();
   }
+
+
+  /* ---------- pick-from-list fields ----------
+     A native datalist only shows after you type, and a name written slightly differently becomes a new customer.
+     These fields open the saved choices as soon as they are tapped (filtered while typing); a customer field also says
+     whether the typed name is registered, and offers similar saved names. Matching ignores hamza/ة/ى differences. */
+  var HINTS = [];
+  function refreshHints() { (HINTS || []).forEach(function (f) { f(); }); }
+  function lev(a, b) {
+    if (a === b) return 0;
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    var prev = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      var cur = [i];
+      for (j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  function similarCusts(k, book) {
+    if (k.length < 2) return [];
+    var kw = k.split(" ").sort().join(" ");
+    return book.map(function (c) {
+      var ck = ckey(c.name), sc = 0;
+      if (!ck) return null;
+      if (ck.split(" ").sort().join(" ") === kw) sc = 1;
+      else if (k.length >= 3 && (ck.indexOf(k) >= 0 || k.indexOf(ck) >= 0)) sc = 2;
+      else if (lev(ck, k) <= (Math.max(ck.length, k.length) >= 7 ? 2 : 1)) sc = 3;
+      return sc ? { c: c, sc: sc } : null;
+    }).filter(Boolean).sort(function (a, b) { return a.sc - b.sc; }).map(function (x) { return x.c; });
+  }
+  function fireInput(inp) {
+    inp.dispatchEvent(new Event("input", { bubbles: true }));
+    inp.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  function attachCombo(inp, itemsFn) {
+    var wrap = h("div", { class: "cbwrap" }), box = h("div", { class: "cblist", role: "listbox" }), skip = false;
+    inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp); wrap.appendChild(box); box.hidden = true;
+    inp.setAttribute("autocomplete", "off"); inp.removeAttribute("list");
+    function close() { box.hidden = true; box.textContent = ""; }
+    function pick(it) { skip = true; inp.value = it.value; fireInput(inp); skip = false; close(); inp.blur(); }
+    function draw() {
+      if (skip) return;
+      var k = ckey(inp.value), all = itemsFn(), list = k ? all.filter(function (it) { return ckey(it.value).indexOf(k) >= 0; }) : all;
+      box.textContent = "";
+      if (!list.length || (list.length === 1 && ckey(list[0].value) === k)) { box.hidden = true; return; }
+      list.slice(0, 60).forEach(function (it) {
+        var row = h("div", { class: "cbitem", role: "option" }, h("span", { text: it.value }), it.sub ? h("small", { text: it.sub }) : null);
+        row.addEventListener("click", function () { pick(it); });
+        box.appendChild(row);
+      });
+      box.hidden = false;
+    }
+    box.addEventListener("mousedown", function (e) { e.preventDefault(); });
+    inp.addEventListener("focus", draw); inp.addEventListener("click", draw); inp.addEventListener("input", draw);
+    inp.addEventListener("blur", function () { setTimeout(close, 120); });
+    inp.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+  }
+  function custItems() {
+    var seen = {}, out = [];
+    custBook().concat(K("contact")).forEach(function (c) {
+      var k = ckey(c.name); if (!k || seen[k]) return; seen[k] = 1;
+      out.push({ value: c.name, sub: c.phone || "" });
+    });
+    return out.sort(function (a, b) { return a.value.localeCompare(b.value, "ar"); });
+  }
+  function custHint(inp, hint) {
+    var v = inp.value.trim(); hint.textContent = "";
+    if (!v) return;
+    var k = ckey(v), book = custBook(), hit = book.filter(function (c) { return ckey(c.name) === k; })[0];
+    if (hit) { hint.appendChild(h("span", { class: "ok", text: "✓ عميل مسجّل" + (hit.count ? " · " + hit.count + (hit.count === 1 ? " عملية شراء" : " عمليات شراء") : "") + (hit.phone ? " · " + hit.phone : "") })); return; }
+    var sim = similarCusts(k, book).slice(0, 3);
+    if (sim.length) {
+      hint.appendChild(h("span", { text: "هل تقصد:" }));
+      sim.forEach(function (c) {
+        hint.appendChild(h("button", { type: "button", class: "mini", text: c.name + (c.phone ? " · " + c.phone : ""), onclick: function () { inp.value = c.name; fireInput(inp); } }));
+      });
+      hint.appendChild(h("span", { class: "new", text: "أو سيُسجَّل «" + v + "» عميلًا جديدًا." }));
+      return;
+    }
+    hint.appendChild(h("span", { class: "new", text: "عميل جديد: سيُسجَّل عند الحفظ." }));
+  }
+  function attachCust(id) {
+    var inp = $(id); attachCombo(inp, custItems);
+    var hint = h("div", { class: "hint cbhint", "aria-live": "polite" });
+    inp.parentNode.parentNode.appendChild(hint);
+    function upd() { custHint(inp, hint); }
+    ["input", "change", "blur"].forEach(function (ev) { inp.addEventListener(ev, upd); });
+    HINTS.push(upd);
+  }
+  function dlItems(id) { return function () { return Array.prototype.map.call($(id).options, function (o) { return { value: o.value, sub: o.getAttribute("data-sub") || "" }; }); }; }
+  ["saleCust", "bCust", "unName"].forEach(attachCust);
+  attachCombo($("saleProduct"), dlItems("prodNames"));
+  attachCombo($("purName"), dlItems("matNames"));
 
   /* ---------- net profit view ---------- */
   state.period = "all"; state.pfFrom = ""; state.pfTo = "";
